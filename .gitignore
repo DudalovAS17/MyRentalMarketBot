@@ -1,0 +1,21 @@
+# virtual environments
+.venv/
+venv/
+
+# secrets
+.env
+*.env
+.env.*
+
+# databases
+db/*.db
+db/*.sqlite3
+*.db
+*.sqlite3
+
+# python
+__pycache__/
+*.pyc
+
+# pycharm
+.idea/
