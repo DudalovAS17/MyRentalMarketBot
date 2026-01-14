@@ -6,6 +6,8 @@ from aiogram.types import Message, CallbackQuery
 
 from services.user_service import UserService
 
+from utils.functions import deny
+
 logger = logging.getLogger(__name__)
 
 
@@ -19,65 +21,85 @@ class RegistrationCheckMiddleware(BaseMiddleware):
     🔹 Если всё ок — добавляет `user` в data
     """
 
-    def __init__(self, user_service: UserService, skip_commands: tuple[str, ...] = ("/start", "/register")):
+    def __init__(self, user_service: UserService): # , skip_commands: tuple[str, ...] = ("/start", "/register")
         super().__init__()
         self.user_service = user_service
-        self.skip_commands = skip_commands  # команды, которые пропускаются без проверки
+        #self.skip_commands = skip_commands  # команды, которые пропускаются без проверки
 
     async def __call__(
         self,
         handler: Callable[[Union[Message, CallbackQuery], Dict[str, Any]], Awaitable[Any]],
+            # следующий обработчик в цепочке (следующий middleware или уже хендлер)
         event: Union[Message, CallbackQuery],
-        data: Dict[str, Any], # DI-контейнер (в него можно докладывать переменные, которые затем будут инжектиться в хендлер как параметры)
+        data: Dict[str, Any], # DI-контейнер (в него можно докладывать переменные,
+            # которые затем будут инжектиться в хендлер как параметры - user, user_service, и т.д.)
     ) -> Any:
         """Основная точка входа в middleware"""
 
         # 🧠 Определяем Telegram ID пользователя
         user_id = getattr(event.from_user, "id", None)
         if not user_id:
-            return await handler(event, data)
+            logger.warning("[Middleware] event without user_id, blocked")
+            return None
 
-        # 1️⃣ Пропускаем команды /start и /register без проверки
-        if isinstance(event, Message) and event.text in self.skip_commands:
+        # 1️⃣ Пропускаем команду /start без проверки
+        if isinstance(event, Message) and event.text and event.text.startswith("/start"):
             return await handler(event, data)
-        # Чтобы новые пользователи могли вызвать /start или /register без «предварительной регистрации»,
-        # эти команды не блокируем
+        # Чтобы новые пользователи могли вызвать /start без «предварительной регистрации»
 
-        # 2️⃣ Пропускаем любые сообщения, содержащие контакт
+        # 2️⃣ Пропускаем любые сообщения, содержащие контакт (иначе регистрацию никогда не завершить.)
         if isinstance(event, Message) and event.contact:
             return await handler(event, data)
 
-        # 🧩 Проверяем наличие пользователя в базе
         user = await self.user_service.get_by_telegram_id(user_id)
 
+        # deny() - цель: “остановить цепочку и объяснить пользователю почему”
+
+        # 🧩 Проверяем наличие пользователя в базе
         if not user:
             logger.info(f"[Middleware] Пользователь {user_id} не найден → предложить регистрацию")
-            await event.answer(
-                "⚠️ Для доступа к функциям необходимо пройти регистрацию.\n"
-                "Введите /start, чтобы зарегистрироваться."
-            ) # ❌ Ваш профиль не найден. Пожалуйста, зарегистрируйтесь через /start.
-            return  # Прерываем выполнение цепочки — хендлер не вызывается
+            await deny(event,
+                        "⚠️ Для доступа к функциям необходимо пройти регистрацию.\n"
+                        "Введите /start, чтобы зарегистрироваться."
+                        ) # ❌ Ваш профиль не найден. Пожалуйста, зарегистрируйтесь через /start.
+            return None # Прерываем выполнение цепочки — хендлер не вызывается
 
         # 🚫 Проверка блокировки
         if getattr(user, "is_blocked", False):
             logger.warning(f"[Middleware] Заблокированный пользователь {user_id} попытался выполнить действие")
-            await event.answer(
-                "🚫 Ваша учётная запись заблокирована.\n"
-                "Если вы считаете, что это ошибка — обратитесь в поддержку."
-            )
-            return
+            await deny(event,
+                       "🚫 Ваша учётная запись заблокирована.\n"
+                        "Если вы считаете, что это ошибка — обратитесь в поддержку."
+                       )
+            return None
 
-
-        # 🚫 Проверка подтверждения телефона (нужно ли тут?)
+        # 🚫 Проверка подтверждения телефона (без телефона — не даём пользоваться ботом)
         if not getattr(user, "phone", None):
             logger.info(f"[Middleware] Пользователь {user_id} не завершил регистрацию (нет телефона)")
-            await event.answer(
-                "📱 Пожалуйста, подтвердите номер телефона, чтобы продолжить.\n"
-                "Введите /start и завершите регистрацию."
-            )
-            return
+            await deny(event,
+                       "📱 Пожалуйста, подтвердите номер телефона, чтобы продолжить.\n"
+                       "Введите /start и завершите регистрацию."
+                       )
+            return None
+        # Если хотим, чтобы некоторые команды работали без телефона, нужно расширять skip_commands
 
         # ✅ Всё хорошо → добавляем пользователя в data
+        """
+        Middleware кладёт значения в data (обычный dict).
+        Когда вызывается хендлер, aiogram смотрит на имена параметров функции и пытается найти в data ключи 
+        с такими же именами.
+        
+        aiogram делает примерно так (упрощённо):
+            видит параметр item_service → ищет data["item_service"]
+            видит параметр user → ищет data["user"]
+            видит параметр callback → это сам event
+        Поэтому у тебя user подставляется автоматически.
+        (DI — это Dependency Injection, внедрение зависимостей)
+        
+        ✅ Вывод: имя параметра должно совпадать с ключом в data
+        
+        Но помни! data — общий мешок, в который пишут разные middleware, конфликтов избегай
+        """
         data["user"] = user
 
         # ⚙️ Передаём управление хендлеру

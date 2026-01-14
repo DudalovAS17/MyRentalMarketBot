@@ -21,6 +21,7 @@ from handlers.auth import auth_router
 from handlers.item import items_router
 from handlers.rental import rental_router
 from handlers.search import search_router
+from handlers.admin import admin_router
 from services.photo_service import PhotoService
 from services.review_service import ReviewService
 # search_router и т.д. позже
@@ -39,6 +40,9 @@ from db.repositories.photo import PhotoRepository
 
 from middlewares.services import ServicesMiddleware
 from middlewares.registration_check import RegistrationCheckMiddleware
+from middlewares.admin_check import AdminCheckMiddleware
+
+from config import get_admin_ids
 
 logger = logging.getLogger(__name__)
 
@@ -78,17 +82,21 @@ async def main():
     dp = Dispatcher(storage=MemoryStorage())
 
     # Подключаем роутеры
-    # сначала FSM-хендлеры
+    # 1) Самые конкретные FSM/сценарии
     dp.include_router(items_router)
     dp.include_router(category_router)
-
-    dp.include_router(auth_router)
     dp.include_router(rental_router)
 
-    # остальные
+    # 2) Профиль/регистрация
+    dp.include_router(auth_router)
+
+    # 3) Поиск/прочие
     dp.include_router(search_router)
 
-    # потом уже базовые универсальные
+    # 4) Админка (достаточно конкретная, и её нельзя отдавать базовому “catch-all”)
+    dp.include_router(admin_router)
+
+    # 5) Базовый роутер — строго последним
     dp.include_router(base_router)
 
     # Сессия для репозиториев
@@ -136,9 +144,15 @@ async def main():
         review_service=review_service,
     ))
 
+    admin_ids = get_admin_ids()
     # Подключаем middleware регистрации — проверяет доступ
     dp.message.middleware(RegistrationCheckMiddleware(user_service))
     dp.callback_query.middleware(RegistrationCheckMiddleware(user_service))
+    # RegistrationCheckMiddleware — глобальный: пусть проверяет регистрацию/блокировку везде
+
+    admin_router.message.middleware(AdminCheckMiddleware(admin_ids))
+    admin_router.callback_query.middleware(AdminCheckMiddleware(admin_ids))
+    # AdminCheckMiddleware — точечный: проверяет админство только в админских хендлерах
 
     # Запуск
     logger.info("Бот запущен")

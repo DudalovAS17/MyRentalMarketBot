@@ -415,7 +415,7 @@ async def text_message_handler(
         logger.exception(f"[MainMenu] Ошибка при выполнении команды {text!r}: {e}")
         await message.answer("⚠️ Произошла ошибка. Попробуйте позже.")
 
-# Поддержка - пока сырая
+# Поддержка - пока сырая (FSM должно быть?)
 async def ask_support_message(message: Message, state: FSMContext):
     support_request_text = (
         "📞 <b>Поддержка</b>\n\n"
@@ -433,7 +433,7 @@ async def ask_support_message(message: Message, state: FSMContext):
     # Устанавливаем состояние FSM для поддержки
     await state.set_state(SupportStates.waiting_message)
 
-# пока сырая
+# Обработка поддержки? - пока сырая
 @support_router.message(F.text, state="*")
 async def process_support_message(message: Message, state: FSMContext, user):
     """Обрабатывает сообщение пользователя для службы поддержки"""

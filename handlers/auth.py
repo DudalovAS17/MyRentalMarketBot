@@ -9,7 +9,7 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from services.user_service import UserService
 from handlers.base import show_main_menu
 from schemas.user import UserCreate, UserUpdate
-#from utils.required import registration_required
+from utils.functions import send_or_edit
 from states.user import ProfileEditStates
 from keyboards.user_kb import profile_settings_back_keyboard, get_profile_keyboard
 
@@ -171,7 +171,7 @@ async def process_phone_number(
         )
 
         await state.clear() # ??? чтобы FSM после регистрации гарантированно завершался
-        await show_main_menu(message, user_service, user=db_user)
+        await show_main_menu(message, user=db_user)
 
     except Exception as e:
         logger.error(f"Ошибка при обработке номера телефона {phone_number} для {tg_user.id}: {e}", exc_info=True)
@@ -187,13 +187,6 @@ async def profile(
     user # — из RegistrationCheckMiddleware
 ):
     """Показывает профиль пользователя с информацией и статистикой"""
-
-    # Эта логика убрана в Миддлеваре
-    #telegram_id = event.from_user.id
-    #user = await user_service.get_by_telegram_id(telegram_id)
-    #if not user:
-    #    await event.answer("❌ Ваш профиль не найден. Пожалуйста, зарегистрируйтесь через /start.")
-    #    return
 
     rating_stars = "★" * int(user.rating) + "☆" * (5 - int(user.rating))
     # Формируем сообщение профиля
@@ -230,18 +223,7 @@ async def profile(
 
     profile_message += "\n\nВыберите действие:"
 
-    if isinstance(event, CallbackQuery):
-        try:
-            await event.message.edit_text(
-                profile_message,
-                reply_markup=get_profile_keyboard(), # user_data - нужно будет сделать или нет?
-                parse_mode="HTML"
-            )
-        except TelegramBadRequest:
-            await event.message.answer(profile_message, reply_markup=get_profile_keyboard(), parse_mode="HTML")
-            # event.reply (reply отвечает именно на текст пользователя, answer — скорее как «новое сообщение»)
-    else:
-        await event.answer(profile_message, reply_markup=get_profile_keyboard(), parse_mode="HTML")
+    await send_or_edit(event, profile_message, get_profile_keyboard())
 
 #==================================== Кнопки Профиля ======================================
 @auth_router.callback_query(F.data == "profile_stats") # show_statistics
@@ -254,7 +236,7 @@ async def show_statistics(
 
     # Формируем сообщение статистики
     stats_message = (
-        "📊 *Ваша статистика*\n\n"
+        "📊 <b>Ваша статистика</b>\n\n"
         f"• 📦 Сдано вещей в аренду: x\n" #*{user_data.get('items_rented_out', 0)}* - x
         f"• 🧰 Арендовано вещей: x\n" #*{user_data.get('items_rented', 0)}* - x
         f"• 💰 Заработано (ориентировочно): x ₽\n" # *~{user_data.get('total_earnings', 0)}* - x
@@ -270,21 +252,8 @@ async def show_statistics(
         ]
     )
 
-    try:
-        await callback.message.edit_text(
-            stats_message,
-            reply_markup=keyboard,
-            parse_mode="HTML"
-        )
-    except TelegramBadRequest:
-        # Сообщение было изменено ранее → отправляем новое
-        await callback.message.answer(
-            stats_message,
-            reply_markup=keyboard,
-            parse_mode="HTML"
-        )
-
-    await callback.answer()  # убирает "часики"
+    await send_or_edit(callback, stats_message, keyboard)
+    await callback.answer()
 
 @auth_router.callback_query(F.data == "achievements") # show_achievements
 async def show_achievements(
@@ -297,7 +266,7 @@ async def show_achievements(
 
 
     # Формируем сообщение с достижениями
-    achievements_message = "🏆 *Ваши достижения*\n\n"
+    achievements_message = "🏆 <b>Ваши достижения</b>\n\n"
     achievements = [  # пока на шару расставил True\False
         ("Первая сдача", True),  # user_data.get("achievement_first_rental_out", False)
         ("Первая аренда", False),  # user_data.get("achievement_first_rental_in", False)
@@ -331,19 +300,7 @@ async def show_achievements(
     )
 
     # Отправка результата
-    try:
-        await callback.message.edit_text(
-            achievements_message,
-            reply_markup=keyboard,
-            parse_mode="HTML"
-        )
-    except TelegramBadRequest:
-        await callback.message.answer(
-            achievements_message,
-            reply_markup=keyboard,
-            parse_mode="HTML"
-        )
-
+    await send_or_edit(callback, achievements_message, keyboard)
     await callback.answer()
 
 @auth_router.callback_query(F.data == "back_to_profile_settings")
@@ -370,20 +327,7 @@ async def show_settings(
         ]
     )
 
-    try:
-        await callback.message.edit_text(
-            settings_message,
-            reply_markup=keyboard,
-            parse_mode="HTML"
-        )
-    except TelegramBadRequest:
-        # fallback — отправляем новое сообщение, если старое нельзя изменить
-        await callback.message.answer(
-            settings_message,
-            reply_markup=keyboard,
-            parse_mode="HTML"
-        )
-
+    await send_or_edit(callback, settings_message, keyboard)
     await callback.answer()
 
 @auth_router.callback_query(F.data == "profile_change_phone") # change_phone
@@ -471,10 +415,8 @@ async def show_notification_settings(
     )
 
     # 📌 Определяем, как ответить — message или callback
-    if isinstance(event, CallbackQuery):
-        await event.message.edit_text(text, reply_markup=keyboard, parse_mode="HTML")
-    else:
-        await event.answer(text, reply_markup=keyboard, parse_mode="HTML")
+    await send_or_edit(event, text, keyboard)
+    await event.answer() # ?
 
 # Редактирование профиля
 @auth_router.callback_query(F.data == "settings_edit_profile")
@@ -505,11 +447,8 @@ async def show_edit_profile_settings(
     )
 
     # 💬 Определяем способ ответа
-    if isinstance(event, CallbackQuery):
-        await event.answer()  # закрываем "часики"
-        await event.message.edit_text(text, reply_markup=keyboard, parse_mode="HTML")
-    else:
-        await event.answer(text, reply_markup=keyboard, parse_mode="HTML")
+    await send_or_edit(event, text, keyboard)
+    await event.answer()
 
 # Конфиденциальность
 @auth_router.callback_query(F.data == "settings_privacy")
@@ -546,22 +485,9 @@ async def show_privacy_settings(
         ]
     )
 
-    await callback.answer()
-
     # ✏️ Безопасное редактирование
-    try:
-        await callback.message.edit_text(
-            message_text,
-            reply_markup=keyboard,
-            parse_mode="HTML"
-        )
-    except TelegramBadRequest:
-        # fallback
-        await callback.message.answer(
-            message_text,
-            reply_markup=keyboard,
-            parse_mode="HTML"
-        )
+    await send_or_edit(callback, message_text, keyboard)
+    await callback.answer()
 
 #====================================Кнопки ИЗМЕНЕНИЯ======================================
 
