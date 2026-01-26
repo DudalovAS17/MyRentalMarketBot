@@ -16,7 +16,7 @@ async def search_in_all_categories(callback: CallbackQuery, state: FSMContext):
     Показываем популярные объявления из разных категорий"""
 
 
-
+"""
 from typing import Dict, Any, List, Optional
 
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
@@ -29,7 +29,7 @@ from constants import MAIN_MENU, SEARCH_RESULTS, ITEM_DETAILS, RENT_DATES
 
 
 def search_items(update: Update, context: CallbackContext) -> int:
-    """Обрабатывает запрос поиска товаров"""
+    ""Обрабатывает запрос поиска товаров""
     if update.message:
         query = update.message.text.strip()
 
@@ -61,7 +61,7 @@ def search_items(update: Update, context: CallbackContext) -> int:
 
 
 def show_search_results(update: Update, context: CallbackContext, items: List[Dict[str, Any]], query: str) -> int:
-    """Показывает результаты поиска"""
+    ""Показывает результаты поиска""
     if not items:
         # Ничего не найдено
         keyboard = [
@@ -125,7 +125,7 @@ def show_search_results(update: Update, context: CallbackContext, items: List[Di
 
 
 def process_search_callback(update: Update, context: CallbackContext) -> int:
-    """Обрабатывает callback-запросы в разделе поиска"""
+    ""Обрабатывает callback-запросы в разделе поиска""
     query = update.callback_query
     callback_data = query.data
 
@@ -217,7 +217,7 @@ def process_search_callback(update: Update, context: CallbackContext) -> int:
 
 
 def show_item_details(update: Update, context: CallbackContext, item_id: str) -> int:
-    """Показывает детальную информацию о выбранном объявлении"""
+    ""Показывает детальную информацию о выбранном объявлении""
     query = update.callback_query
 
     try:
@@ -277,7 +277,7 @@ def show_item_details(update: Update, context: CallbackContext, item_id: str) ->
 
 
 def process_item_details_callback(update: Update, context: CallbackContext) -> int:
-    """Обрабатывает действия с детальной страницы объявления"""
+    ""Обрабатывает действия с детальной страницы объявления""
     query = update.callback_query
     callback_data = query.data
 
@@ -363,7 +363,7 @@ def process_item_details_callback(update: Update, context: CallbackContext) -> i
 
 
 def rent_item(update: Update, context: CallbackContext, item_id: str) -> int:
-    """Начинает процесс аренды выбранного объявления"""
+    ""Начинает процесс аренды выбранного объявления""
     query = update.callback_query
 
     try:
@@ -411,3 +411,5 @@ def rent_item(update: Update, context: CallbackContext, item_id: str) -> int:
         logger.error(f"Ошибка при начале аренды объявления {item_id}: {e}")
         query.answer("❌ Произошла ошибка при обработке запроса")
         return ITEM_DETAILS
+
+"""

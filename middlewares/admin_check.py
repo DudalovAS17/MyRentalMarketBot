@@ -36,6 +36,11 @@ class AdminCheckMiddleware(BaseMiddleware):
         if user is not None:
             tg_id = getattr(user, "telegram_id", None)
 
+        print("ADMIN CHECK")
+        print("admin_ids =", self.admin_ids)
+        print("event.from_user.id =", event.from_user.id)
+        print("user from data =", data.get("user"))
+
         # Но на всякий случай умеет брать tg_id из event.from_user.id.
         #if tg_id is None: # and getattr(event, "from_user", None):
         #    tg_id = getattr(event.from_user, "id", None)
@@ -47,6 +52,7 @@ class AdminCheckMiddleware(BaseMiddleware):
             text = "⛔ Доступ запрещён. Раздел доступен только администраторам."
 
             await deny(event, text, alert_text="Нет доступа", show_alert=True)
+            return None # ✅ КРИТИЧНО: прерываем цепочку, handler не вызывается
 
         return await handler(event, data)
 

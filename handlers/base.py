@@ -18,7 +18,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from handlers.category import show_categories
 from handlers.item import show_my_items, start_create_item_from_menu
 from handlers.rental import view_my_rentals
-from handlers.auth import profile, show_statistics, show_achievements, show_settings
+#from handlers.auth import profile, show_statistics, show_achievements, show_settings - циклический повтор! ошибка
 
 from keyboards.main_kb import get_main_menu_keyboard
 from utils.functions import send_reply
@@ -372,7 +372,7 @@ async def text_message_handler(
     try:
         # 📞 Поддержка — особая логика (отдельное состояние FSM)
         if text == "📞 Поддержка":
-            await ask_support_message(message, state)
+            #await ask_support_message(message, state)
             return
 
         # 🔔 Уведомления — отдельная ветка (не FSM)
@@ -390,11 +390,11 @@ async def text_message_handler(
             #"📱 Изменить номер": lambda: request_phone_number_change(message, state),
 
             # Служебные разделы
-            "👤 Профиль": lambda: profile(message, user_service),
-            "📋 Мои сделки": lambda: view_my_rentals(message, state),
-            "⚙️ Настройки": lambda: show_settings(state),
-            "📊 Статистика": lambda: show_statistics(state),
-            "🏆 Достижения": lambda: show_achievements(state),
+            #"👤 Профиль": lambda: profile(message, user_service),
+            #"📋 Мои сделки": lambda: view_my_rentals(message, state),
+            #"⚙️ Настройки": lambda: show_settings(state),
+            #"📊 Статистика": lambda: show_statistics(state),
+            #"🏆 Достижения": lambda: show_achievements(state),
 
             # Системные действия
             "❓ Помощь": lambda: help_command(message),
@@ -410,11 +410,12 @@ async def text_message_handler(
 
     # Безопасный запуск действия - можно так
     #try:
-    #    await action()
+        await action()
     except Exception as e:
         logger.exception(f"[MainMenu] Ошибка при выполнении команды {text!r}: {e}")
         await message.answer("⚠️ Произошла ошибка. Попробуйте позже.")
 
+"""
 # Поддержка - пока сырая (FSM должно быть?)
 async def ask_support_message(message: Message, state: FSMContext):
     support_request_text = (
@@ -436,7 +437,7 @@ async def ask_support_message(message: Message, state: FSMContext):
 # Обработка поддержки? - пока сырая
 @support_router.message(F.text, state="*")
 async def process_support_message(message: Message, state: FSMContext, user):
-    """Обрабатывает сообщение пользователя для службы поддержки"""
+    ""Обрабатывает сообщение пользователя для службы поддержки""
     user_message = message.text
 
     user_id = user.id
@@ -480,3 +481,4 @@ async def process_support_message(message: Message, state: FSMContext, user):
 
     # Возвращаем пользователя в главное меню
     return await show_main_menu(message, user)
+"""

@@ -2,6 +2,7 @@ import logging
 from typing import Callable, Optional, List #, Dict, Any
 #from datetime import datetime
 #from decimal import Decimal
+from sqlalchemy import desc
 
 from sqlalchemy import update, select, or_
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -58,6 +59,21 @@ class RentalRepository:
                 or_(Rental.renter_id == user_id, Rental.owner_id == user_id)
             )
             .order_by(Rental.created_at.desc()) # добавил
+            )
+            res = await s.execute(stmt)
+            return list(res.scalars().all())
+
+    # для admin-панели
+    async def list_recent(self, *, limit: int, offset: int = 0) -> List[Rental]:
+        """Последние сделки по ..."""
+        async with self._sf() as s:
+            stmt = (
+                select(Rental)
+                .order_by(Rental.created_at.desc()) # по дате создания
+                #.order_by(desc(Rental.id)) # по убыванию id
+                # .order_by(Rental.created_at.desc(), Rental.id.desc()) # Более надёжный вариант
+                .limit(limit)
+                .offset(offset)
             )
             res = await s.execute(stmt)
             return list(res.scalars().all())

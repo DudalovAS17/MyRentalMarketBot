@@ -14,7 +14,7 @@ from states.user import ProfileEditStates
 from keyboards.user_kb import profile_settings_back_keyboard, get_profile_keyboard
 
 logger = logging.getLogger(__name__)
-auth_router = Router(name="auth")
+auth_router = Router() # Router(name="auth")
 
 
 async def start_registration(
