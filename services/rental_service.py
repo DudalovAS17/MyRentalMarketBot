@@ -2,13 +2,19 @@ import logging
 from datetime import datetime
 from typing import List, Optional
 
+
+
 from services.item_service import ItemService
 from services.user_service import UserService
 from db.repositories.rental import RentalRepository
 from schemas.rental import RentalCreate, RentalUpdate, RentalOut
 from db.models.rental import RentalStatus #,  Rental
 
+from utils.rental_status import is_terminal_status, is_open_status
+from utils.domain_exceptions import ItemNotAvailable
+
 logger = logging.getLogger(__name__)
+
 
 class RentalService:
     """Внутренний метод смены статуса.
@@ -334,6 +340,37 @@ class RentalService:
         #if not ok:
         #    raise ValueError("Нельзя открыть спор: нет прав или статус уже изменился")
         return ok
+
+
+
+    # ==================   ADMIN MANAGEMENT — админка  ===============================
+
+    async def get_open_rental_for_item(self, item_id: int): # -> Optional[RentalOut]
+        """Возвращает первую открытую аренду для item_id или None"""
+        rentals = await self.rental_repo.get_last_open_by_item_id(item_id)
+        for r in rentals:
+            if is_open_status(r.status):
+                return r # RentalOut.model_validate(r)
+        return None
+
+    # Для доменной проверки (будет ниже) лучше работать с моделью БД Rental, без Pydantic-валидации (RentalOut).
+    # Это быстрее и проще, и меньше шансов на “почему end_date не того типа”.
+
+    async def ensure_item_available(self, item_id: int) -> None:
+        """Доменная гарантия: item нельзя арендовать, если есть открытая аренда"""
+        r = await self.get_open_rental_for_item(item_id)
+        if not r:
+            return
+
+        status_val = getattr(r.status, "value", str(r.status))
+        end_date = getattr(r, "end_date", None)
+
+        raise ItemNotAvailable(
+            item_id=item_id,
+            rental_id=r.id,
+            status=str(status_val),
+            end_date=str(end_date) if end_date else None,
+        )
 
 
 # возможный будущий апгрейд этого сервиса

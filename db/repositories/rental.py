@@ -381,6 +381,26 @@ class RentalRepository:
             await s.commit()
             return (res.rowcount or 0) > 0 # True - арендатор подтвердил получение (статус перешёл в ACTIVE)
 
+
+
+
+    async def get_last_open_by_item_id(self, item_id: int) -> List[Rental]:
+        """
+        Возвращает последнюю (по id) НЕ-терминальную аренду для item_id.
+        (терминальность статуса определяем позже в сервисе)
+        """
+        async with self._sf() as s:
+            stmt = (
+                select(Rental)
+                .where(Rental.item_id == item_id)
+                .order_by(desc(Rental.id))
+                #.order_by(Rental.created_at.desc()) # Последние сделки по вещи (для проверки открытых аренд)
+                .limit(10)  # берём небольшой хвост, фильтруем в сервисе
+            )
+            res = await s.execute(stmt)
+            rentals = list(res.scalars().all())
+            return rentals  # сервис выберет первую open
+
 """
     async def get_by_user_id_with_filters(
         self,

@@ -346,6 +346,10 @@ async def unknown_command(message: Message, user): # state: FSMContext, user_ser
     await message.answer(reply_text, reply_markup=get_main_menu_keyboard(user))
 # =============================================================================================
 
+@base_router.callback_query(F.data == "noop")
+async def noop(callback):
+    await callback.answer("Недоступно", show_alert=False)
+
 # ================================== Текстовые сообщения в меню ===============================
 @base_router.message(F.text)
 async def text_message_handler(

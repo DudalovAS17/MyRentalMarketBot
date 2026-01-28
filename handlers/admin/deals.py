@@ -12,7 +12,6 @@ from keyboards.admin_kb import (
 from utils.functions import send_or_edit
 from services.admin_rental_service import AdminRentalService
 
-
 admin_deals_router = Router()
 
 """
@@ -75,8 +74,6 @@ Audit Log - каждое админ-действие логируем:
     entity (rental, rental_id)
     payload (reason/resolution)
     created_at
-
-
 """
 
 async def _show_deals_list(
@@ -109,14 +106,24 @@ async def _show_deals_list(
     await send_or_edit(event, text, kb)
 
 @admin_deals_router.callback_query(F.data == "admin:deals")
-async def admin_deals_list(callback: CallbackQuery, state: FSMContext, admin_rental_service: AdminRentalService, user):
+async def admin_deals_list(
+        callback: CallbackQuery,
+        state: FSMContext,
+        admin_rental_service: AdminRentalService,
+        #user
+):
     """Список последних сделок (страница 1)."""
     #await state.clear()
     await _show_deals_list(callback, admin_rental_service, state, page=1)
     await callback.answer()
 
 @admin_deals_router.callback_query(F.data.startswith("admin:deals:page:"))
-async def admin_deals_page(callback: CallbackQuery, state: FSMContext, admin_rental_service: AdminRentalService, user):
+async def admin_deals_page(
+        callback: CallbackQuery,
+        state: FSMContext,
+        admin_rental_service: AdminRentalService,
+        #user
+):
     """Пагинация списка сделок."""
     try:
         page = int(callback.data.split(":")[-1])
@@ -154,7 +161,11 @@ def _format_deal_details(data: dict) -> str:
     )
 
 @admin_deals_router.callback_query(F.data.startswith("admin:deals:view:"))
-async def admin_deals_view(callback: CallbackQuery, admin_rental_service: AdminRentalService, user):
+async def admin_deals_view(
+        callback: CallbackQuery,
+        admin_rental_service: AdminRentalService,
+        #user
+):
     """Карточка конкретной сделки."""
     try:
         rental_id = int(callback.data.split(":")[-1])
@@ -178,14 +189,23 @@ async def admin_deals_view(callback: CallbackQuery, admin_rental_service: AdminR
 
 
 @admin_deals_router.callback_query(F.data == "admin:deals:by_id") # 🔎 Открыть по ID
-async def admin_deals_open_by_id(callback: CallbackQuery, state: FSMContext, user):
+async def admin_deals_open_by_id(
+        callback: CallbackQuery,
+        state: FSMContext,
+        #user
+):
     """Просим админа ввести ID сделки."""
     await state.set_state(AdminStates.waiting_rental_id)
     await send_or_edit(callback, "Введите ID сделки (число):", None)
     await callback.answer()
 
 @admin_deals_router.message(AdminStates.waiting_rental_id)
-async def admin_deals_process_id(message: Message, state: FSMContext, admin_rental_service: AdminRentalService, user):
+async def admin_deals_process_id(
+        message: Message,
+        state: FSMContext,
+        admin_rental_service: AdminRentalService,
+        #user
+):
     """Обработка введенного ID сделки."""
     raw = (message.text or "").strip()
     if not raw.isdigit():
@@ -207,9 +227,12 @@ async def admin_deals_process_id(message: Message, state: FSMContext, admin_rent
 
     await send_or_edit(message, text, kb)
 
-
 @admin_deals_router.callback_query(F.data.startswith("admin:deals:cancel:")) # 🚫 Отменить сделку
-async def admin_deals_cancel_ask(callback: CallbackQuery, state: FSMContext, user):
+async def admin_deals_cancel_ask(
+        callback: CallbackQuery,
+        state: FSMContext,
+        #user
+):
     """Запрос причины отмены."""
     rental_id = int(callback.data.split(":")[-1])
     await state.set_state(AdminStates.waiting_cancel_reason)
@@ -217,9 +240,13 @@ async def admin_deals_cancel_ask(callback: CallbackQuery, state: FSMContext, use
     await send_or_edit(callback, f"🚫 Укажите причину отмены сделки #{rental_id}:", None)
     await callback.answer()
 
-
 @admin_deals_router.message(AdminStates.waiting_cancel_reason)
-async def admin_deals_cancel_apply(message: Message, state: FSMContext, admin_rental_service: AdminRentalService, user):
+async def admin_deals_cancel_apply(
+        message: Message,
+        state: FSMContext,
+        admin_rental_service: AdminRentalService,
+        user
+):
     data = await state.get_data()
     rental_id = data.get("rental_id")
     reason = (message.text or "").strip()
@@ -243,9 +270,12 @@ async def admin_deals_cancel_apply(message: Message, state: FSMContext, admin_re
 
     await send_or_edit(message, "✅ Отменено.\n\n" + text, kb)
 
-
 @admin_deals_router.callback_query(F.data.startswith("admin:deals:resolve:")) # ✅ Закрыть спор
-async def admin_deals_resolve_ask(callback: CallbackQuery, state: FSMContext, user):
+async def admin_deals_resolve_ask(
+        callback: CallbackQuery,
+        state: FSMContext,
+        #user
+):
     """Запрос текста решения по спору."""
     rental_id = int(callback.data.split(":")[-1])
     await state.set_state(AdminStates.waiting_dispute_resolution)
@@ -253,9 +283,12 @@ async def admin_deals_resolve_ask(callback: CallbackQuery, state: FSMContext, us
     await send_or_edit(callback, f"✅ Введите решение по спору сделки #{rental_id} (кратко):", None)
     await callback.answer()
 
-
 @admin_deals_router.message(AdminStates.waiting_dispute_resolution)
-async def admin_deals_resolve_collect_resolution(message: Message, state: FSMContext, user):
+async def admin_deals_resolve_collect_resolution(
+        message: Message,
+        state: FSMContext,
+        #user
+):
     data = await state.get_data()
     rental_id = int(data.get("rental_id"))
     resolution = (message.text or "").strip()
@@ -277,7 +310,12 @@ async def admin_deals_resolve_collect_resolution(message: Message, state: FSMCon
     )
 
 @admin_deals_router.callback_query(F.data.startswith("admin:deals:resolve_target:"))
-async def admin_deals_resolve_apply_target(callback: CallbackQuery, state: FSMContext, admin_rental_service: AdminRentalService, user):
+async def admin_deals_resolve_apply_target(
+        callback: CallbackQuery,
+        state: FSMContext,
+        admin_rental_service: AdminRentalService,
+        user
+):
     parts = (callback.data or "").split(":")
     if len(parts) < 5:
         await callback.answer("Некорректные данные", show_alert=True)

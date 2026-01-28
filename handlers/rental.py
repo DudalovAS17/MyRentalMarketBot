@@ -21,6 +21,7 @@ from services.user_service import UserService
 from services.rental_service import RentalService
 from services.review_service import ReviewService
 
+from utils.domain_exceptions import ItemNotAvailable
 from keyboards.user_kb import get_review_rating_keyboard
 
 logger = logging.getLogger(__name__)
@@ -35,12 +36,23 @@ DISPUTE_CB = "dispute"
 CANCEL_CB = "cancel"
 BACK_CB = "back"
 
+
+def _format_item_not_available_message(exc: ItemNotAvailable) -> str:
+    end_str = exc.end_date if exc.end_date else "" #exc.end_date.strftime("%d.%m.%Y") if exc.end_date else None
+    # end_str = exc.end_date or None
+    status = exc.status or "—"
+    rental_id = exc.rental_id or "—"
+    if end_str:
+        return f"⛔ Эта вещь уже в аренде до {end_str}. Сделка #{rental_id} статус {status}."
+    return f"⛔ Эта вещь уже в аренде. Сделка #{rental_id} статус {status}."
+
 @rental_router.callback_query(F.data.startswith("rent_item:")) # callback_data=f"rent:{item_id}" (хендлер категории)
 #@rental_router.callback_query(F.data.startswith("back_to_start_date:")) # эта логика у нас также через "rent_item:"
 async def start_rent_process(
     callback: CallbackQuery,
     state: FSMContext,
     item_service: ItemService,
+    rental_service: RentalService,
     user,
 ):
     """Старт процесса аренды"""
@@ -65,6 +77,16 @@ async def start_rent_process(
         )
         logger.warning(f"Владелец пытается арендовать свой товар.")
         return
+
+    #!!!!!!!! стоп: доменная проверка ДО запуска выбора дат !!!!!!!!!!!!!!!
+    # тут не должен быть пользователь (кнопки нет), но это защита от: старых сообщений, параллельных кликов, гонок.
+    try:
+        await rental_service.ensure_item_available(item.id)
+    except ItemNotAvailable as e:
+        # await callback.answer() # нет! ты отправляешь новое сообщение -> Telegram сам уберёт “часики” при answer()
+        await callback.message.answer(_format_item_not_available_message(e))
+        return
+    # !!!!!!!!!!!!-
 
     # 3️⃣ Сохраняем данные в FSM
     await state.update_data(
@@ -419,6 +441,29 @@ async def confirm_rent(
 
         await state.clear()
         return
+
+    #!!!!!!!! жёсткий стоп: доменная проверка перед созданием записи в БД (двойная защита) !!!!!!!!!!!!!!!!!!!!!!!
+    # тут не должен быть пользователь (кнопки нет), но это защита от: старых сообщений, параллельных кликов, гонок.
+    item_id = rent_item["id"]
+    try:
+        await rental_service.ensure_item_available(item_id) # ищет открытую аренду по item_id
+        # если не находит → просто делает return (возвращает управление обратно в confirm_rent без эффекта)
+    except ItemNotAvailable as e:
+        err_text = _format_item_not_available_message(e)
+        if rent_ui_message_id:
+            await callback.bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=rent_ui_message_id,
+                text=err_text,
+                parse_mode="HTML",
+            )
+        else:
+            await callback.message.answer(err_text, parse_mode="HTML")
+
+        # await callback.answer() # нет! ты отправляешь новое сообщение -> Telegram сам уберёт “часики” при answer()
+        await state.clear()
+        return
+    # !!!!!!!!!!!!
 
     # 2️⃣ Создаём сделку через сервис
     try:

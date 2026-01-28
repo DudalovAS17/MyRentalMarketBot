@@ -12,6 +12,8 @@ from keyboards.main_kb import build_category_keyboard
 from services.item_service import ItemService
 from services.category_service import CategoryService
 from services.photo_service import PhotoService
+from services.rental_service import RentalService
+
 #from states.item import ItemCreateStates
 
 logger = logging.getLogger(__name__)
@@ -179,7 +181,8 @@ async def show_item_details_in_subcategory(
     state: FSMContext,
     item_service: ItemService,
     category_service: CategoryService,
-    photo_service: PhotoService
+    photo_service: PhotoService,
+    rental_service: RentalService,
 ) -> None:
     """Просмотр всех деталей конкретного объявления"""
     await callback.answer()
@@ -220,7 +223,14 @@ async def show_item_details_in_subcategory(
 
     # Клавиатура
     keyboard = []
-    if item.is_available:
+    #if item.is_available:
+    open_rental = await rental_service.get_open_rental_for_item(item_id)
+    if open_rental:
+        end_str = open_rental.end_date.strftime("%d.%m.%Y") if open_rental.end_date else None
+        # end_str = getattr(open_rental, "end_date", None)
+        button_text = f"⛔ Занято (до {end_str})" if end_str else "⛔ Занято"
+        keyboard.append([InlineKeyboardButton(text=button_text, callback_data="noop")])
+    else:
         keyboard.append([InlineKeyboardButton(text="🤝 Арендовать", callback_data=f"rent_item:{item_id}")])
     keyboard.append([InlineKeyboardButton(text="📸 Показать все фото", callback_data=f"show_all_photos:{item_id}")])
     keyboard.append([InlineKeyboardButton(text="💬 Написать владельцу", callback_data=f"message_owner:{item_id}")])
