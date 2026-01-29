@@ -127,7 +127,7 @@ async def main():
     review_service = ReviewService(review_repo, rental_repo, user_repo)
     admin_service = AdminActionService(admin_repo)
     admin_rental_service = AdminRentalService(rental_repo, item_service, user_service, admin_service)
-    support_service = SupportService(support_repo, user_service)
+    support_service = SupportService(support_repo)
 
     # DI: сохраняем сервисы в контексте dp
     dp["user_service"] = user_service
