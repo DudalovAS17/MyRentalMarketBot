@@ -80,3 +80,87 @@ def get_admin_dispute_target_keyboard(rental_id: int) -> InlineKeyboardMarkup:
         ]
     )
 # ==============================================================================================================
+
+# ============================================ ADMIN SUPPORT =============================================
+def get_admin_support_list_keyboard(tickets_rows: list[dict], page: int, has_next: bool) -> InlineKeyboardMarkup:
+    kb = []
+
+    for row in tickets_rows:
+        ticket = row["ticket"]
+        kb.append(
+            [InlineKeyboardButton(text=f"🎫 Открыть #{ticket.id}", callback_data=f"admin:support:view:{ticket.id}")]
+        )
+
+    nav = []
+    if page > 1:
+        nav.append(InlineKeyboardButton(text="⬅️ Пред", callback_data=f"admin:support:page:{page-1}"))
+    if has_next:
+        nav.append(InlineKeyboardButton(text="➡️ След", callback_data=f"admin:support:page:{page+1}"))
+    if nav:
+        kb.append(nav)
+
+    kb.append([InlineKeyboardButton(text="🔙 Назад в админ-меню", callback_data="admin:menu")])
+    return InlineKeyboardMarkup(inline_keyboard=kb)
+
+
+def get_admin_support_ticket_keyboard(ticket_id: int, status_value: str) -> InlineKeyboardMarkup:
+    kb = []
+    kb.append([InlineKeyboardButton(text="🔄 Обновить", callback_data=f"admin:support:view:{ticket_id}")])
+
+    if status_value == "open":
+        kb.append([InlineKeyboardButton(text="✉️ Ответить", callback_data=f"admin:support:reply:{ticket_id}")])
+        kb.append([InlineKeyboardButton(text="✅ Закрыть", callback_data=f"admin:support:close:{ticket_id}")])
+
+    kb.append([InlineKeyboardButton(text="🔙 К списку", callback_data="admin:support")])
+    return InlineKeyboardMarkup(inline_keyboard=kb)
+
+
+def get_admin_support_ticket_notification_keyboard(ticket_id: int) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="🔎 Открыть", callback_data=f"admin:support:view:{ticket_id}"),
+                InlineKeyboardButton(text="✉️ Ответить", callback_data=f"admin:support:reply:{ticket_id}"),
+                InlineKeyboardButton(text="✅ Закрыть", callback_data=f"admin:support:close:{ticket_id}"),
+            ]
+        ]
+    )
+# ==============================================================================================================
+
+
+
+
+def get_admin_support_menu_kb() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="📭 Открытые тикеты", callback_data="admin:support:open")],
+            [InlineKeyboardButton(text="🔙 Назад в админ-меню", callback_data="admin:menu")],
+        ]
+    )
+
+
+def get_admin_support_list_kb(tickets, page: int, has_next: bool) -> InlineKeyboardMarkup:
+    rows = []
+    for t in tickets:
+        rows.append([InlineKeyboardButton(text=f"🔎 Тикет #{t.id}", callback_data=f"admin:support:view:{t.id}")])
+
+    nav = []
+    if page > 1:
+        nav.append(InlineKeyboardButton(text="⬅️ Пред", callback_data=f"admin:support:page:{page-1}"))
+    if has_next:
+        nav.append(InlineKeyboardButton(text="➡️ След", callback_data=f"admin:support:page:{page+1}"))
+    if nav:
+        rows.append(nav)
+
+    rows.append([InlineKeyboardButton(text="🔙 Назад", callback_data="admin:support")])
+    return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
+def get_admin_ticket_kb(ticket_id: int) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="✉️ Ответить", callback_data=f"admin:support:reply:{ticket_id}")],
+            [InlineKeyboardButton(text="✅ Закрыть тикет", callback_data=f"admin:support:close:{ticket_id}")],
+            [InlineKeyboardButton(text="🔙 К списку", callback_data="admin:support:open")],
+        ]
+    )

@@ -20,6 +20,7 @@ from db.repositories.rental import RentalRepository
 from db.repositories.photo import PhotoRepository
 from db.repositories.admin import AdminActionRepository
 from db.repositories.review import ReviewRepository
+from db.repositories.support_ticket import SupportTicketRepository
 
 from services.user_service import UserService
 from services.category_service import CategoryService
@@ -29,6 +30,7 @@ from services.photo_service import PhotoService
 from services.review_service import ReviewService
 from services.admin_service import AdminActionService
 from services.admin_rental_service import AdminRentalService
+from services.support_service import SupportService
 
 from handlers.base import base_router
 from handlers.category import category_router
@@ -37,6 +39,7 @@ from handlers.item import items_router
 from handlers.rental import rental_router
 from handlers.search import search_router
 from handlers.admin import admin_router
+from handlers.support import support_router
 
 from middlewares.services import ServicesMiddleware
 from middlewares.registration_check import RegistrationCheckMiddleware
@@ -96,7 +99,10 @@ async def main():
     # 4) Админка (достаточно конкретная, и её нельзя отдавать базовому “catch-all”)
     dp.include_router(admin_router)
 
-    # 5) Базовый роутер — строго последним
+    # 5) Поддержка
+    dp.include_router(support_router)
+
+    # 6) Базовый роутер — строго последним
     dp.include_router(base_router)
 
     # Сессия для репозиториев
@@ -110,6 +116,7 @@ async def main():
     photo_repo = PhotoRepository(session_factory)
     review_repo = ReviewRepository(session_factory)
     admin_repo = AdminActionRepository(session_factory)
+    support_repo = SupportTicketRepository(session_factory)
 
     # создаём сервисы
     user_service = UserService(user_repo)
@@ -120,7 +127,7 @@ async def main():
     review_service = ReviewService(review_repo, rental_repo, user_repo)
     admin_service = AdminActionService(admin_repo)
     admin_rental_service = AdminRentalService(rental_repo, item_service, user_service, admin_service)
-
+    support_service = SupportService(support_repo, user_service)
 
     # DI: сохраняем сервисы в контексте dp
     dp["user_service"] = user_service
@@ -131,6 +138,7 @@ async def main():
     dp["review_service"] = review_service
     dp["admin_service"] = admin_service
     dp["admin_rental_service"] = admin_rental_service
+    dp["support_service"] = support_service
 
     # Подключаем DI-middleware — добавляет все сервисы
     dp.message.middleware(ServicesMiddleware(
@@ -142,6 +150,7 @@ async def main():
         review_service=review_service,
         admin_service=admin_service, # нужны тут?
         admin_rental_service=admin_rental_service, # нужны тут?
+        support_service=support_service,
     ))
     dp.callback_query.middleware(ServicesMiddleware(
         user_service=user_service,
@@ -152,6 +161,7 @@ async def main():
         review_service=review_service,
         admin_service=admin_service, # нужны тут?
         admin_rental_service=admin_rental_service, # нужны тут?
+        support_service=support_service,
     ))
 
     admin_ids = ADMIN_IDS

@@ -30,3 +30,8 @@ class ItemNotAvailable(DomainError): # Exception - чтобы корректно
     rental_id: int # Optional[int] # какая аренда блокирует
     status: str # Optional[int] # её статус
     end_date: Optional[str] = None # Optional[datetime] # до какого времени (может быть None)
+
+
+@dataclass
+class TicketAlreadyOpen(Exception):
+    ticket_id: int

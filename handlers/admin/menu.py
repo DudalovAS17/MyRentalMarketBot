@@ -98,9 +98,9 @@ async def admin_disputes(callback: CallbackQuery, user) -> None:
     await _show_admin_placeholder(callback, "Жалобы/споры")
 
 
-@admin_menu_router.callback_query(F.data == "admin:support")
-async def admin_support(callback: CallbackQuery, user) -> None:
-    await _show_admin_placeholder(callback, "Поддержка")
+#@admin_menu_router.callback_query(F.data == "admin:support")
+#async def admin_support(callback: CallbackQuery, user) -> None:
+#    await _show_admin_placeholder(callback, "Поддержка")
 
 
 @admin_menu_router.callback_query(F.data == "admin:content")

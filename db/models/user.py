@@ -45,11 +45,18 @@ class User(Base, TimestampMixin, ReprMixin, DictMixin):
         single_parent=True,
         passive_deletes=True,
     ) #cascade="all, delete-orphan" → гарантирует удаление зависимостей (например, всех объявлений пользователя)
+
     rentals_as_owner: Mapped[List["Rental"]] = relationship(
         "Rental", foreign_keys="Rental.owner_id", back_populates="owner"
     )
+
     rentals_as_renter: Mapped[List["Rental"]] = relationship(
         "Rental", foreign_keys="Rental.renter_id", back_populates="renter"
+    )
+
+    # норм?
+    support_tickets: Mapped[List["SupportTicket"]] = relationship(
+        "SupportTicket", back_populates="user"
     )
 
     #reviews_given: Mapped[List["Review"]] = relationship(
