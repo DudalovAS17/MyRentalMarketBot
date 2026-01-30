@@ -140,6 +140,8 @@ async def main():
     dp["admin_rental_service"] = admin_rental_service
     dp["support_service"] = support_service
 
+    admin_ids = ADMIN_IDS
+
     # Подключаем DI-middleware — добавляет все сервисы
     dp.message.middleware(ServicesMiddleware(
         user_service=user_service,
@@ -151,6 +153,7 @@ async def main():
         admin_service=admin_service, # нужны тут?
         admin_rental_service=admin_rental_service, # нужны тут?
         support_service=support_service,
+        admin_ids=admin_ids,
     ))
     dp.callback_query.middleware(ServicesMiddleware(
         user_service=user_service,
@@ -162,9 +165,9 @@ async def main():
         admin_service=admin_service, # нужны тут?
         admin_rental_service=admin_rental_service, # нужны тут?
         support_service=support_service,
+        admin_ids=admin_ids,
     ))
 
-    admin_ids = ADMIN_IDS
     # Подключаем middleware регистрации — проверяет доступ
     dp.message.middleware(RegistrationCheckMiddleware(user_service))
     dp.callback_query.middleware(RegistrationCheckMiddleware(user_service))

@@ -88,7 +88,7 @@ def get_admin_support_list_keyboard(tickets_rows: list[dict], page: int, has_nex
     for row in tickets_rows:
         ticket = row["ticket"]
         kb.append(
-            [InlineKeyboardButton(text=f"🎫 Открыть #{ticket.id}", callback_data=f"admin:support:view:{ticket.id}")]
+            [InlineKeyboardButton(text=f"🎫 Открыть Тикет #{ticket.id}", callback_data=f"admin:support:view:{ticket.id}")]
         )
 
     nav = []
@@ -99,9 +99,9 @@ def get_admin_support_list_keyboard(tickets_rows: list[dict], page: int, has_nex
     if nav:
         kb.append(nav)
 
-    kb.append([InlineKeyboardButton(text="🔙 Назад в админ-меню", callback_data="admin:menu")])
+    kb.append([InlineKeyboardButton(text="🔙 Назад в админ-меню", callback_data="admin:menu")]) # admin:support
     return InlineKeyboardMarkup(inline_keyboard=kb)
-
+#get_admin_support_list_kb
 
 def get_admin_support_ticket_keyboard(ticket_id: int, status_value: str) -> InlineKeyboardMarkup:
     kb = []
@@ -122,13 +122,11 @@ def get_admin_support_ticket_notification_keyboard(ticket_id: int) -> InlineKeyb
                 InlineKeyboardButton(text="🔎 Открыть", callback_data=f"admin:support:view:{ticket_id}"),
                 InlineKeyboardButton(text="✉️ Ответить", callback_data=f"admin:support:reply:{ticket_id}"),
                 InlineKeyboardButton(text="✅ Закрыть", callback_data=f"admin:support:close:{ticket_id}"),
+                #[InlineKeyboardButton(text="🔙 К списку", callback_data="admin:support:open")]
             ]
         ]
     )
-# ==============================================================================================================
-
-
-
+# get_admin_ticket_kb
 
 def get_admin_support_menu_kb() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
@@ -137,30 +135,4 @@ def get_admin_support_menu_kb() -> InlineKeyboardMarkup:
             [InlineKeyboardButton(text="🔙 Назад в админ-меню", callback_data="admin:menu")],
         ]
     )
-
-
-def get_admin_support_list_kb(tickets, page: int, has_next: bool) -> InlineKeyboardMarkup:
-    rows = []
-    for t in tickets:
-        rows.append([InlineKeyboardButton(text=f"🔎 Тикет #{t.id}", callback_data=f"admin:support:view:{t.id}")])
-
-    nav = []
-    if page > 1:
-        nav.append(InlineKeyboardButton(text="⬅️ Пред", callback_data=f"admin:support:page:{page-1}"))
-    if has_next:
-        nav.append(InlineKeyboardButton(text="➡️ След", callback_data=f"admin:support:page:{page+1}"))
-    if nav:
-        rows.append(nav)
-
-    rows.append([InlineKeyboardButton(text="🔙 Назад", callback_data="admin:support")])
-    return InlineKeyboardMarkup(inline_keyboard=rows)
-
-
-def get_admin_ticket_kb(ticket_id: int) -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [InlineKeyboardButton(text="✉️ Ответить", callback_data=f"admin:support:reply:{ticket_id}")],
-            [InlineKeyboardButton(text="✅ Закрыть тикет", callback_data=f"admin:support:close:{ticket_id}")],
-            [InlineKeyboardButton(text="🔙 К списку", callback_data="admin:support:open")],
-        ]
-    )
+# ==============================================================================================================
