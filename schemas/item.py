@@ -18,6 +18,7 @@ class ItemCreate(BaseModel):
     coordinates: Optional[Dict[str, Any]] = None
     is_available: bool = True
     is_featured: bool = False
+    status: str = "PENDING"
     #photos: Optional[List[str]] = None  # ссылки на фото
 
 class ItemUpdate(BaseModel):
@@ -34,6 +35,10 @@ class ItemUpdate(BaseModel):
     coordinates: Optional[Dict[str, Any]] = None
     is_available: Optional[bool] = None
     is_featured: Optional[bool] = None
+    status: Optional[str] = None
+    moderated_at: Optional[datetime] = None
+    moderated_by_admin_id: Optional[int] = None
+    moderation_reason: Optional[str] = None
 
 class ItemOut(BaseModel):
     """Схема для возврата данных об объявлении"""
@@ -49,6 +54,10 @@ class ItemOut(BaseModel):
     min_rental_period: Optional[int] = None
     max_rental_period: Optional[int] = None
     is_available: bool = True
+    status: Optional[str] = None
+    moderated_at: Optional[datetime] = None
+    moderated_by_admin_id: Optional[int] = None
+    moderation_reason: Optional[str] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 

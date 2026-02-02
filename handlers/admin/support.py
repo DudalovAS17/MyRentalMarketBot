@@ -28,9 +28,7 @@ admin_support_router = Router()
         Админ: “Открыть” → видит карточку
         Админ: “Ответить” → пишет → пользователю приходит сообщение
         Админ: “Закрыть” → пользователю приходит уведомление + тикет исчезает из open-списка
-        В admin_actions появляются SUPPORT_REPLY и SUPPORT_CLOSE
 """
-
 
 def _format_datetime(dt: datetime | None) -> str: # ("%d.%m %H:%M")
     if not dt:

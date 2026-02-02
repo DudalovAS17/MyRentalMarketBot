@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import Optional, List, Dict
 from decimal import Decimal
+from datetime import datetime
 
 from sqlalchemy import Column, Float, DateTime, ForeignKey
 from sqlalchemy import Integer, String, Text, ForeignKey, Numeric, Boolean, JSON, CheckConstraint, Index
@@ -52,6 +53,11 @@ class Item(Base, TimestampMixin, ReprMixin, DictMixin):
     # статусы/флаги
     is_available: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     is_featured: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default="PENDING", index=True)
+    moderated_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    moderated_by_admin_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    moderation_reason: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     # сроки аренды (в днях)
     min_rental_period: Mapped[int] = mapped_column(Integer, nullable=False, default=1)  # Минимальный срок аренды в днях

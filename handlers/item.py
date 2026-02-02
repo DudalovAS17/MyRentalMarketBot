@@ -834,6 +834,7 @@ async def process_item_confirmation(
     if action == "publish_item":
         try:
             # 1️⃣ создаём объявление
+            new_item["status"] = "PENDING" # NEW (Admin logic)
             created_item = await item_service.create(new_item) # create(ItemCreate(**new_item))
             item_id = created_item.id
             logger.info(f"[FSM] Объявление создано: id={item_id}, title={created_item.title}")

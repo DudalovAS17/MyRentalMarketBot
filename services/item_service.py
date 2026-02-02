@@ -80,6 +80,42 @@ class ItemService:
         return ItemOut.model_validate(obj) if obj else None
 
 
+    # ──────────────────────────────────────────── NEW (Admin-Item logic) ────────────────────────────────────────
+    async def admin_list_pending(self, page: int) -> tuple[list[ItemOut], bool]:
+        """Список объявлений на модерации - PENDING."""
+        return await self.admin_list_by_status(status="PENDING", page=page)
+
+    async def admin_list_by_status(self, status: str, page: int) -> tuple[list[ItemOut], bool]:
+        """Список объявлений по статусу с пагинацией."""
+        page_size = 8
+        safe_page = max(page, 1)
+        offset = (safe_page - 1) * page_size
+        items = await self.item_repo.list_by_status(status=status, limit=page_size + 1, offset=offset)
+        has_next = len(items) > page_size
+        return [ItemOut.model_validate(i) for i in items[:page_size]], has_next
+        # model_validate(i) — превращает ORM объект в Pydantic-объект (ItemOut — Pydantic-схема (DTO))
+        # [ItemOut.model_validate(i) for i in items[:page_size]] = “возьми первые 8 Item и преобразуй каждый в ItemOut
+        # Почему так делают? Чтобы наружу (в handlers/API) не отдавать ORM, а отдавать чистые данные, согласованные со схемой.
+        # items[:page_size] - первые page_size элементов.
+
+    async def admin_set_status(
+        self,
+        item_id: int,
+        new_status: str,
+        admin_id: int,
+        reason: Optional[str] = None,
+    ) -> Optional[ItemOut]:
+        """Обновить статус объявления через whitelist переходов."""
+        item = await self.item_repo.set_status_with_whitelist(
+            item_id=item_id,
+            new_status=new_status,
+            admin_id=admin_id,
+            reason=reason,
+        )
+        return ItemOut.model_validate(item) if item else None
+    # ────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+
     async def update(self, item_id: int, update_data: ItemUpdate) -> Optional[ItemOut]:
         """Обновить объявление"""
         obj = await self.item_repo.update(item_id, update_data)

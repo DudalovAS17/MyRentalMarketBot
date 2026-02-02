@@ -83,9 +83,9 @@ async def _show_admin_placeholder(callback: CallbackQuery, title: str) -> None:
 #    await _show_admin_placeholder(callback, "Сделки")
 
 
-@admin_menu_router.callback_query(F.data == "admin:items")
-async def admin_items(callback: CallbackQuery, user) -> None:
-    await _show_admin_placeholder(callback, "Объявления")
+#@admin_menu_router.callback_query(F.data == "admin:items")
+#async def admin_items(callback: CallbackQuery, user) -> None:
+#    await _show_admin_placeholder(callback, "Объявления")
 
 
 @admin_menu_router.callback_query(F.data == "admin:users")
