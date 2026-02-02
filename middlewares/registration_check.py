@@ -7,6 +7,7 @@ from aiogram.types import Message, CallbackQuery
 from services.user_service import UserService
 
 from utils.functions import deny
+from utils.user_status import BANNED
 
 logger = logging.getLogger(__name__)
 
@@ -63,6 +64,26 @@ class RegistrationCheckMiddleware(BaseMiddleware):
                         "Введите /start, чтобы зарегистрироваться."
                         ) # ❌ Ваш профиль не найден. Пожалуйста, зарегистрируйтесь через /start.
             return None # Прерываем выполнение цепочки — хендлер не вызывается
+
+
+        # ──────────────────────────────────────────── NEW (Admin-User logic) ──────────────────────────────────────
+        admin_ids = set(data.get("admin_ids") or []) # типо защитит от admin_ids = None/str
+        #data.get("admin_ids", set())
+        is_admin = user_id is not None and int(user_id) in admin_ids
+
+        # если добавить поле is_admin в модель, то можно (не обязательно, но поднимает устойчивость):
+        #is_admin = bool(getattr(user, "is_admin", False)) or (user_id is not None and int(user_id) in admin_ids)
+
+        # 🚫 Проверка статуса аккаунта (блокируем всех, кроме админов)
+        if getattr(user, "account_status", None) == BANNED and not is_admin:
+            logger.warning(
+                "[Middleware] BANNED пользователь %s попытался выполнить действие",
+                user_id,
+            )
+            await deny(event, "Доступ ограничен. Обратитесь в поддержку.")
+            return None
+        # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
 
         # 🚫 Проверка блокировки
         if getattr(user, "is_blocked", False):

@@ -14,7 +14,20 @@ class UserCreate(BaseModel):
     rating: float = 0.0
     rating_count: int = 0
     is_blocked: bool = False
+    #account_status: str = "ACTIVE"
+    #banned_at: Optional[datetime] = None
+    #banned_by_admin_id: Optional[int] = None
+    #ban_reason: Optional[str] = None
+""" UserCreate не должен принимать бан-поля
+ Это плохая идея даже для MVP, потому что:
+    - UserCreate используется при регистрации
+    - пользователь теоретически может попасть в создание с “не теми” полями
+    - бан-поля — строго админские
 
+✅ Правильно:
+    UserCreate — только “обычные” поля регистрации
+    бан-поля — только UserOut + UserUpdate (и потом мы сделаем отдельный admin-метод)
+"""
 
 class UserUpdate(BaseModel):
     """Схема для обновления пользователя"""
@@ -27,6 +40,11 @@ class UserUpdate(BaseModel):
     rating: Optional[float] = None
     rating_count: Optional[int] = None
     is_blocked: Optional[bool] = None
+    account_status: Optional[str] = None
+    banned_at: Optional[datetime] = None
+    banned_by_admin_id: Optional[int] = None
+    ban_reason: Optional[str] = None
+
 
 class UserOut(BaseModel):
     """Схема для возврата данных о пользователе наружу"""
@@ -44,6 +62,10 @@ class UserOut(BaseModel):
     is_admin: bool = False
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
+    account_status: str = "ACTIVE"
+    banned_at: Optional[datetime] = None
+    banned_by_admin_id: Optional[int] = None
+    ban_reason: Optional[str] = None
 
     class Config:
         from_attributes = True  # ← позволяет валидировать прямо из SQLAlchemy-модели

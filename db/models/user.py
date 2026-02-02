@@ -1,10 +1,10 @@
 # db/models/user.py
 from __future__ import annotations
 from typing import Optional, List
-
+from datetime import datetime
 from sqlalchemy import (
     Integer, String, Float, Boolean,
-    CheckConstraint, Index
+    CheckConstraint, Index, DateTime, Text,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -30,12 +30,22 @@ class User(Base, TimestampMixin, ReprMixin, DictMixin):
     phone: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
     email: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
 
+    # Думаю нужно
+    #is_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+
     # рейтинг
     rating:       Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
     rating_count: Mapped[int]   = mapped_column(Integer, nullable=False, default=0)
 
-    # блокировки/флаги
+    # блокировки/флаги (старый, мы его пока не трогаем, чтобы не ломать проект)
     is_blocked: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False) # По умолчанию пользователи не заблокированы
+    # новый “правильный” флаг
+    account_status: Mapped[str] = mapped_column(String(20), nullable=False, default="ACTIVE", index=True)
+
+    # аудит админов (когда, кто, зачем)
+    banned_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    banned_by_admin_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    ban_reason: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     # Отношения|связи
     items: Mapped[List["Item"]] = relationship(

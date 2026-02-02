@@ -3,10 +3,12 @@
 
 import logging
 from typing import Optional, List
+from datetime import datetime, timezone
 
 from schemas.user import UserCreate, UserUpdate, UserOut
 from db.repositories.user import UserRepository
 from db.models.user import User
+from utils.user_status import ACTIVE, BANNED, can_transition
 
 logger = logging.getLogger(__name__)
 
@@ -57,6 +59,55 @@ class UserService:
         """Получить всех пользователей"""
         objs = await self.repo.get_all()
         return [UserOut.model_validate(o) for o in objs]
+
+
+    # ──────────────────────────────────────────── NEW (Admin-User logic) ────────────────────────────────────────
+    async def ban_user(self, user_id: int, admin_user_id: int, reason: str) -> Optional[UserOut]:
+        """Заблокировать пользователя с записью причины."""
+        if user_id == admin_user_id:
+            raise ValueError("Нельзя забанить самого себя")
+
+        obj = await self.repo.get_by_id(user_id)
+        if not obj:
+            return None
+
+        if bool(getattr(obj, "is_admin", False)):
+            raise ValueError("Нельзя забанить администратора")
+
+        current_status = getattr(obj, "account_status", ACTIVE) or ACTIVE
+        if not can_transition(current_status, BANNED):
+            raise ValueError(f"Transition {current_status} -> {BANNED} is not allowed")
+
+        update_data = UserUpdate(
+            account_status=BANNED,
+            #banned_at=datetime.utcnow(),
+            banned_at=datetime.now(timezone.utc),
+            banned_by_admin_id=admin_user_id,
+            ban_reason=reason,
+        )
+        updated = await self.repo.update(user_id, update_data)
+        return UserOut.model_validate(updated) if updated else None
+
+    async def unban_user(self, user_id: int) -> Optional[UserOut]:
+        """Разблокировать пользователя."""
+        obj = await self.repo.get_by_id(user_id)
+        if not obj:
+            return None
+
+        current_status = getattr(obj, "account_status", ACTIVE) or ACTIVE
+        if not can_transition(current_status, ACTIVE):
+            raise ValueError(f"Transition {current_status} -> {ACTIVE} is not allowed")
+
+        update_data = UserUpdate(
+            account_status=ACTIVE,
+            banned_at=None,
+            banned_by_admin_id=None,
+            ban_reason=None,
+        )
+        updated = await self.repo.update(user_id, update_data)
+        return UserOut.model_validate(updated) if updated else None
+    # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
 
     async def update(self, user_id: int, update_data: UserUpdate) -> Optional[UserOut]:
         """Обновить данные пользователя"""

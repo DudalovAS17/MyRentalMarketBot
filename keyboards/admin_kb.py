@@ -137,6 +137,28 @@ def get_admin_support_menu_kb() -> InlineKeyboardMarkup:
     )
 # ==============================================================================================================
 
+# ============================================ ADMIN USERS ================================================
+def get_admin_users_menu_keyboard() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="🔎 Найти по user_id", callback_data="admin:users:find")],
+            [InlineKeyboardButton(text="🔙 Назад в админ-меню", callback_data="admin:menu")],
+        ]
+    )
+
+def get_admin_user_card_keyboard(user_id: int, account_status: str) -> InlineKeyboardMarkup:
+    kb = []
+
+    if account_status == "ACTIVE":
+        kb.append([InlineKeyboardButton(text="🚫 Ban", callback_data=f"admin:users:ban:{user_id}")])
+    elif account_status == "BANNED":
+        kb.append([InlineKeyboardButton(text="✅ Unban", callback_data=f"admin:users:unban:{user_id}")])
+
+    kb.append([InlineKeyboardButton(text="🔄 Обновить", callback_data=f"admin:users:view:{user_id}")])
+    kb.append([InlineKeyboardButton(text="🔙 Назад", callback_data="admin:users")])
+
+    return InlineKeyboardMarkup(inline_keyboard=kb)
+# =========================================================================================================
 
 # ============================================ ADMIN ITEMS ================================================
 def get_admin_items_menu_keyboard() -> InlineKeyboardMarkup:
@@ -174,7 +196,6 @@ def get_admin_items_list_keyboard(
     kb.append([InlineKeyboardButton(text="🔙 Назад", callback_data="admin:items")])
 
     return InlineKeyboardMarkup(inline_keyboard=kb)
-
 
 def get_admin_item_details_keyboard(item_id: int, status_value: str) -> InlineKeyboardMarkup:
     kb = []

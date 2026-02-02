@@ -55,6 +55,8 @@ class Item(Base, TimestampMixin, ReprMixin, DictMixin):
     is_featured: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
     status: Mapped[str] = mapped_column(String(20), nullable=False, default="PENDING", index=True)
+
+    # аудит админов (когда, кто, зачем)
     moderated_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     moderated_by_admin_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     moderation_reason: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
