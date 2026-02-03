@@ -19,6 +19,7 @@ from handlers.category import show_categories
 from handlers.item import show_my_items, start_create_item_from_menu
 from handlers.rental import view_my_rentals
 #from handlers.auth import profile, show_statistics, show_achievements, show_settings - циклический повтор! ошибка
+from handlers.search import start_search
 
 from keyboards.main_kb import get_main_menu_keyboard
 from utils.functions import send_reply
@@ -391,6 +392,7 @@ async def text_message_handler(
             "🔍 Арендовать": lambda: show_categories(message, category_service),
             "📦 Сдать в аренду": lambda: start_create_item_from_menu(message, state, user_service),
             "📦 Мои объявления": lambda: show_my_items(message, item_service),
+            "🔎 Поиск": lambda: start_search(message, state),
             #"📱 Изменить номер": lambda: request_phone_number_change(message, state),
 
             # Служебные разделы

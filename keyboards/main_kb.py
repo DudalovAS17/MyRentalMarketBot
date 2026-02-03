@@ -7,6 +7,7 @@ def get_main_menu_keyboard(user: UserOut | None = None) -> ReplyKeyboardMarkup:
         user_data (dict, optional): Данные пользователя для персонализации меню"""
     keyboard = [
         [KeyboardButton(text="🔍 Арендовать"), KeyboardButton(text="📦 Сдать в аренду")],
+        [KeyboardButton(text="🔎 Поиск")],
         [KeyboardButton(text="📋 Мои сделки"), KeyboardButton(text="📞 Поддержка")],
         [KeyboardButton(text="👤 Профиль"), KeyboardButton(text="❓ Помощь")],
     ]
