@@ -1,4 +1,4 @@
-"""Template: Repository
+## Template: Repository
 
 ✅ MVP-стандарт:
 - Только SQLAlchemy/DB
@@ -6,46 +6,18 @@
 - Возвращает ORM-объекты
 - Может принимать DTO/Pydantic как input (но не возвращает DTO)
 - exclude_unset=True на update
-"""
 
-""" ОШИБКИ:
-        Правило №1 (Core)
-            - Repo не логирует успех (это шум). Логировать успех = в сервисе на бизнес-событии.
-            - Repo не ловит Exception.
-            - Repo ловит только если хотим “нормализовать” конкретную DB ошибку (например IntegrityError → None/0) 
-            и логируем.
-            Иначе пусть летит наверх.
-"""
+### ПРИНИМАЕТ / ОТДАЕТ
 
-""" Принимает/отдает
-    Правило №2 (Core)
-        get_by_id(...) -> Optional[ORM]
-        get_by_* (...) -> Optional[ORM]
-        list_* (...) -> list[ORM]
-        create(CreateDTO) -> ORM
-        update(id, UpdateDTO) -> Optional[ORM]
-        delete(id) -> bool
-"""
+- get_by_id(...) -> Optional[ORM]
+- get_by_* (...) -> Optional[ORM]
+- list_* (...) -> list[ORM]
+- create(CreateDTO) -> ORM
+- update(id, UpdateDTO) -> Optional[ORM]
+- delete(id) -> bool
 
-""" ROLLBACK:
-✅ Почему желательно убрать rollback?
-    Потому что: 
-    - в SQLAlchemy commit при ошибке выбросит исключение        
-    - сессия после ошибки обычно требует rollback, да
-    но в реальных проектах rollback делают:        
-        - либо в unit-of-work / transaction middleware
-        - либо в repo только на конкретных нормализуемых ошибках
-        
-но пока так:
-    Правило №3 (Core):
-    Любой write-метод репозитория (create/update/delete) обязан:
-        - commit()
-        - при исключении: rollback() и пробросить исключение дальше
 
-    Правило №4 (Core):
-        - Rollback делаем только вокруг commit, а не “вокруг всего метода”. 
-"""
-
+```
 import logging
 from typing import Callable, Optional, Union
 
@@ -133,11 +105,11 @@ class ExampleRepository:
                 await s.rollback()
                 raise
             return True
+```
 
 
-
-""" Код с логами
-
+**Код с логами**
+```
     async def create(self, data: ExampleCreate) -> Example:
         ""Создать сущность. Возвращает ORM-объект.""
         async with self._sf() as s:
@@ -189,5 +161,5 @@ class ExampleRepository:
                 await s.rollback()
                 logger.error("delete() — ошибка при удалении Example id=%s: %s", example_id, exc, exc_info=True)
                 raise
-            return 1    
-"""
+            return 1
+```

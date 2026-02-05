@@ -1,52 +1,20 @@
-"""Template: Service
+**Template: Service**
 
-Правила:
+*Правила:*
 - Только бизнес-логика
 - Принимает простые типы/DTO
 - Возвращает Pydantic/DTO
 - Работает через репозитории
 - No Telegram/FSM objects
 
-Services:
-- must log business-significant events
-- should not log pure CRUD without domain meaning
 
-✅ Что именно логировать в сервисах (MUST):
-    1) Status transitions (объявления / сделки / пользователи)
-        кто инициатор (admin_id / user_id)
-        что изменилось (old_status → new_status)
-        сущность (item_id / rental_id / target_user_id)
-        причина (если есть)
-
-    2) Security / Guards / Invariants
-        попытка запретного действия (например скрыть item при open rentals)
-        попытка бана админа/самобана
-        попытка действия от BANNED
-
-    3) Админские actions
-        Админка — это всегда аудитопригодная зона. Там лог нужен почти всегда.
-
-
-"""
-
-"""
-    - strict=False: вернуть None, если не найдено.
-    - strict=True: если не найдено -> ValueError (ошибка бизнес-сценария).
-
-Service strict-mode rule
-    Репозитории не принимают бизнес-решений и могут возвращать None / False.
-    Сервисы обязаны интерпретировать такие результаты.
-    Для этого сервисные методы могут использовать параметр strict:
-        strict=False — допустимое отсутствие результата
-        strict=True — отсутствие результата считается ошибкой бизнес-сценария и приводит к исключению
-    Технические исключения (DB errors) не перехватываются strict и пробрасываются выше.
-"""
-
+```
 import logging
 from typing import Optional
 
 from repositories.example_repository import ExampleRepository
 from schemas.example import ExampleCreate, ExampleOut, ExampleUpdate
+from utils.errors import NotFoundError
 
 logger = logging.getLogger(__name__)
 
@@ -69,7 +37,7 @@ class ExampleService:
         entity = await self.example_repo.get_by_id(example_id)
         if not entity:
             if strict:
-                raise ValueError(f"Сущность Example не найдена: id={example_id}")
+                raise ValueError(f"Сущность Example не найдена: id={example_id}") # NotFoundError
             return None
         return ExampleOut.model_validate(entity)
 
@@ -131,7 +99,7 @@ class ExampleService:
         obj = await self.example_repo.update(example_id, payload)
         if not obj:
             if strict:
-                raise ValueError(f"Нельзя обновить: Example не найден id={example_id}")
+                raise ValueError(f"Нельзя обновить: Example не найден id={example_id}") # NotFoundError
             return None
 
         dto = ExampleOut.model_validate(obj)
@@ -164,7 +132,7 @@ class ExampleService:
         deleted = await self.example_repo.delete(example_id)
         if not deleted:
             if strict:
-                raise ValueError(f"Нельзя удалить: Example не найден id={example_id}")
+                raise ValueError(f"Нельзя удалить: Example не найден id={example_id}") # NotFoundError
             return False
 
         if actor_db_user_id is not None:
@@ -173,4 +141,4 @@ class ExampleService:
             logger.info("Example удалён: id=%s", example_id)
 
         return True
-
+```

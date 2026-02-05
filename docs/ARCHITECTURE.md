@@ -110,7 +110,7 @@ Repository не содержит бизнес-смыслов.
 **Принцип:** *"Repository = чистый доступ к БД". Он знает как читать и писать, но не знает зачем.*
 
 
-*Еще: Transactions without UoW (project rule)*:
+*правило текущего этапа (MVP): Transactions without UoW (project rule)*:
 Проект не использует Unit of Work. Поэтому каждый write-метод репозитория обязан
 выполнять rollback() при ошибке commit() и пробрасывать исключение выше.
 
