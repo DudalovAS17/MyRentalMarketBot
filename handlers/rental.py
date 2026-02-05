@@ -554,43 +554,6 @@ async def confirm_rent(
     else:
         await callback.message.answer(text, reply_markup=keyboard, parse_mode="HTML")
 
-
-    # 4️⃣ TODO: Отправить уведомление владельцу товара о новом запросе
-    try:
-        owner_id = rent_item["owner_id"]
-        item_name = rent_item["name"]
-
-        """        
-        renter_name = user.first_name # Имя арендатора
-        message = f"🔔 Новый запрос на аренду вашего товара '{item_name}' от пользователя {renter_name}."
-        keyboard = [[InlineKeyboardButton("🔍 Посмотреть запрос", callback_data=f"rental_details:{rental_id}")]]
-        NotificationManager.send_notification(
-            user_id=owner_id,
-            message=message,
-            buttons=keyboard
-        )
-        logger.info(f"Отправлено уведомление владельцу {owner_id} о новом запросе {rental_id}")
-        """
-
-        await callback.bot.send_message(
-            chat_id=owner_id,
-            text=(
-                f"🔔 <b>Новый запрос на аренду!</b>\n\n"
-                f"📦 {item_name}\n"
-                f"👤 От: {user.full_name or user.username}\n\n"
-                f"Нажмите кнопку ниже, чтобы посмотреть заявку:"
-            ),
-            reply_markup=InlineKeyboardMarkup(
-                inline_keyboard=[
-                    [InlineKeyboardButton(text="🔍 Посмотреть запрос",
-                            callback_data=f"rental_details:{new_rental.id}")]
-                ]
-            ),
-            parse_mode="HTML",
-        )
-    except Exception as e:
-        logger.error(f"[Rent] Не удалось отправить уведомление владельцу: {e}")
-
     # 5️⃣ Чистим FSM
     await state.clear()
 
@@ -618,7 +581,7 @@ async def view_my_rentals(event: Message | CallbackQuery, rental_service: Rental
         return await send_or_edit(event, text, markup)
 
     # Формируем текст
-    text = "<b>📋 Ваши сделки:</b>\n\n"
+    text = "<b>📋 Ваши сделки</b>\n\n"
 
     # порядок статусов (Сортируем для удобства: сначала активные, потом остальные)
     status_order = {
@@ -628,15 +591,36 @@ async def view_my_rentals(event: Message | CallbackQuery, rental_service: Rental
         "COMPLETED": 10,
         "CANCELLED_BY_OWNER": 11,
         "CANCELLED_BY_RENTER": 12,
-        "REJECTED": 13,
+        "REJECTED_BY_OWNER": 13,
+        "REJECTED_BY_RENTER": 14,
+        "CANCELLED_CONFIRMED_BY_OWNER": 15,
+        "CANCELLED_CONFIRMED_BY_RENTER": 16,
+        "DISPUTED": 20,
     }
+
+    status_labels = {
+        "ACTIVE": "Активная аренда",
+        "CONFIRMED": "Подтверждена владельцем",
+        "REQUESTED": "Запрос отправлен",
+        "COMPLETED": "Завершена",
+        "CANCELLED_BY_OWNER": "Отклонена владельцем",
+        "CANCELLED_BY_RENTER": "Отменена арендатором",
+        "REJECTED_BY_OWNER": "Отменена владельцем (до начала)",
+        "REJECTED_BY_RENTER": "Отменена арендатором (до начала)",
+        "CANCELLED_CONFIRMED_BY_OWNER": "Отменена владельцем",
+        "CANCELLED_CONFIRMED_BY_RENTER": "Отменена арендатором",
+        "DISPUTED": "Спор",
+    }
+
+    """Тут надо переделать вывод статусов!!! Некоректно работает."""
 
     # сортировка
     rentals.sort(key=lambda r: status_order.get(r["status"], 99))
 
     keyboard = []
     for rental in rentals:
-        role_indicator = "➡️" if rental["user_role"] == "renter" else "⬅️"
+        #role_indicator = "➡️" if rental["user_role"] == "renter" else "⬅️"
+        role_label = "Вы арендуете ➡️" if rental["user_role"] == "renter" else "Вы сдаёте ⬅️"
 
         start_date = rental['start_date']
         end_date = rental['end_date']
@@ -646,11 +630,14 @@ async def view_my_rentals(event: Message | CallbackQuery, rental_service: Rental
         if isinstance(end_date, str):
             end_date = datetime.fromisoformat(end_date)
 
+        status = rental["status"]
+        status_label = status_labels.get(status, status)
+
         text += (
-            f"{role_indicator}" # <b>{rental['name']}</b> "
-            f"{'c' if rental['user_role']=='renter' else 'от'}" # {rental['other_party_name']}\n"
-            f"📅 {start_date:%d.%m.%Y} — {end_date:%d.%m.%Y}\n"
-            f"Статус: _{rental['status']}_\n\n"
+            f"• <b>Сделка #{rental['id']}</b>\n"
+            f"  {role_label}\n"
+            f"  📅 {start_date:%d.%m.%Y} — {end_date:%d.%m.%Y}\n"
+            f"  🔖 Статус: <i>{status_label}</i>\n\n"
         )
 
         keyboard.append([

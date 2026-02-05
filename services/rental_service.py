@@ -6,10 +6,12 @@ from typing import List, Optional
 
 from services.item_service import ItemService
 from services.user_service import UserService
+from services.notif_service import NotificationService
 from db.repositories.rental import RentalRepository
-from schemas.rental import RentalCreate, RentalUpdate, RentalOut
 from db.models.rental import RentalStatus #,  Rental
+from schemas.rental import RentalCreate, RentalUpdate, RentalOut
 
+from keyboards.rental_kb import get_open_rental_keyboard
 from utils.rental_status import is_terminal_status, is_open_status
 from utils.domain_exceptions import ItemNotAvailable
 
@@ -25,10 +27,12 @@ class RentalService:
         rental_repo: RentalRepository,
         item_service: ItemService,
         user_service: UserService,
+        notification_service: Optional[NotificationService] = None,
     ):
         self.rental_repo = rental_repo
         self.item_service = item_service
         self.user_service = user_service
+        self.notification_service = notification_service
 
     async def get_by_id(self, rental_id: int) -> Optional[RentalOut]:
         """Возвращает сделку по ID"""
@@ -81,7 +85,34 @@ class RentalService:
     async def create_rental(self, data: RentalCreate) -> RentalOut:
         """Создать новую сделку аренды."""
         rental = await self.rental_repo.create(data)
-        return RentalOut.model_validate(rental)
+        #return RentalOut.model_validate(rental)
+        # ---------------------------------- Notification logic --------------------------------------------
+        rental_out = RentalOut.model_validate(rental)
+
+        # уведомление владельцу товара о новом запросе
+        if self.notification_service:
+            item = await self.item_service.get_item_by_id(rental.item_id)
+            renter = await self.user_service.get_by_id(rental.renter_id)
+
+            item_title = getattr(item, "title", "—")
+            renter_display = str(rental.renter_id)
+            renter_username = getattr(renter, "username", None)
+            if renter_username:
+                renter_display = f"@{renter_username}"
+
+            text = (
+                " 🔔 Новая заявка на аренду\n"
+                f" 📩 Объявление: {item_title}\n"
+                f" 👤 Арендатор: {renter_display}"
+            )
+            await self.notification_service.notify_user(
+                rental.owner_id,
+                text,
+                reply_markup=get_open_rental_keyboard(rental.id),
+            )
+        # -------------------------------------------------------------------------------------------------------
+
+        return rental_out
 
     async def update_rental(self, rental_id: int, data: RentalUpdate) -> Optional[RentalOut]:
         """Обновление сделки (общий метод)."""

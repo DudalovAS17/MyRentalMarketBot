@@ -31,6 +31,7 @@ from services.review_service import ReviewService
 from services.admin_service import AdminActionService
 from services.admin_rental_service import AdminRentalService
 from services.support_service import SupportService
+from services.notif_service import NotificationService
 
 from handlers.base import base_router
 from handlers.category import category_router
@@ -121,13 +122,15 @@ async def main():
     # создаём сервисы
     user_service = UserService(user_repo)
     item_service = ItemService(item_repo, photo_repo)
-    rental_service = RentalService(rental_repo, item_service, user_service)
+    notification_service = NotificationService(bot)
+    rental_service = RentalService(rental_repo, item_service, user_service, notification_service)
     category_service = CategoryService(category_repo)
     photo_service = PhotoService(photo_repo)
     review_service = ReviewService(review_repo, rental_repo, user_repo)
     admin_service = AdminActionService(admin_repo)
     admin_rental_service = AdminRentalService(rental_repo, item_service, user_service, admin_service)
     support_service = SupportService(support_repo)
+
 
     # DI: сохраняем сервисы в контексте dp
     dp["user_service"] = user_service
@@ -139,6 +142,7 @@ async def main():
     dp["admin_service"] = admin_service
     dp["admin_rental_service"] = admin_rental_service
     dp["support_service"] = support_service
+    dp["notification_service"] = notification_service
 
     admin_ids = ADMIN_IDS
 
@@ -153,6 +157,7 @@ async def main():
         admin_service=admin_service, # нужны тут?
         admin_rental_service=admin_rental_service, # нужны тут?
         support_service=support_service,
+        notification_service=notification_service,
         admin_ids=admin_ids,
     ))
     dp.callback_query.middleware(ServicesMiddleware(
@@ -165,6 +170,7 @@ async def main():
         admin_service=admin_service, # нужны тут?
         admin_rental_service=admin_rental_service, # нужны тут?
         support_service=support_service,
+        notification_service=notification_service,
         admin_ids=admin_ids,
     ))
 
