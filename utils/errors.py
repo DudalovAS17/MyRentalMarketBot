@@ -13,3 +13,7 @@ class ForbiddenError(ServiceError):
 
 class ConflictError(ServiceError):
     """Конфликт состояния (инварианты/статусы/занятость и т.п.)."""
+
+
+# DomainError
+# ValidationError (не путать с Pydantic)

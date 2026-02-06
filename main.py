@@ -45,6 +45,7 @@ from handlers.support import support_router
 from middlewares.services import ServicesMiddleware
 from middlewares.registration_check import RegistrationCheckMiddleware
 from middlewares.admin_check import AdminCheckMiddleware
+from middlewares.error_handler import GlobalErrorMiddleware
 
 from config import ADMIN_IDS
 
@@ -145,6 +146,10 @@ async def main():
     dp["notification_service"] = notification_service
 
     admin_ids = ADMIN_IDS
+
+    # Global Error Middleware - на самом верху (должен ловить все!)
+    dp.message.middleware(GlobalErrorMiddleware())
+    dp.callback_query.middleware(GlobalErrorMiddleware())
 
     # Подключаем DI-middleware — добавляет все сервисы
     dp.message.middleware(ServicesMiddleware(
