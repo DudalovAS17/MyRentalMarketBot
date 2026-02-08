@@ -5,6 +5,7 @@ from .rental import Rental
 from .item import Item
 from .category import Category
 from .photo import Photo
+from .review import Review
 
 
-__all__ = ["User", "Rental", "Item", "Category", "Photo", "AdminAction", "SupportTicket"]
+__all__ = ["User", "Rental", "Item", "Category", "Photo", "AdminAction", "SupportTicket", "Review"]

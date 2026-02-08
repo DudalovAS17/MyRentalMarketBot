@@ -65,7 +65,7 @@ async def main():
     try:
         # ✅ Проверяем подключение к БД
         if await check_db_connection():
-            await init_db()
+            await init_db(create_tables=False)
             logger.info("База данных успешно инициализирована")
         else:
             logger.error("Не удалось подключиться к базе данных")
