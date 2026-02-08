@@ -145,3 +145,14 @@ class Rental(Base, TimestampMixin, ReprMixin, DictMixin):
     Без преобразования:
     json.dumps(rental) → выдаст ошибку.
     """
+
+
+"""
+Правильный проф-подход:
+    сериализация → в Pydantic (RentalOut)
+    форматирование/JSON → в helpers/formatters
+
+Что сделать быстро: ripgrep по проекту:
+    to_dict(
+    repr( (если где-то полагались на кастомный repr)
+"""

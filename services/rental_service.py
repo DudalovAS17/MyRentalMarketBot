@@ -54,7 +54,7 @@ class RentalService:
         rentals = await self.rental_repo.get_by_owner_id(owner_id)
         return [RentalOut.model_validate(r) for r in rentals]
 
-    async def get_user_rentals(self, user_id: int) -> List[dict]:
+    async def get_user_rentals(self, user_id: int) -> List[RentalOut]: # Изменение 1
         """
         Возвращает все сделки пользователя (как арендатор + как владелец)
         с указанием роли пользователя в каждой сделке.
@@ -71,7 +71,7 @@ class RentalService:
         # 2. Размечаем каждую сделку ролями
         for r in rentals:
             user_role = "renter" if r.renter_id == user_id else "owner"
-            d = r.to_dict() # RentalOut.model_validate(r).model_dump()
+            d = r.to_dict() #RentalOut.model_validate(r).model_dump() # Изменение 1 - r.to_dict() - убрали! ORM бы протёк наружу
             d["user_role"] = user_role
             result.append(d)
 

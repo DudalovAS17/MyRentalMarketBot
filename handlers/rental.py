@@ -568,7 +568,7 @@ async def view_my_rentals(event: Message | CallbackQuery, rental_service: Rental
     logger.info(f"[Rentals] Пользователь {user.id} запросил список сделок")
 
     # Получаем сделки
-    rentals = await rental_service.get_user_rentals(user.id)
+    rentals = await rental_service.get_user_rentals(user.id) # Изменение 1
 
     # Если сделок нет
     if not rentals:
