@@ -34,19 +34,32 @@ MAX_PHOTOS = 5
 async def show_my_items(
     event: Message | CallbackQuery,
     #state: FSMContext,
-    item_service: ItemService
+    item_service: ItemService,
+    user_service: UserService,
 ):
     """Показывает список объявлений пользователя"""
 
-    user_id = event.from_user.id
-    logger.info(f"[DEBUG] Вызвана show_my_items для user_id={user_id}")
+    tg_user_id = event.from_user.id
+    logger.info(f"[DEBUG] Вызвана show_my_items для telegram_user_id={tg_user_id}")
+
+    # Временный костыль - будет user в аргументах
+    user = await user_service.get_by_telegram_id(tg_user_id)
+    if not user:
+        logger.warning("[DEBUG] Пользователь telegram_user_id=%s не найден в БД", tg_user_id)
+        error_text = "❌ Пользователь не найден. Пожалуйста, начните с /start."
+        if isinstance(event, Message):
+            await event.answer(error_text)
+        else:
+            await event.answer(error_text, show_alert=True)
+        return
+    # --------------------
 
     try:
         # Получаем объявления из сервиса
-        items = await item_service.list_by_user(user_id)
+        items = await item_service.list_by_user(user.id)
 
         if not items:
-            logger.info(f"[DEBUG] У пользователя {user_id} нет объявлений.")
+            logger.info(f"[DEBUG] У пользователя {user.id} нет объявлений.")
 
             keyboard = [
                 [InlineKeyboardButton(text="➕ Добавить объявление", callback_data="add_item")],
@@ -205,7 +218,8 @@ async def show_item_details(callback: CallbackQuery, state: FSMContext,
 async def start_create_item_from_my_items(
     callback: CallbackQuery,
     state: FSMContext,
-    category_service: CategoryService
+    category_service: CategoryService,
+    user_service: UserService
 ):
     """Запуск процесса создания объявления из списка 'Мои объявления'
 
@@ -216,12 +230,20 @@ async def start_create_item_from_my_items(
     # 🔄 Очистим предыдущие данные (если пользователь случайно не завершил прошлую FSM)
     await state.clear()
 
+    # Временный костыль - будет user в аргументах
+    user = await user_service.get_by_telegram_id(callback.from_user.id)
+    if not user:
+        logger.warning("[FSM] Пользователь telegram_user_id=%s не найден в БД", callback.from_user.id)
+        await callback.message.answer("❌ Пользователь не найден. Пожалуйста, начните с /start.")
+        return
+    # -----------
+
     # 💾 Инициализация FSM
     await state.update_data(
         mode="create_item",
-        user_id=callback.from_user.id,
+        user_id=user.id, #callback.from_user.id,
         new_item={
-            "user_id": callback.from_user.id,
+            "user_id": user.id, #callback.from_user.id,
             "is_available": True,
             "is_featured": False,
             "min_rental_period": 1,

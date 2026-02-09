@@ -93,6 +93,7 @@ class RentalService:
         if self.notification_service:
             item = await self.item_service.get_item_by_id(rental.item_id)
             renter = await self.user_service.get_by_id(rental.renter_id)
+            owner = await self.user_service.get_by_id(rental.owner_id)
 
             item_title = getattr(item, "title", "—")
             renter_display = str(rental.renter_id)
@@ -105,11 +106,28 @@ class RentalService:
                 f" 📩 Объявление: {item_title}\n"
                 f" 👤 Арендатор: {renter_display}"
             )
-            await self.notification_service.notify_user(
-                rental.owner_id,
-                text,
-                reply_markup=get_open_rental_keyboard(rental.id),
-            )
+
+            # Было
+            #await self.notification_service.notify_user(
+            #    rental.owner_id,
+            #    text,
+            #    reply_markup=get_open_rental_keyboard(rental.id),
+            #)
+
+            # Ошибку исправил этим кодом, но пока не осознал - костыль
+            if owner and owner.telegram_id:
+                await self.notification_service.notify_user(
+                    owner.telegram_id,
+                    text,
+                    reply_markup=get_open_rental_keyboard(rental.id),
+                )
+            else:
+                logger.warning(
+                    "Не удалось отправить уведомление владельцу %s: отсутствует telegram_id",
+                    rental.owner_id,
+                )
+            # ----------
+
         # -------------------------------------------------------------------------------------------------------
 
         return rental_out

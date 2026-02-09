@@ -189,7 +189,7 @@ class ItemRepository:
             """
 
             obj.status = new_status
-            obj.moderated_at = datetime.now(timezone.utc) # func.now()
+            obj.moderated_at = datetime.utcnow() #now(timezone.utc) # func.now()
             obj.moderated_by_admin_id = admin_id
             if reason is not None:
                 obj.moderation_reason = reason

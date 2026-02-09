@@ -2,6 +2,7 @@ import logging
 from typing import Iterable, Optional
 
 from aiogram import Bot
+from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import InlineKeyboardMarkup
 
 logger = logging.getLogger(__name__)
@@ -15,7 +16,7 @@ class NotificationService:
 
     async def notify_user(
         self,
-        user_id: int,
+        user_id: int | str,
         text: str,
         reply_markup: Optional[InlineKeyboardMarkup] = None,
     ) -> None:
@@ -26,12 +27,14 @@ class NotificationService:
                 reply_markup=reply_markup,
                 parse_mode="HTML",
             )
+        except TelegramBadRequest as exc:
+            logger.warning("Не удалось отправить уведомление пользователю %s: %s", user_id, exc)
         except Exception as exc:
             logger.error("Не удалось отправить уведомление пользователю %s: %s", user_id, exc, exc_info=True)
 
     async def notify_users(
         self,
-        user_ids: Iterable[int],
+        user_ids: Iterable[int | str],
         text: str,
         reply_markup: Optional[InlineKeyboardMarkup] = None,
     ) -> None:

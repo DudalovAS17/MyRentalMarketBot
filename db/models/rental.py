@@ -1,6 +1,5 @@
-# db/models/rental.py
 from __future__ import annotations
-from typing import Optional, List, Any
+from typing import Optional, List
 from decimal import Decimal
 from datetime import datetime
 import enum
@@ -28,13 +27,7 @@ class RentalStatus(enum.Enum):
 
 
 class Rental(Base, TimestampMixin, ReprMixin, DictMixin):
-    """Модель аренды (сделки)
-
-    Связи:
-    item_id  → Item
-    renter_id → User (арендатор)
-    owner_id  → User (владелец вещи)
-    """
+    """Модель аренды (сделки)"""
     __tablename__ = "rentals"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)  # index=True
@@ -46,25 +39,27 @@ class Rental(Base, TimestampMixin, ReprMixin, DictMixin):
         index=True
     )
 
+    # Арендатор
     renter_id: Mapped[int] = mapped_column(
         ForeignKey("users.id", ondelete="RESTRICT"),  # не даём удалить арендатора с историями
         nullable=False,
         index=True
-    ) # Тот, кто арендует
+    )
 
+    # Владелец
     owner_id: Mapped[int] = mapped_column(
         ForeignKey("users.id", ondelete="RESTRICT"),  # не даём удалить владельца с историями
         nullable=False,
         index=True
-    ) # Тот, кто сдает (владелец item)
+    )
 
     # сроки аренды
     start_date: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     end_date:   Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
     # деньги (Decimal/Numeric — без проблем округления)
-    total_price:    Mapped[Decimal]          = mapped_column(Numeric(12, 2), nullable=False) # Общая стоимость аренды за период
-    deposit_amount: Mapped[Optional[Decimal]] = mapped_column(Numeric(12, 2), nullable=True) # Сумма залога, если был
+    total_price:    Mapped[Decimal]          = mapped_column(Numeric(12, 2), nullable=False)
+    deposit_amount: Mapped[Optional[Decimal]] = mapped_column(Numeric(12, 2), nullable=True)
 
     # статус
     status: Mapped[RentalStatus] = mapped_column(
@@ -89,70 +84,58 @@ class Rental(Base, TimestampMixin, ReprMixin, DictMixin):
     reviews: Mapped[List["Review"]] = relationship(
         "Review",
         back_populates="rental",
-        cascade="all, delete-orphan", # удалили сделку → удалились все отзывы
+        cascade="all, delete-orphan", # удалил сделку → удалились все отзывы
         #lazy="selectin",
     )
 
     __table_args__ = (
         # Валидации на уровне БД (защита от некорректных данных ещё до того, как они попадут в таблицу)
-        CheckConstraint("end_date > start_date", name="ck_rentals_end_after_start"), # нельзя создать аренду, которая заканчивается раньше, чем начинается
-        CheckConstraint("total_price >= 0", name="ck_rentals_total_price_nonneg"), # запрет отрицательной стоимости (логическая ошибка)
-        CheckConstraint("(deposit_amount IS NULL) OR (deposit_amount >= 0)", name="ck_rentals_deposit_nonneg"), # депозит тоже не может быть отрицательным
-        # Индексы под реальные выборки
-        Index("ix_rentals_item_status", "item_id", "status"), # получить все сделки по вещи с определёнными статусами: item_id + status
-        Index("ix_rentals_renter_status", "renter_id", "status"), # история арендатора (история бронирований): renter_id + status
-        Index("ix_rentals_owner_status", "owner_id", "status"), # история арендодателя (его подтверждения): owner_id + status
-        #Index("ix_rentals_created_at", "created_at"),  # из TimestampMixin
+
+        # нельзя создать аренду, которая заканчивается раньше, чем начинается
+        CheckConstraint("end_date > start_date", name="ck_rentals_end_after_start"),
+
+        # запрет отрицательной стоимости (логическая ошибка)
+        CheckConstraint("total_price >= 0", name="ck_rentals_total_price_nonneg"),
+
+        # депозит тоже не может быть отрицательным
+        CheckConstraint("(deposit_amount IS NULL) OR (deposit_amount >= 0)", name="ck_rentals_deposit_nonneg"),
+
+
+        # получить все сделки по вещи с определёнными статусами: item_id + status
+        Index("ix_rentals_item_status", "item_id", "status"),
+
+        # история арендатора (история бронирований): renter_id + status
+        Index("ix_rentals_renter_status", "renter_id", "status"),
+
+        # история арендодателя (его подтверждения): owner_id + status
+        Index("ix_rentals_owner_status", "owner_id", "status"),
+
+        # Index("ix_rentals_created_at", "created_at"),  # из TimestampMixin
     )
-
-    # Используется для логов, отладочных сообщений, консоли разработчика -> logger.info(rental)
-    def __repr__(self) -> str:
-        return (
-            f"<Rental id={self.id} item_id={self.item_id} "
-            f"renter_id={self.renter_id} owner_id={self.owner_id} "
-            f"status={getattr(self.status, 'value', self.status)}>"
-        ) # <Rental id=7 item_id=33 renter_id=10 owner_id=4 status=requested>
-
-    # Превращает SQLAlchemy-модель → обычный Python-словарь (приводит их к JSON-friendly виду)
-    def to_dict(self) -> dict[str, Any]:
-        """Тут status, даты, деньги,
-        остальные — обычные питоновские типы"""
-        d = DictMixin.to_dict(self)
-
-        # Enum -> str
-        d["status"] = self.status.value if isinstance(self.status, enum.Enum) else self.status
-        # status — это Enum (RentalStatus.REQUESTED и т. п.)
-
-        # datetime -> ISO
-        for k in ("start_date", "end_date", "created_at", "updated_at"):
-            if isinstance(d.get(k), datetime):
-                d[k] = d[k].isoformat()
-        # даты (start_date, end_date, created_at, updated_at) — это datetime
-
-        # Decimal -> str (или float)
-        for m in ("total_price", "deposit_amount"):
-            if isinstance(d.get(m), Decimal):
-                d[m] = str(d[m])
-        # деньги (total_price, deposit_amount) — это Decimal
-
-        return d # Возвращаем словарь уже в «JSON-дружелюбном» виде: строки вместо Enum и дат
-    """ Инфа
-    SQLAlchemy-модель содержит данные, которые нельзя сохранить в JSON:
-    -Enum
-    -datetime
-    -Decimal
-    
-    Без преобразования:
-    json.dumps(rental) → выдаст ошибку.
-    """
 
 
 """
+Здесь были: 
+
+def __repr__(self) - спользуется для логов, отладочных сообщений, консоли разработчика -> logger.info(rental)
+
+def to_dict(self) - Превращает ORM-объект SQLAlchemy (Rental) → обычный Python-словарь (приводит их к JSON-friendly виду)
+    # Тут status, даты, деньги, остальные — обычные питоновские типы
+    
+    FOR "status":
+        Enum -> str ()
+    
+    FOR "start_date", "end_date", "created_at", "updated_at":
+        datetime -> ISO
+    
+    FOR "total_price", "deposit_amount":
+        Decimal -> str (или float)
+
+    Возвращаем словарь уже в «JSON-дружелюбном» виде: строки вместо Enum и дат
+    
+
+
 Правильный проф-подход:
     сериализация → в Pydantic (RentalOut)
     форматирование/JSON → в helpers/formatters
-
-Что сделать быстро: ripgrep по проекту:
-    to_dict(
-    repr( (если где-то полагались на кастомный repr)
 """
