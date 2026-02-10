@@ -382,4 +382,9 @@ datetime.now(timezone.utc) # это aware и UTC
 > Локальное время и формат — это задача отображения,  
 > не доменной логики.
 
+
+### В schemas:
+- В Out-схемах: AwareDatetime ✅
+- В Create/Update: лучше datetime (и нормализовать в сервисе) ✅
+*Pydantic v2 и так примет ISO-строку и распарсит в datetime, но AwareDatetime будет требовать tzinfo.*
 ---
