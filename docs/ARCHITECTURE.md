@@ -387,4 +387,14 @@ datetime.now(timezone.utc) # это aware и UTC
 - В Out-схемах: AwareDatetime ✅
 - В Create/Update: лучше datetime (и нормализовать в сервисе) ✅
 *Pydantic v2 и так примет ISO-строку и распарсит в datetime, но AwareDatetime будет требовать tzinfo.*
+
+* class UserCreate(BaseModel)
+* class UserUpdate(BaseModel)
+* class UserAdminUpdate(BaseModel) - изменяет только админ
+* class UserOut(BaseModel)
+* class UserAdminOut(BaseModel) - не обязательно
+*Можно и так: class UserAdminUpdate(UserUpdate) - UserAdminUpdate унаследует и поля из UserUpdate*
+
+**Create/Update схемы не должны позволять клиенту менять то, что он менять не должен.**
+
 ---

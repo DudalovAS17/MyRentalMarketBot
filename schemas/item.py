@@ -1,7 +1,6 @@
 from pydantic import BaseModel, Field, AwareDatetime, ConfigDict
 from typing import Optional, Dict, Any
 from decimal import Decimal
-from datetime import datetime
 
 from db.models.item import ItemStatus
 
@@ -86,7 +85,7 @@ class ItemOut(BaseModel):
 class ItemAdminOut(ItemOut): # все поля из ItemOut тут тоже будут - унаследовали
     is_featured: Optional[bool] = None
     moderated_at: Optional[AwareDatetime] = None
-    moderated_by_admin_id: Optional[int] = None  # или BigInteger если tg_id
+    moderated_by_admin_id: Optional[int] = None
     moderation_reason: Optional[str] = None
 
 
