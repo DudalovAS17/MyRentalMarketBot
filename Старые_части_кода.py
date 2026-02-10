@@ -64,4 +64,121 @@ SQLAlchemy-модель содержит данные, которые нельз
 Без преобразования:
 json.dumps(rental) → выдаст ошибку.
 """
-# -----------------------------------------------------------------------------------------------------------
+
+""" ❌ Миксины ReprMixin, DictMixin — нарушение “чистоты ORM”
+
+Почему это проблема:
+    - DictMixin почти гарантированно тянет to_dict() / сериализацию
+    - ReprMixin часто делает “умный repr” (иногда даже с доменной логикой)
+
+👉 Даже если ты сейчас уберёшь to_dict() из Rental, сам факт наличия DictMixin/ReprMixin — уже конфликт с законом.
+Как должно быть по законам:
+В ORM остаются только “табличные” миксины (например TimestampMixin с колонками).
+
+Всё сериализационное и “красивое” — в DTO/formatters.
+"""
+# ----------------------------------------------------------------------------------------------------------
+
+# ------------------------------------ Модель-Category -----------------------------------------------------
+def __repr__(self) -> str:
+    return f"<Category id={self.id} name={self.name!r} parent_id={self.parent_id}>"
+
+
+def to_dict(self) -> dict:
+    return {
+        "id": self.id,
+        "name": self.name,
+        "emoji": self.emoji,
+        "parent_id": self.parent_id,
+    }
+# ----------------------------------------------------------------------------------------------------------
+
+# ------------------------------------ Модель-Item ---------------------------------------------------------
+def to_dict(self) -> dict:
+    return {
+        "id": self.id,
+        "user_id": self.user_id,
+        "category_id": self.category_id,
+        "subcategory_id": self.subcategory_id,
+        "title": self.title,
+        "description": self.description,
+        "price": self.price,
+        "deposit": self.deposit,
+        "location": self.location,
+        "coordinates": self.coordinates,
+        "is_available": self.is_available,
+        "is_featured": self.is_featured,
+        "min_rental_period": self.min_rental_period,
+        "max_rental_period": self.max_rental_period,
+        "views_count": self.views_count,
+        "orders_count": self.orders_count,
+        "created_at": self.created_at,
+        "updated_at": self.updated_at
+    }
+# ----------------------------------------------------------------------------------------------------------
+
+# ------------------------------------ Модель-User ---------------------------------------------------------
+@property
+def display_name(self) -> str:
+    if self.full_name:
+        return self.full_name
+    if self.first_name or self.last_name:
+        return f"{self.first_name or ''} {self.last_name or ''}".strip()
+    return self.username or self.telegram_id
+# ----------------------------------------------------------------------------------------------------------
+
+# ------------------------------------ Модель-Admin ---------------------------------------------------------
+
+def to_dict(self) -> dict:
+    return {
+        "id": self.id,
+        "admin_id": self.admin_id,
+        "action_type": self.action_type,
+        "entity_type": self.entity_type,
+        "entity_id": self.entity_id,
+        "note": self.note,
+        "payload": self.payload,
+        "created_at": getattr(self, "created_at", None),
+    }
+# -------------------------------------------------------------------------------------------------------------------
+
+# ------------------------------------ Модель-SupportTicket ---------------------------------------------------------
+def __repr__(self) -> str:
+    return (
+        f"<SupportTicket id={self.id} user_id={self.user_id} "
+        f"status={getattr(self.status, 'value', self.status)}>"
+    )
+
+def to_dict(self) -> dict[str, Any]:
+    d = DictMixin.to_dict(self)
+
+    # # Enum -> str
+    d["status"] = self.status.value if isinstance(self.status, enum.Enum) else self.status # else d.get("status")
+
+    # datetime -> ISO
+    for k in ("created_at", "updated_at", "closed_at", "admin_last_reply_at"):
+        if isinstance(d.get(k), datetime):
+            d[k] = d[k].isoformat()
+
+    return d
+# -------------------------------------------------------------------------------------------------------------------
+
+# ------------------------------------ Главная Модель ---------------------------------------------------------------
+class ReprMixin:
+    """ModelName(id=1, ...). Показывает PK и пару полей"""
+    def __repr__(self) -> str:
+        mapper = sa_inspect(self).mapper
+        keys = [col.key for col in mapper.primary_key] or [c.key for c in mapper.column_attrs[:2]] # PK или, если нет — первые 2 колонки
+        parts = []
+        for k in keys:
+            try:
+                parts.append(f"{k}={getattr(self, k)!r}")
+            except Exception:
+                pass
+        return f"<{self.__class__.__name__} " + ", ".join(parts) + ">"
+
+class DictMixin:
+    """to_dict() для всех колонок без связей """
+    def to_dict(self) -> dict[str, Any]:
+        mapper = sa_inspect(self).mapper
+        return {c.key: getattr(self, c.key) for c in mapper.column_attrs}

@@ -1,16 +1,30 @@
 from __future__ import annotations
-from typing import Optional, List
+
+import enum
+from typing import Optional, List, TYPE_CHECKING
 from decimal import Decimal
 from datetime import datetime
-import enum
 
-from sqlalchemy import Integer, DateTime, Boolean, ForeignKey, Numeric, Enum as SAEnum, CheckConstraint, Index
+from sqlalchemy import (
+    Integer,
+    DateTime,
+    Boolean,
+    ForeignKey,
+    Numeric,
+    Enum as SAEnum,
+    CheckConstraint,
+    Index
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from db.models.base import Base, TimestampMixin, ReprMixin, DictMixin
+from db.models.base import Base, TimestampMixin #, ReprMixin, DictMixin
 
+if TYPE_CHECKING:
+    from db.models.item import Item
+    from db.models.review import Review
+    from db.models.user import User
 
-class RentalStatus(enum.Enum):
+class RentalStatus(enum.Enum): # enum.StrEnum
     REQUESTED = "requested"      # Запрос отправлен арендатором
     CONFIRMED = "confirmed"      # Владелец подтвердил, ожидает начала аренды
     ACTIVE = "active"            # Аренда идет
@@ -26,47 +40,43 @@ class RentalStatus(enum.Enum):
     DISPUTED = "disputed"        # Открыт спор
 
 
-class Rental(Base, TimestampMixin, ReprMixin, DictMixin):
+class Rental(Base, TimestampMixin):
     """Модель аренды (сделки)"""
     __tablename__ = "rentals"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)  # index=True
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
 
     # связи с вещью и пользователями
     item_id: Mapped[int] = mapped_column(
         ForeignKey("items.id", ondelete="RESTRICT"),  # не даём удалить вещь с историей аренды
-        nullable=False,
-        index=True
+        nullable=False
     )
 
     # Арендатор
     renter_id: Mapped[int] = mapped_column(
         ForeignKey("users.id", ondelete="RESTRICT"),  # не даём удалить арендатора с историями
-        nullable=False,
-        index=True
+        nullable=False
     )
 
     # Владелец
     owner_id: Mapped[int] = mapped_column(
         ForeignKey("users.id", ondelete="RESTRICT"),  # не даём удалить владельца с историями
-        nullable=False,
-        index=True
+        nullable=False
     )
 
     # сроки аренды
     start_date: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    end_date:   Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    end_date: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
     # деньги (Decimal/Numeric — без проблем округления)
-    total_price:    Mapped[Decimal]          = mapped_column(Numeric(12, 2), nullable=False)
+    total_price: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
     deposit_amount: Mapped[Optional[Decimal]] = mapped_column(Numeric(12, 2), nullable=True)
 
     # статус
     status: Mapped[RentalStatus] = mapped_column(
         SAEnum(RentalStatus, name="rental_status"),
         nullable=False,
-        default=RentalStatus.REQUESTED,
-        index=True,
+        default=RentalStatus.REQUESTED
     )
 
     # потом заменятся через Alembic?
@@ -78,9 +88,9 @@ class Rental(Base, TimestampMixin, ReprMixin, DictMixin):
     )
 
     # ORM-связи
-    item:   Mapped["Item"] = relationship("Item", back_populates="rentals")
+    item: Mapped["Item"] = relationship("Item", back_populates="rentals")
     renter: Mapped["User"] = relationship("User", foreign_keys=[renter_id], back_populates="rentals_as_renter")
-    owner:  Mapped["User"] = relationship("User", foreign_keys=[owner_id],  back_populates="rentals_as_owner")
+    owner: Mapped["User"] = relationship("User", foreign_keys=[owner_id],  back_populates="rentals_as_owner")
     reviews: Mapped[List["Review"]] = relationship(
         "Review",
         back_populates="rental",
@@ -100,6 +110,10 @@ class Rental(Base, TimestampMixin, ReprMixin, DictMixin):
         # депозит тоже не может быть отрицательным
         CheckConstraint("(deposit_amount IS NULL) OR (deposit_amount >= 0)", name="ck_rentals_deposit_nonneg"),
 
+        Index("ix_rentals_item_id", "item_id"),
+        Index("ix_rentals_renter_id", "renter_id"),
+        Index("ix_rentals_owner_id", "owner_id"),
+        Index("ix_rentals_status", "status"),
 
         # получить все сделки по вещи с определёнными статусами: item_id + status
         Index("ix_rentals_item_status", "item_id", "status"),
@@ -113,10 +127,12 @@ class Rental(Base, TimestampMixin, ReprMixin, DictMixin):
         # Index("ix_rentals_created_at", "created_at"),  # из TimestampMixin
     )
 
-
 """
 Здесь были: 
 
+class Rental(Base, TimestampMixin, ReprMixin, DictMixin)
+    ❌ Миксины ReprMixin, DictMixin — нарушение “чистоты ORM” - убрали
+    
 def __repr__(self) - спользуется для логов, отладочных сообщений, консоли разработчика -> logger.info(rental)
 
 def to_dict(self) - Превращает ORM-объект SQLAlchemy (Rental) → обычный Python-словарь (приводит их к JSON-friendly виду)

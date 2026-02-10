@@ -307,3 +307,79 @@ main.py
 - контрактам слоёв (раздел 2),
 - правилам идентификаторов (раздел 4),
 - единому стилю API (раздел 5).
+
+## 8) ⏱ Время в проекте
+
+**Единый стандарт работы со временем во всём проекте.**
+
+### Общее правило
+- Во всех слоях домена и БД используется только **timezone-aware `datetime` в UTC**.
+- Локальное время и форматирование допускаются **только на уровне UI / formatters**.
+
+### Разрешено (и обязательно)
+```python
+from datetime import datetime, timezone
+datetime.now(timezone.utc) # это aware и UTC
+```
+
+### Запрещено
+- `datetime.now()` (→ naive)
+- `datetime.utcnow()` (→ naive)
+- хранение naive `datetime`
+- сравнение `naive` и `aware` datetime
+
+- ❌ Никаких timezone=False
+- ❌ хранение локального времени в БД
+- ❌ преобразование timezone в сервисах и ORM
+
+
+## Закон времени проекта
+- В БД и домене — только aware datetime в UTC
+- Создание времени — только datetime.now(timezone.utc)
+- ORM и сервисы не знают про локальное время
+- Форматирование и локализация — только в helpers/formatters
+
+### Обязательные требования
+
+- В ORM и БД:
+  - Все временные поля: `DateTime(timezone=True)`
+  - в БД всегда хранится aware datetime
+  - timezone = UTC
+  - В БД хранится время в UTC (PostgreSQL: TIMESTAMP WITH TIME ZONE)
+- Создание времени:
+  - ✅ `datetime.now(timezone.utc)`
+  - ❌ `datetime.now()`
+  - ❌ `datetime.utcnow()`
+- Сервисы и бизнес-логика:
+  - работают **только** с aware `datetime`
+  - не выполняют преобразований timezone
+  - Сравнения времени выполняются только в UTC
+- DTO / Pydantic (RentalOut и т.п.):
+  - start_date: datetime | end_date: datetime
+  - Используются `datetime` с timezone
+  - сериализация (JSON) через `model_dump(mode="json")`. ➡️ Pydantic сам:
+      - сохранит ISO-формат
+      - не потеряет timezone
+      - не сделает naive
+- UI / formatters:
+  - единственное место, где допустима:
+    - локализация timezone
+    - человекочитаемое форматирование
+  - ТОЛЬКО здесь допустимо:
+      - менять timezone
+      - форматировать “для человека”
+  - Пример:
+    ```
+    def format_dt(dt: datetime, tz: ZoneInfo) -> str:
+    return dt.astimezone(tz).strftime("%d.%m.%Y %H:%M")
+    ```
+  - 📌 В Telegram:
+    - можно брать timezone пользователя
+    - или фиксировать, например, Europe/Moscow
+    - или всегда писать “UTC” — это UX-решение
+
+
+> Локальное время и формат — это задача отображения,  
+> не доменной логики.
+
+---

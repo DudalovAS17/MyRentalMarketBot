@@ -1,49 +1,59 @@
-# db/models/user.py
 from __future__ import annotations
-from typing import Optional, List
+
+import enum
+from typing import Optional, List, TYPE_CHECKING
 from datetime import datetime
-from sqlalchemy import (
-    Integer, String, Float, Boolean,
-    CheckConstraint, Index, DateTime, Text,
-)
+from sqlalchemy import Integer, String, Float, Boolean, CheckConstraint, Enum as SAEnum, Index, DateTime, Text, BigInteger
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from db.models.base import Base, TimestampMixin, ReprMixin, DictMixin
+from db.models.base import Base, TimestampMixin
 
+class AccountStatus(enum.Enum): # надо перепроверить
+    ACTIVE = "ACTIVE"
+    BLOCKED = "BLOCKED"
+    BANNED = "BANNED"
 
-class User(Base, TimestampMixin, ReprMixin, DictMixin):
+if TYPE_CHECKING:
+    from db.models.item import Item
+    from db.models.rental import Rental
+    from db.models.support_ticket import SupportTicket
+    #from db.models.review import Review
+
+class User(Base, TimestampMixin):
     """Модель пользователя."""
     __tablename__ = "users"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True) # index=True
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
 
-    # уникальный телеграм-id (строкой, как у тебя было)
-    telegram_id: Mapped[str] = mapped_column(String(20), nullable=False, unique=True) # index=True
+    # уникальный телеграм-id
+    telegram_id: Mapped[str] = mapped_column(BigInteger, nullable=False, unique=True)
 
     # профиль
-    username:   Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    username: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     first_name: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
-    last_name:  Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
-    # оставляем хранимое full_name, как в старом коде (удобно для поиска/вывода)
-    full_name:  Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
+    last_name: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    full_name: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
 
     phone: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
     email: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
 
-    # Думаю нужно
-    #is_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    is_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
     # рейтинг
-    rating:       Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
-    rating_count: Mapped[int]   = mapped_column(Integer, nullable=False, default=0)
+    rating: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    rating_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
     # блокировки/флаги (старый, мы его пока не трогаем, чтобы не ломать проект)
-    is_blocked: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False) # По умолчанию пользователи не заблокированы
+    is_blocked: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     # новый “правильный” флаг
-    account_status: Mapped[str] = mapped_column(String(20), nullable=False, default="ACTIVE", index=True)
+    account_status: Mapped[AccountStatus] = mapped_column(
+        SAEnum(AccountStatus, name="account_status"),
+        nullable=False,
+        default=AccountStatus.ACTIVE
+    )
 
     # аудит админов (когда, кто, зачем)
-    banned_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    banned_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     banned_by_admin_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     ban_reason: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
@@ -64,7 +74,6 @@ class User(Base, TimestampMixin, ReprMixin, DictMixin):
         "Rental", foreign_keys="Rental.renter_id", back_populates="renter"
     )
 
-    # норм?
     support_tickets: Mapped[List["SupportTicket"]] = relationship(
         "SupportTicket", back_populates="user"
     )
@@ -79,17 +88,9 @@ class User(Base, TimestampMixin, ReprMixin, DictMixin):
     __table_args__ = (
         # валидация на уровне БД (последняя линия обороны)
         CheckConstraint("rating >= 0 AND rating <= 5", name="ck_users_rating_range"),
-        CheckConstraint("rating_count >= 0",        name="ck_users_rating_count_nonneg"),
-        # полезные индексы
-        Index("ix_users_username", "username"),
-        Index("ix_users_created_at", "created_at"),  # поле из TimestampMixin
-    )
+        CheckConstraint("rating_count >= 0", name="ck_users_rating_count_nonneg"),
 
-    # удобное «отображаемое имя» (не хранится в БД)
-    @property
-    def display_name(self) -> str:
-        if self.full_name:
-            return self.full_name
-        if self.first_name or self.last_name:
-            return f"{self.first_name or ''} {self.last_name or ''}".strip()
-        return self.username or self.telegram_id
+        # полезные индексы
+        Index("ix_users_account_status", "account_status"),
+        Index("ix_users_username", "username"),
+    )

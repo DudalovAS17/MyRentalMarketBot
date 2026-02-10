@@ -1,68 +1,50 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, Text, CheckConstraint, UniqueConstraint
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+from sqlalchemy import Index, Integer, ForeignKey, Text, CheckConstraint, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from db.models.base import Base, TimestampMixin
 
+if TYPE_CHECKING:
+    from db.models.user import User
+    from db.models.rental import Rental
 
 class Review(Base, TimestampMixin):
     """Модель для хранения отзывов о (завершённых?) сделках аренды"""
     __tablename__ = 'reviews'
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
 
     # Связь со сделкой
-    rental_id: Mapped[int] = mapped_column(
-        ForeignKey("rentals.id", ondelete="CASCADE"),
-        nullable=False,
-        index=True,
-    )
+    rental_id: Mapped[int] = mapped_column(ForeignKey("rentals.id", ondelete="CASCADE"), nullable=False)
 
+    # удалил юзера → удалились отзывы. Не подходит. История сделок/репутации должна сохраняться. Поэтому "RESTRICT", а не "CASCADE"
     # Кто оставил отзыв
-    reviewer_id: Mapped[int] = mapped_column(
-        ForeignKey("users.id", ondelete="CASCADE"),
-        nullable=False,
-        index=True,
-    )
+    reviewer_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"), nullable=False)
 
     # Кому оставлен отзыв
-    reviewee_id: Mapped[int] = mapped_column(
-        ForeignKey("users.id", ondelete="CASCADE"),
-        nullable=False,
-        index=True,
-    )
+    reviewee_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"),  nullable=False)
 
     # Оценка
-    rating: Mapped[int] = mapped_column(nullable=False) # Оценка от 1 до 5
+    rating: Mapped[int] = mapped_column(Integer, nullable=False) # Оценка от 1 до 5
 
     # Текст отзыва
     comment: Mapped[str | None] = mapped_column(Text, nullable=True) # Текстовый комментарий
 
     # Отношения
-    rental = relationship("Rental", back_populates="reviews")
-
-    reviewer = relationship(
-        "User",
-        foreign_keys=[reviewer_id],
-        lazy="joined",
-    )
-
-    reviewee = relationship(
-        "User",
-        foreign_keys=[reviewee_id],
-        lazy="joined",
-    )
+    rental: Mapped["Rental"] = relationship("Rental", back_populates="reviews")
+    reviewer: Mapped["User"] = relationship("User", foreign_keys=[reviewer_id]) # , lazy="joined"
+    reviewee: Mapped["User"] = relationship("User", foreign_keys=[reviewee_id]) # , lazy="joined"
 
     __table_args__ = (
+        Index("ix_reviews_rental_id", "rental_id"),
+        Index("ix_reviews_reviewer_id", "reviewer_id"),
+        Index("ix_reviews_reviewee_id", "reviewee_id"),
+
         # Рейтинг строго 1–5
-        CheckConstraint(
-            "rating >= 1 AND rating <= 5",
-            name="ck_reviews_rating_range",
-        ),
+        CheckConstraint("rating >= 1 AND rating <= 5", name="ck_reviews_rating_range"),
 
         # Один отзыв на сделку от одного пользователя (Без этого: пользователь сможет 10 раз нажать «Оставить отзыв»)
-        UniqueConstraint(
-            "rental_id",
-            "reviewer_id",
-            name="uq_reviews_rental_reviewer",
-        ),
+        UniqueConstraint("rental_id", "reviewer_id", name="uq_reviews_rental_reviewer")
     )

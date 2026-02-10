@@ -1,12 +1,12 @@
 from __future__ import annotations
 from typing import Optional, List
 
-from sqlalchemy import Column, Integer, String, ForeignKey, UniqueConstraint, CheckConstraint
+from sqlalchemy import Integer, String, ForeignKey, Index, UniqueConstraint, CheckConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from db.models.base import Base, TimestampMixin, ReprMixin, DictMixin
+from db.models.base import Base , TimestampMixin #, ReprMixin, DictMixin
 
-class Category(Base, TimestampMixin, ReprMixin, DictMixin):
+class Category(Base, TimestampMixin):
     """ Единая таблица для категорий и подкатегорий. Подкатегория — это Category с parent_id = id родителя"""
     __tablename__ = "categories"
 
@@ -25,7 +25,7 @@ class Category(Base, TimestampMixin, ReprMixin, DictMixin):
         remote_side=[id],
         back_populates="subcategories",
     )
-    subcategories: Mapped[List["Category"]] = relationship(
+    subcategories: Mapped[List["Category"]] = relationship( # list["Category"]
         "Category",
         back_populates="parent",
         cascade="all, delete-orphan",
@@ -36,17 +36,13 @@ class Category(Base, TimestampMixin, ReprMixin, DictMixin):
     __table_args__ = (
         # в рамках одного родителя имя уникально
         UniqueConstraint("parent_id", "name"),
+
         # защита от «сам себе родитель»
         CheckConstraint("parent_id IS NULL OR parent_id <> id", name="no_self_parent"),
+
+        # для быстрого получения категорий по parent_id
+        Index("ix_categories_parent_id", "parent_id"),
     )
 
-    def __repr__(self) -> str:
-        return f"<Category id={self.id} name={self.name!r} parent_id={self.parent_id}>"
-
-    def to_dict(self) -> dict:
-        return {
-            "id": self.id,
-            "name": self.name,
-            "emoji": self.emoji,
-            "parent_id": self.parent_id,
-        }
+    # __repr__(self)
+    # to_dict(self)

@@ -1,29 +1,28 @@
 from __future__ import annotations
 
 from typing import Optional
-from sqlalchemy import Integer, String, Index, JSON
+from sqlalchemy import Integer, String, Index, JSON, BigInteger
 from sqlalchemy.orm import Mapped, mapped_column
 
-from db.models.base import Base, TimestampMixin, ReprMixin, DictMixin
+from db.models.base import Base, TimestampMixin
 
-class AdminAction(Base, TimestampMixin, ReprMixin, DictMixin):
-    """Audit log действий админа.
-    Хранит: кто, что сделал, над какой сущностью, когда и с какими данными."""
+class AdminAction(Base, TimestampMixin):
+    """Audit log действий админа."""
 
     __tablename__ = "admin_actions"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
 
-    # telegram_id (TG ID), не user.id (внутренний ID пользователя)!
-    admin_id: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
+    # именно tg_id, не user_id
+    admin_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
 
-    action_type: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    action_type: Mapped[str] = mapped_column(String(64), nullable=False) # на будущее AdminActionType(enum.Enum) ?
 
     # Например: "rental", "item", "user", "complaint", "support_ticket"
-    entity_type: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
+    entity_type: Mapped[str] = mapped_column(String(32), nullable=False) # на будущее EntityType(enum.Enum) ?
 
-    # Универсальный ID сущности (на будущее — может быть не только int)
-    entity_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    # Универсальный ID сущности (entity_id хранится строкой, а при записи int приводим к str в сервисе)
+    entity_id: Mapped[str] = mapped_column(String(64), nullable=False)
 
     # Короткая человеко-читаемая заметка (опционально)
     note: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
@@ -32,17 +31,11 @@ class AdminAction(Base, TimestampMixin, ReprMixin, DictMixin):
     payload: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
 
     __table_args__ = (
+        Index("ix_admin_actions_admin_id", "admin_id"),
+        Index("ix_admin_actions_action_type", "action_type"),
+        Index("ix_admin_actions_entity_type", "entity_type"),
+        Index("ix_admin_actions_entity_id", "entity_id"),
+
         Index("ix_admin_actions_entity", "entity_type", "entity_id"),
     )
 
-    def to_dict(self) -> dict:
-        return {
-            "id": self.id,
-            "admin_id": self.admin_id,
-            "action_type": self.action_type,
-            "entity_type": self.entity_type,
-            "entity_id": self.entity_id,
-            "note": self.note,
-            "payload": self.payload,
-            "created_at": getattr(self, "created_at", None),
-        }
