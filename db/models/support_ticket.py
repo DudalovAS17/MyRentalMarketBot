@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-import enum
 from datetime import datetime
-
 from typing import Optional, TYPE_CHECKING
 from sqlalchemy import Integer, BigInteger, String, Text, DateTime, ForeignKey, Enum as SAEnum, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from db.models.base import Base, TimestampMixin
+from utils.support_ticket_status import SupportTicketStatus
 
 """
 Поддержка — полный дизайн (MVP)
@@ -27,10 +26,6 @@ from db.models.base import Base, TimestampMixin
 
 if TYPE_CHECKING:
     from db.models.user import User
-
-class SupportTicketStatus(enum.Enum):
-    OPEN = "open"
-    CLOSED = "closed"
 
 class SupportTicket(Base, TimestampMixin):
     """

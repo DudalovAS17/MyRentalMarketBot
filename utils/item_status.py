@@ -1,4 +1,5 @@
 """Item moderation statuses and transition rules."""
+import enum
 
 """ Что определяет видимость объявления:
 - is_available → вторичный флаг, не источник истины
@@ -38,19 +39,44 @@ HIDDEN — объявление:
         используется админом как “временно убрать с рынка”
 """
 
-PENDING = "PENDING" # — ожидает модерации
-ACTIVE = "ACTIVE" # — одобрено, видно в каталоге
-HIDDEN = "HIDDEN" # — отклонено админом
-REJECTED = "REJECTED" # — снято с публикации (админом)
+""" if new_status == "HIDDEN"
+    Если не поставить guard, получится:
+        - сделка продолжается
+        - объявление скрыто
+        - пользователь:
+            не видит свой item в каталоге
+            может потерять доступ к контексту сделки
+        - админ:
+            нарушил целостность модели “item ↔ deal”
 
+    Почему НЕ проверяем другие статусы
+    ❌ new_status == "ACTIVE"
+        при активации объявления:                
+            мы не ломаем сделки                
+            наоборот, разрешаем рынок                
+        нет риска консистентности                
+    ❌ new_status == "REJECTED"                
+        REJECTED применяется только из PENDING               
+        по PENDING физически не может быть сделок                
+        guard не нужен                
+    ❌ new_status == "PENDING"                
+        админ туда не переводит                
+        пользовательских переходов тут нет
+"""
 
-ALLOWED_STATUS_TRANSITIONS = {
-    PENDING: {ACTIVE, REJECTED},
-    ACTIVE: {HIDDEN},
-    HIDDEN: {ACTIVE},
-    REJECTED: set(),
+class ItemStatus(enum.Enum): # это еще надо понять надо тут или нет, похожее уже где-то есть.
+    ACTIVE = "ACTIVE" # "active" — одобрено, видно в каталоге
+    PENDING = "PENDING" # "pending" — ожидает модерации
+    REJECTED = "REJECTED" # "rejected" — снято с публикации (админом)
+    HIDDEN = "HIDDEN" # "hidden" — отклонено админом
+
+ALLOWED_STATUS_TRANSITIONS: dict[ItemStatus, set[ItemStatus]] = {
+    ItemStatus.PENDING: {ItemStatus.ACTIVE, ItemStatus.REJECTED},
+    ItemStatus.ACTIVE: {ItemStatus.HIDDEN},
+    ItemStatus.HIDDEN: {ItemStatus.ACTIVE},
+    ItemStatus.REJECTED: set(),
 }
 
-def can_transition(old_status: str, new_status: str) -> bool:
+def can_transition(old_status: ItemStatus, new_status: ItemStatus) -> bool:
     """Return True if transition from old_status to new_status is allowed."""
     return new_status in ALLOWED_STATUS_TRANSITIONS.get(old_status, set())

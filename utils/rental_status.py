@@ -1,16 +1,29 @@
 from __future__ import annotations
 
 import enum
-from typing import Any
+from typing import Any, Optional, Union
 
-"""
-Если status — Enum (например: RentalStatus.CANCELLED_BY_OWNER). Тогда чаще всего в проекте 
-статус хранится так:
-    status — enum-объект,
-    status.value — строка для БД/логики (например "cancelled_by_owner" или "CANCELLED_BY_OWNER")
-"""
 
-_TERMINAL_KEYWORDS = ("COMPLET", "REJECT", "CANCEL") # ("complet", "reject", "cancel")
+class RentalActorRole(enum.Enum):
+    OWNER = "owner"
+    RENTER = "renter"
+
+class RentalStatus(enum.Enum): # enum.StrEnum
+    REQUESTED = "requested"      # Запрос отправлен арендатором
+    CONFIRMED = "confirmed"      # Владелец подтвердил, ожидает начала аренды
+    ACTIVE = "active"            # Аренда идет
+    COMPLETED = "completed"      # Аренда завершена (вещь возвращена)
+
+    REJECTED_BY_OWNER = "rejected_by_owner"    # Владелец отклонил запрос аренды
+    REJECTED_BY_RENTER = "rejected_by_renter"  # Арендатор отклонил свой запрос аренды
+    CANCELLED_CONFIRMED_BY_OWNER = "cancelled_confirmed_by_owner" # Владелец отменяет подтвержденную аренду
+    CANCELLED_CONFIRMED_BY_RENTER = "cancelled_confirmed_by_renter" # Арендатор отменяет подтвержденную аренду
+    CANCELLED_BY_OWNER = "cancelled_by_owner"  # Владелец отменяет активную аренду
+    CANCELLED_BY_RENTER = "cancelled_by_renter" # Арендатор отменяет активную аренду
+
+    DISPUTED = "disputed"        # Открыт спор
+
+
 """ Мы сознательно используем "complet", а не "complete", 
 чтобы ловить и completed, и complete, и completion при необходимости.
 ("cancelled_by_owner" → содержит "cancel", "rejected_by_owner" → содержит "reject", "completed" → содержит "complet")
@@ -40,45 +53,38 @@ P.S. fail-safe = статус сломан/неизвестен (не позво
 Fail-safe может в редких случаях привести к “ложной занятости” (вещь не сдадут в аренду, хотя могла бы)
 """
 
-def _normalize_status(status: Any) -> str:
-    """ Обрабатывает
-     - Enum
-     - строку
-    """
-    if status is None: # статус отсутствует/непонятен
-        return ""
-    if isinstance(status, enum.Enum):
-        # Тогда status — enum-объект, а status.value — строка для БД/логики ("cancelled_by_owner" или "CANCELLED_BY_OWNER")
-        # Ее приводим к строке и в нижний регистр
-        return str(status.value).lower() # .upper()
+# Терминальные статусы:
+TERMINAL_STATUSES: frozenset[RentalStatus] = frozenset( # rozenset - Неизменяемый! Нельзя .add() / .remove()!
+    {
+        RentalStatus.COMPLETED,
+        RentalStatus.REJECTED_BY_OWNER,
+        RentalStatus.REJECTED_BY_RENTER,
+        RentalStatus.CANCELLED_CONFIRMED_BY_OWNER,
+        RentalStatus.CANCELLED_CONFIRMED_BY_RENTER,
+        RentalStatus.CANCELLED_BY_OWNER,
+        RentalStatus.CANCELLED_BY_RENTER,
+    }
+)
 
-    # Потому что мы дальше ищем ключевые слова без учёта регистра. Это убирает массу мелких несовместимостей.
+# Open статусы:
+OPEN_STATUSES: frozenset[RentalStatus] = frozenset(
+    {
+        RentalStatus.REQUESTED,
+        RentalStatus.CONFIRMED,
+        RentalStatus.ACTIVE,
+        RentalStatus.DISPUTED,
+    }
+)
 
-    # Если status — не Enum (строка/что угодно - например, "ACTIVE" или "active")
-    return str(status).lower() # .upper()
+def is_terminal_status(status: RentalStatus) -> bool:
+    """True если статус терминальный (сделка завершена)."""
+    return status in TERMINAL_STATUSES # находится ли переданный статус в наборе терминальных статусов.
 
-def is_terminal_status(status: Any) -> bool:
-    """Является ли статус терминальный (НЕ open)? True|False"""
-    normalized = _normalize_status(status)
-    if not normalized: # нету статуса! (fail-safe)
-        return False  # open ✅
+def is_open_status(status: RentalStatus) -> bool:
+    """True если статус open (сделка активна/жива и блокирует вещь)."""
+    return status in OPEN_STATUSES
 
-    # вернет True, если есть хоть одно совпадение с терминальным статусом
-    return any(keyword in normalized for keyword in _TERMINAL_KEYWORDS)
-"""
-Оно последовательно проверяет:
-    "complet" in "cancelled_by_owner" → False
-    "reject" in "cancelled_by_owner" → False
-    "cancel" in "cancelled_by_owner" → True
-
-any() возвращает True, как только встречает первое True
-"""
-
-def is_open_status(status: Any) -> bool:
-    """Является ли статус open (НЕ терминальный)"""
-    normalized = _normalize_status(status)
-    if not normalized:
-        return True  # open ✅ (Тут уже True, так как "Является ли статус open - ДА!")
-
-    # вернет True только, если ВСЕ статусы - open!
-    return not is_terminal_status(normalized)
+def open_statuses() -> tuple[RentalStatus, ...]:
+    """Стабильный список open-статусов (удобно для .in_(...))."""
+    return tuple(OPEN_STATUSES)
+# Rental.status.in_(open_statuses())

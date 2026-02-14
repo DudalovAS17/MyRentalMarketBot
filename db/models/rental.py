@@ -1,44 +1,18 @@
 from __future__ import annotations
 
-import enum
-from typing import Optional, List, TYPE_CHECKING
 from decimal import Decimal
 from datetime import datetime
-
-from sqlalchemy import (
-    Integer,
-    DateTime,
-    Boolean,
-    ForeignKey,
-    Numeric,
-    Enum as SAEnum,
-    CheckConstraint,
-    Index
-)
+from typing import Optional, List, TYPE_CHECKING
+from sqlalchemy import Integer, DateTime, Boolean, ForeignKey, Numeric, Enum as SAEnum, CheckConstraint, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from db.models.base import Base, TimestampMixin #, ReprMixin, DictMixin
+from db.models.base import Base, TimestampMixin
+from utils.rental_status import RentalStatus
 
 if TYPE_CHECKING:
     from db.models.item import Item
     from db.models.review import Review
     from db.models.user import User
-
-class RentalStatus(enum.Enum): # enum.StrEnum
-    REQUESTED = "requested"      # Запрос отправлен арендатором
-    CONFIRMED = "confirmed"      # Владелец подтвердил, ожидает начала аренды
-    ACTIVE = "active"            # Аренда идет
-    COMPLETED = "completed"      # Аренда завершена (вещь возвращена)
-
-    REJECTED_BY_OWNER = "rejected_by_owner"    # Владелец отклонил запрос аренды
-    REJECTED_BY_RENTER = "rejected_by_renter"  # Арендатор отклонил свой запрос аренды
-    CANCELLED_CONFIRMED_BY_OWNER = "cancelled_confirmed_by_owner" # Владелец отменяет подтвержденную аренду
-    CANCELLED_CONFIRMED_BY_RENTER = "cancelled_confirmed_by_renter" # Арендатор отменяет подтвержденную аренду
-    CANCELLED_BY_OWNER = "cancelled_by_owner"  # Владелец отменяет активную аренду
-    CANCELLED_BY_RENTER = "cancelled_by_renter" # Арендатор отменяет активную аренду
-
-    DISPUTED = "disputed"        # Открыт спор
-
 
 class Rental(Base, TimestampMixin):
     """Модель аренды (сделки)"""
@@ -126,32 +100,3 @@ class Rental(Base, TimestampMixin):
 
         # Index("ix_rentals_created_at", "created_at"),  # из TimestampMixin
     )
-
-"""
-Здесь были: 
-
-class Rental(Base, TimestampMixin, ReprMixin, DictMixin)
-    ❌ Миксины ReprMixin, DictMixin — нарушение “чистоты ORM” - убрали
-    
-def __repr__(self) - спользуется для логов, отладочных сообщений, консоли разработчика -> logger.info(rental)
-
-def to_dict(self) - Превращает ORM-объект SQLAlchemy (Rental) → обычный Python-словарь (приводит их к JSON-friendly виду)
-    # Тут status, даты, деньги, остальные — обычные питоновские типы
-    
-    FOR "status":
-        Enum -> str ()
-    
-    FOR "start_date", "end_date", "created_at", "updated_at":
-        datetime -> ISO
-    
-    FOR "total_price", "deposit_amount":
-        Decimal -> str (или float)
-
-    Возвращаем словарь уже в «JSON-дружелюбном» виде: строки вместо Enum и дат
-    
-
-
-Правильный проф-подход:
-    сериализация → в Pydantic (RentalOut)
-    форматирование/JSON → в helpers/formatters
-"""

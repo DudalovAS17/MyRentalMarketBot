@@ -57,7 +57,7 @@ class UserService:
 
     async def get_all(self) -> List[UserOut]:
         """Получить всех пользователей"""
-        objs = await self.repo.get_all()
+        objs = await self.repo.list_all()
         return [UserOut.model_validate(o) for o in objs]
 
 
@@ -138,3 +138,6 @@ class UserService:
             logger.warning("Проверка блокировки по несуществующему пользователю: %s", telegram_id)
             return None
         return user.is_blocked
+
+
+    # update_rating(): - Обновить рейтинг пользователя

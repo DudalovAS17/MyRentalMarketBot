@@ -80,16 +80,18 @@ class ExampleRepository:
             if not obj:
                 return None
 
-            if patch:
-                for k, v in patch.items():
-                    setattr(obj, k, v)
-                try:
-                    await s.commit()
-                except Exception:
-                    await s.rollback()
-                    raise
-                await s.refresh(obj)
-
+            if not patch:
+                return obj  # изменений нет — просто возвращаем текущий объект
+                
+            for k, v in patch.items():
+                setattr(obj, k, v)
+            try:
+                await s.commit()
+            except Exception:
+                await s.rollback()
+                raise
+                
+            await s.refresh(obj)
             return obj
 
     async def delete(self, example_id: int) -> bool:

@@ -2,17 +2,15 @@ import logging
 from datetime import datetime
 from typing import List, Optional
 
-
-
 from services.item_service import ItemService
 from services.user_service import UserService
 from services.notif_service import NotificationService
 from db.repositories.rental import RentalRepository
-from db.models.rental import RentalStatus #,  Rental
 from schemas.rental import RentalCreate, RentalUpdate, RentalOut
 
 from keyboards.rental_kb import get_open_rental_keyboard
-from utils.rental_status import is_terminal_status, is_open_status
+from utils.rental_status import is_open_status # is_terminal_status
+from utils.rental_status import RentalStatus, RentalActorRole
 from utils.domain_exceptions import ItemNotAvailable
 
 logger = logging.getLogger(__name__)
@@ -41,17 +39,17 @@ class RentalService:
 
     async def get_rentals_by_user(self, user_id: int) -> List[RentalOut]:
         """Вернуть ВСЕ сделки, где пользователь арендатор или владелец."""
-        rentals = await self.rental_repo.get_by_user_id(user_id)
+        rentals = await self.rental_repo.list_by_user_id(user_id)
         return [RentalOut.model_validate(r) for r in rentals]
 
     async def get_rentals_by_renter(self, renter_id: int) -> List[RentalOut]:
         """Возвращает все аренды, где пользователь — арендатор"""
-        rentals = await self.rental_repo.get_by_renter_id(renter_id)
+        rentals = await self.rental_repo.list_by_renter_id(renter_id)
         return [RentalOut.model_validate(r) for r in rentals]
 
     async def get_rentals_by_owner(self, owner_id: int) -> List[RentalOut]:
         """Возвращает список аренд, где пользователь — владелец"""
-        rentals = await self.rental_repo.get_by_owner_id(owner_id)
+        rentals = await self.rental_repo.list_by_owner_id(owner_id)
         return [RentalOut.model_validate(r) for r in rentals]
 
     async def get_user_rentals(self, user_id: int) -> List[RentalOut]: # Изменение 1
@@ -64,7 +62,7 @@ class RentalService:
         """
 
         # 1. Получаем ВСЕ сделки, где он участвует
-        rentals = await self.rental_repo.get_by_user_id(user_id)
+        rentals = await self.rental_repo.list_by_user_id(user_id)
 
         result: list[dict] = []
 
@@ -221,13 +219,9 @@ class RentalService:
     #! Переход: REQUESTED → CONFIRMED
     async def confirm_requested(self, *, rental_id: int, actor_id: int) -> bool: # -> None:
         """Подтвердить REQUESTED → CONFIRMED может только владелец"""
-        ok = await self.rental_repo.update_status_if_allowed(
-            rental_id=rental_id,
-            new_status=RentalStatus.CONFIRMED,
-            expected_status=RentalStatus.REQUESTED,
-            actor_user_id=actor_id,
-            actor_field="owner_id",
-        )
+        ok = await self.rental_repo.try_update_status(rental_id=rental_id, new_status=RentalStatus.CONFIRMED,
+                                                      expected_status=RentalStatus.REQUESTED, actor_user_id=actor_id,
+                                                      actor_role=RentalActorRole.OWNER) # actor_role="owner_id"
         """
         ok=True  →  статус реально сменился в базе (1 строка обновлена)
         ok=False →  ничего не изменилось (0 строк обновлено), значит:
@@ -243,13 +237,9 @@ class RentalService:
     #! REQUESTED → REJECTED_BY_OWNER
     async def reject_requested_by_owner(self, *, rental_id: int, owner_id: int) -> bool: # -> None:
         """REQUESTED → REJECTED (владелец отклоняет)"""
-        ok = await self.rental_repo.update_status_if_allowed(
-            rental_id=rental_id,
-            new_status=RentalStatus.REJECTED_BY_OWNER,
-            expected_status=RentalStatus.REQUESTED,
-            actor_user_id=owner_id,
-            actor_field="owner_id",
-        )
+        ok = await self.rental_repo.try_update_status(rental_id=rental_id, new_status=RentalStatus.REJECTED_BY_OWNER,
+                                                      expected_status=RentalStatus.REQUESTED, actor_user_id=owner_id,
+                                                      actor_role=RentalActorRole.OWNER) # actor_role="owner_id"
         #if not ok:
         #    raise ValueError("Нельзя отклонить запрос аренды")
         return ok
@@ -257,13 +247,9 @@ class RentalService:
     # REQUESTED → REJECTED_BY_RENTER
     async def reject_requested_by_renter(self, *, rental_id: int, renter_id: int) -> bool: # -> None:
         """REQUESTED → CANCELLED_BY_RENTER (арендатор отклоняет)"""
-        ok = await self.rental_repo.update_status_if_allowed(
-            rental_id=rental_id,
-            new_status=RentalStatus.REJECTED_BY_RENTER,
-            expected_status=RentalStatus.REQUESTED,
-            actor_user_id=renter_id,
-            actor_field="renter_id",
-        )
+        ok = await self.rental_repo.try_update_status(rental_id=rental_id, new_status=RentalStatus.REJECTED_BY_RENTER,
+                                                      expected_status=RentalStatus.REQUESTED, actor_user_id=renter_id,
+                                                      actor_role=RentalActorRole.RENTER) # actor_role="renter_id"
         #if not ok:
         #    raise ValueError("Нельзя отменить: статус изменился или недостаточно прав")
         return ok
@@ -271,45 +257,35 @@ class RentalService:
     # CONFIRMED → CANCELLED_CONFIRMED_BY_OWNER
     async def cancel_confirmed_by_owner(self, *, rental_id: int, owner_id: int) -> bool: # -> None:
         """Владелец отклоняет утвержденную аренду"""
-        ok = await self.rental_repo.update_status_if_allowed(
-            rental_id=rental_id,
-            new_status=RentalStatus.CANCELLED_CONFIRMED_BY_OWNER,
-            expected_status=RentalStatus.CONFIRMED,
-            actor_user_id=owner_id,
-            actor_field="owner_id",
-        )
+        ok = await self.rental_repo.try_update_status(rental_id=rental_id,
+                                                      new_status=RentalStatus.CANCELLED_CONFIRMED_BY_OWNER,
+                                                      expected_status=RentalStatus.CONFIRMED, actor_user_id=owner_id,
+                                                      actor_role=RentalActorRole.OWNER) # actor_role="owner_id"
         return ok
 
     # CONFIRMED → CANCELLED_CONFIRMED_BY_RENTER
     async def cancel_confirmed_by_renter(self, *, rental_id: int, renter_id: int) -> bool: # -> None:
         """Арендатор отклоняет утвержденную аренду"""
-        ok = await self.rental_repo.update_status_if_allowed(
-            rental_id=rental_id,
-            new_status=RentalStatus.CANCELLED_CONFIRMED_BY_RENTER,
-            expected_status=RentalStatus.CONFIRMED,
-            actor_user_id=renter_id,
-            actor_field="renter_id",
-        )
+        ok = await self.rental_repo.try_update_status(rental_id=rental_id,
+                                                      new_status=RentalStatus.CANCELLED_CONFIRMED_BY_RENTER,
+                                                      expected_status=RentalStatus.CONFIRMED, actor_user_id=renter_id,
+                                                      actor_role=RentalActorRole.RENTER) # actor_role="renter_id"
         return ok
 
 
     # CONFIRMED → ACTIVE
     async def start_rental(self, *, rental_id: int, owner_id: int) -> bool: # -> None:
         """начало аренды [в будущем автоматически по дате]"""
-        ok = await self.rental_repo.update_status_if_allowed(
-            rental_id=rental_id,
-            new_status=RentalStatus.ACTIVE,
-            expected_status=RentalStatus.CONFIRMED,
-            actor_user_id=owner_id,
-            actor_field="owner_id",
-        )
+        ok = await self.rental_repo.try_update_status(rental_id=rental_id, new_status=RentalStatus.ACTIVE,
+                                                      expected_status=RentalStatus.CONFIRMED, actor_user_id=owner_id,
+                                                      actor_role=RentalActorRole.OWNER) # actor_role="owner_id"
         #if not ok:
         #    raise ValueError("Нельзя начать аренду")
         return ok
 
     async def confirm_handover_by_owner(self, *, rental_id: int, owner_id: int) -> bool:
         """Владелец нажал 'Передал вещь'"""
-        ok = await self.rental_repo.owner_confirm_handover(rental_id=rental_id, owner_id=owner_id)
+        ok = await self.rental_repo.try_set_owner_handover_confirmed(rental_id=rental_id, owner_id=owner_id)
         if not ok:
             return False
         # если арендатор уже подтвердил получение — активируем
@@ -323,7 +299,7 @@ class RentalService:
 
     async def confirm_receive_by_renter(self, *, rental_id: int, renter_id: int) -> bool:
         """Арендатор нажал 'Получил вещь'"""
-        ok = await self.rental_repo.renter_confirm_receive(rental_id=rental_id, renter_id=renter_id)
+        ok = await self.rental_repo.try_set_renter_confirm_receive(rental_id=rental_id, renter_id=renter_id)
         if not ok:
             return False
         # если владелец уже подтвердил передачу — активируем
@@ -334,13 +310,9 @@ class RentalService:
     #! ACTIVE → COMPLETED
     async def complete_active(self, *, rental_id: int, owner_id: int) -> bool: #-> None:
         """Владелец завершает аренду = возврат вещи (можно сделать и арендатором)"""
-        ok = await self.rental_repo.update_status_if_allowed(
-            rental_id=rental_id,
-            new_status=RentalStatus.COMPLETED,
-            expected_status=RentalStatus.ACTIVE,
-            actor_user_id=owner_id,
-            actor_field="owner_id",
-        )
+        ok = await self.rental_repo.try_update_status(rental_id=rental_id, new_status=RentalStatus.COMPLETED,
+                                                      expected_status=RentalStatus.ACTIVE, actor_user_id=owner_id,
+                                                      actor_role=RentalActorRole.OWNER) # actor_role="owner_id"
         #if not ok:
         #    raise ValueError("Нельзя завершить аренду")
         return ok
@@ -348,13 +320,9 @@ class RentalService:
     #! ACTIVE → CANCELLED_BY_OWNER
     async def cancel_active_by_owner(self, *, rental_id: int, owner_id: int) -> bool: # -> None:
         """ACTIVE → CANCELLED_BY_OWNER (отмена активной аренды владельцем)"""
-        ok = await self.rental_repo.update_status_if_allowed(
-            rental_id=rental_id,
-            new_status=RentalStatus.CANCELLED_BY_OWNER,
-            expected_status=RentalStatus.ACTIVE,
-            actor_user_id=owner_id,
-            actor_field="owner_id",
-        )
+        ok = await self.rental_repo.try_update_status(rental_id=rental_id, new_status=RentalStatus.CANCELLED_BY_OWNER,
+                                                      expected_status=RentalStatus.ACTIVE, actor_user_id=owner_id,
+                                                      actor_role=RentalActorRole.OWNER) # actor_role="owner_id"
         #if not ok:
         #    raise ValueError("Нельзя отменить активную аренду владельцем")
         return ok
@@ -362,13 +330,9 @@ class RentalService:
     #! ACTIVE → CANCELLED_BY_RENTER
     async def cancel_active_by_renter(self, *, rental_id: int, renter_id: int) -> bool: # -> None:
         """ACTIVE → CANCELLED_BY_RENTER (отмена активной аренды арендатором)"""
-        ok = await self.rental_repo.update_status_if_allowed(
-            rental_id=rental_id,
-            new_status=RentalStatus.CANCELLED_BY_RENTER,
-            expected_status=RentalStatus.ACTIVE,
-            actor_user_id=renter_id,
-            actor_field="renter_id",
-        )
+        ok = await self.rental_repo.try_update_status(rental_id=rental_id, new_status=RentalStatus.CANCELLED_BY_RENTER,
+                                                      expected_status=RentalStatus.ACTIVE, actor_user_id=renter_id,
+                                                      actor_role=RentalActorRole.RENTER) # actor_role="renter_id"
         #if not ok:
         #    raise ValueError("Нельзя отменить активную аренду арендатором")
         return ok
@@ -380,12 +344,10 @@ class RentalService:
         #allowed_from = (RentalStatus.CONFIRMED, RentalStatus.ACTIVE)  # при желании добавь COMPLETED
 
         #for expected in allowed_from:
-        ok = await self.rental_repo.update_status_if_participant(
-            rental_id=rental_id,
-            new_status=RentalStatus.DISPUTED,
-            expected_status=RentalStatus.ACTIVE,  # expected
-            actor_user_id=actor_id,
-        )
+        ok = await self.rental_repo.try_update_status_if_participant(rental_id=rental_id,
+                                                                     new_status=RentalStatus.DISPUTED,
+                                                                     expected_status=RentalStatus.ACTIVE,
+                                                                     actor_user_id=actor_id)
         #if not ok:
         #    raise ValueError("Нельзя открыть спор: нет прав или статус уже изменился")
         return ok
@@ -396,7 +358,7 @@ class RentalService:
 
     async def get_open_rental_for_item(self, item_id: int): # -> Optional[RentalOut]
         """Возвращает первую открытую аренду для item_id или None"""
-        rentals = await self.rental_repo.get_last_open_by_item_id(item_id)
+        rentals = await self.rental_repo.list_recent_open_by_item_id(item_id)
         for r in rentals:
             if is_open_status(r.status):
                 return r # RentalOut.model_validate(r)

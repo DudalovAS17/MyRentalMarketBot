@@ -1,10 +1,10 @@
 from __future__ import annotations
-from typing import Optional, List
 
+from typing import Optional, List
 from sqlalchemy import Integer, String, ForeignKey, Index, UniqueConstraint, CheckConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from db.models.base import Base , TimestampMixin #, ReprMixin, DictMixin
+from db.models.base import Base , TimestampMixin
 
 class Category(Base, TimestampMixin):
     """ Единая таблица для категорий и подкатегорий. Подкатегория — это Category с parent_id = id родителя"""
@@ -43,6 +43,3 @@ class Category(Base, TimestampMixin):
         # для быстрого получения категорий по parent_id
         Index("ix_categories_parent_id", "parent_id"),
     )
-
-    # __repr__(self)
-    # to_dict(self)

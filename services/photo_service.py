@@ -21,7 +21,7 @@ class PhotoService:
         try:
             # если order не указан — нужно узнать текущий максимум
             if order is None:
-                photos = await self.photo_repo.get_by_item_id(item_id)
+                photos = await self.photo_repo.list_by_item_id(item_id)
                 order = len(photos)
 
             new_photo = await self.photo_repo.create(
@@ -47,7 +47,7 @@ class PhotoService:
         if not file_ids:
             return []
 
-        existing = await self.photo_repo.get_by_item_id(item_id)
+        existing = await self.photo_repo.list_by_item_id(item_id)
         start_order = len(existing)
 
         result: list[PhotoOut] = []
@@ -67,7 +67,7 @@ class PhotoService:
 
     async def get_photos(self, item_id: int) -> List[PhotoOut]:
         """Возвращает все фото объявления в правильном порядке."""
-        photos = await self.photo_repo.get_by_item_id(item_id)
+        photos = await self.photo_repo.list_by_item_id(item_id)
         return [PhotoOut.model_validate(p) for p in photos]
 
     async def get_photo(self, photo_id: int) -> Optional[PhotoOut]:
@@ -105,7 +105,7 @@ class PhotoService:
         if not photo:
             return False
 
-        photos = await self.photo_repo.get_by_item_id(photo.item_id)
+        photos = await self.photo_repo.list_by_item_id(photo.item_id)
         photos_sorted = sorted(photos, key=lambda p: p.order)
 
         idx = next((i for i, p in enumerate(photos_sorted) if p.id == photo_id), None)
@@ -145,7 +145,7 @@ class PhotoService:
         if not photo:
             return False
 
-        photos = await self.photo_repo.get_by_item_id(photo.item_id)
+        photos = await self.photo_repo.list_by_item_id(photo.item_id)
         if new_order < 0 or new_order >= len(photos):
             return False
 

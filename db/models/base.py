@@ -1,11 +1,9 @@
 # Базовый класс для всех моделей SQLAlchemy
 from __future__ import annotations
-from typing import Optional, Any
 from datetime import datetime, timezone
 
-from sqlalchemy import MetaData, DateTime, func
+from sqlalchemy import MetaData, DateTime
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
-from sqlalchemy import inspect as sa_inspect
 
 # Единые имена для PK/FK/индексов/уникалок (удобно для Alembic и чтения схемы)
 NAMING_CONVENTION = {

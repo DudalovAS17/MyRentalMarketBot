@@ -34,17 +34,17 @@ class ReviewService:
 
     async def get_reviews_by_rental(self, rental_id: int) -> List[ReviewOut]:
         """Возвращает все отзывы, связанные с конкретной сделкой"""
-        reviews = await self.review_repo.get_by_rental_id(rental_id)
+        reviews = await self.review_repo.list_by_rental_id(rental_id)
         return [ReviewOut.model_validate(r) for r in reviews]
 
     async def get_reviews_about_user(self, user_id: int) -> List[ReviewOut]:
         """Отзывы о пользователе"""
-        reviews = await self.review_repo.get_by_reviewee_id(user_id)
+        reviews = await self.review_repo.list_by_reviewee_id(user_id)
         return [ReviewOut.model_validate(r) for r in reviews]
 
     async def get_reviews_by_user(self, user_id: int) -> List[ReviewOut]:
         """Отзывы, оставленные пользователем"""
-        reviews = await self.review_repo.get_by_reviewer_id(user_id)
+        reviews = await self.review_repo.list_by_reviewer_id(user_id)
         return [ReviewOut.model_validate(r) for r in reviews]
 
     async def create_review(self, data: ReviewCreate) -> ReviewOut:
@@ -113,7 +113,7 @@ class ReviewService:
     async def recalculate_user_rating(self, user_id: int) -> None:
         """Пересчитать рейтинг пользователя на основе всех отзывов"""
 
-        reviews: List[Review] = await self.review_repo.get_by_reviewee_id(user_id)
+        reviews: List[Review] = await self.review_repo.list_by_reviewee_id(user_id)
 
         if not reviews:
             await self.user_repo.update_rating(

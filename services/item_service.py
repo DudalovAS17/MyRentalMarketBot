@@ -1,15 +1,13 @@
-# services/item_service.py
 import logging
 from typing import Dict, Any, List, Optional, Union
-#from decimal import Decimal
 from pydantic import ValidationError
+
 from db.models import Item
 
-#from db.models.item import Item
-#from db.models.photo import Photo
 from db.repositories.item import ItemRepository
 from db.repositories.photo import PhotoRepository
 from schemas.item import ItemCreate, ItemUpdate, ItemOut
+from utils.item_status import can_transition, ItemStatus
 
 logger = logging.getLogger(__name__)
 
@@ -21,37 +19,30 @@ class ItemService:
         self.item_repo = item_repo
         self.photo_repo = photo_repo
 
-    async def get_all_items(self) -> List[ItemOut]:
+    async def list_all_items(self) -> List[ItemOut]:
         """Вернуть все активные объявления"""
-        items = await self.item_repo.get_all()
+        items = await self.item_repo.list_all()
         return [ItemOut.model_validate(i) for i in items]
-        #return [i.to_dict() for i in items]
-    """[{"id": 1, "user_id": 123, "title": "Палатка Tramp", ...}, {"id": 2, ...} ] - список"""
 
     async def get_item_by_id(self, item_id: int) -> Optional[ItemOut]:
         """Вернуть объявление по ID"""
         item = await self.item_repo.get_by_id(item_id)
         return ItemOut.model_validate(item) if item else None
-        #return item.to_dict() if item else None
-    """{"id": 1, "user_id": 123, "title": "Палатка Tramp",...} - не список, а один объект"""
 
     async def list_by_user(self, user_id: int) -> List[ItemOut]:
         """Все объявления пользователя"""
-        items = await self.item_repo.get_by_user_id(user_id)
+        items = await self.item_repo.list_by_user_id(user_id)
         return [ItemOut.model_validate(i) for i in items]
-    """[ {"id": 1, "user_id": 123, ...}, {"id": 5,"user_id": 123, ...} ]"""
 
     async def list_by_category(self, category_id: int) -> List[ItemOut]:
         """Все объявления по категории"""
-        items = await self.item_repo.get_by_category(category_id)
+        items = await self.item_repo.list_by_category(category_id)
         return [ItemOut.model_validate(i) for i in items]
-    """[ {"id": 1,.., "category_id": 1,...}, {"id": 2, ..., "category_id": 1,...}]"""
 
     async def list_by_subcategory(self, subcategory_id: int) -> List[ItemOut]:
         """Все объявления по подкатегории"""
-        items = await self.item_repo.get_by_subcategory(subcategory_id)
+        items = await self.item_repo.list_by_subcategory(subcategory_id)
         return [ItemOut.model_validate(i) for i in items]
-    """[{"id": 1, "title": "Палатка Tramp", "subcategory_id": 101,...}]"""
 
     async def search(self, query: str, *, available_only: bool = True, limit: int = 50, offset: int = 0) \
             -> List[ItemOut]:
@@ -106,12 +97,7 @@ class ItemService:
         reason: Optional[str] = None,
     ) -> Optional[ItemOut]:
         """Обновить статус объявления через whitelist переходов."""
-        item = await self.item_repo.set_status_with_whitelist(
-            item_id=item_id,
-            new_status=new_status,
-            admin_id=admin_id,
-            reason=reason,
-        )
+        item = await self.item_repo.set_status(item_id=item_id, new_status=new_status, admin_id=admin_id, reason=reason)
         return ItemOut.model_validate(item) if item else None
     # ────────────────────────────────────────────────────────────────────────────────────────────────────────
 
@@ -179,6 +165,54 @@ class ItemService:
             logger.error("get_item_photos() — неверный item_id: %r", item_id)
             return []
 
-        photos = await self.photo_repo.get_by_item_id(item_id)
+        photos = await self.photo_repo.list_by_item_id(item_id)
         return [p.to_dict() for p in photos]
         # return [p.to_dict() if hasattr(p, "to_dict") else p.__dict__ for p in photos]
+
+
+
+
+    # доведи до ума - Обнови эту логику в хендлере!
+    async def moderate_set_status(
+        self,
+        item_id: int,
+        new_status: ItemStatus,
+        admin_id: int,
+        reason: Optional[str] = None,
+    ) -> Optional[Item]:
+
+        item = await self._item_repo.get_by_id(item_id)
+        if item is None:
+            logger.warning("Объявление с id=%s не найдено для модерации", item_id)
+            return None
+
+        # Проверка whitelist переходов (бизнес-правило)
+        old_status: ItemStatus = item.status
+        if not can_transition(old_status, new_status):
+            logger.warning(
+                "Нельзя сменить статус объявления id=%s: %s -> %s",
+                item_id,
+                old_status, # obj.status
+                new_status,
+            )
+            return None
+
+        # Есть открытые сделки - нельзя скрыть объявление!
+        # ТОЛЬКО при скрытии объявления возникает риск сломать активную сделку, поэтому
+        if new_status == ItemStatus.HIDDEN: # (отклонено админом)
+            has_open = await self._rental_repo.has_open_rentals_for_item(item_id) # _item_repo
+            if has_open:
+                logger.warning(
+                    "Нельзя скрыть объявление id=%s: есть открытые сделки",
+                    item_id,
+                )
+                return None
+
+        # ??? Техническое обновление — через repo
+        updated = await self._item_repo.set_status(
+            item_id=item_id,
+            new_status=new_status,
+            admin_id=admin_id,
+            reason=reason,
+        )
+        return updated

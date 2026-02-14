@@ -1,10 +1,10 @@
-import logging
+from __future__ import annotations
+
 from typing import Callable, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.models.admin import AdminAction
 
-logger = logging.getLogger(__name__)
 
 class AdminActionRepository:
     def __init__(self, session_factory: Callable[[], AsyncSession]) -> None:
@@ -27,11 +27,10 @@ class AdminActionRepository:
                 payload=payload,
             )
             s.add(obj)
-            #try:
-            await s.commit()
+            try:
+                await s.commit()
+            except Exception:
+                await s.rollback()
+                raise
             await s.refresh(obj)
             return obj
-            #except Exception as e:
-            #    await s.rollback()
-            #    logger.exception("Не удалось сохранить audit log для entity=%s id=%s", entity_type, entity_id)
-            #    raise

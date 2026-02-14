@@ -8,6 +8,10 @@
     * telegram_user_id: внешний ID Telegram
 
 
+Правильный проф-подход:
+- сериализация → в Pydantic (RentalOut)
+- форматирование/JSON → в helpers/formatters
+
 ```
 from __future__ import annotations
 

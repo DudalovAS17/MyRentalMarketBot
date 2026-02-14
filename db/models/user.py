@@ -1,17 +1,12 @@
 from __future__ import annotations
 
-import enum
-from typing import Optional, List, TYPE_CHECKING
 from datetime import datetime
+from typing import Optional, List, TYPE_CHECKING
 from sqlalchemy import Integer, String, Float, Boolean, CheckConstraint, Enum as SAEnum, Index, DateTime, Text, BigInteger
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from db.models.base import Base, TimestampMixin
-
-class AccountStatus(enum.Enum): # надо перепроверить
-    ACTIVE = "ACTIVE"
-    BLOCKED = "BLOCKED"
-    BANNED = "BANNED"
+from utils.user_status import AccountStatus
 
 if TYPE_CHECKING:
     from db.models.item import Item

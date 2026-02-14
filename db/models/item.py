@@ -1,26 +1,19 @@
 from __future__ import annotations
 
-import enum
-from typing import Optional, List, Dict, TYPE_CHECKING
 from decimal import Decimal
 from datetime import datetime
-
+from typing import Optional, List, Dict, TYPE_CHECKING
 from sqlalchemy import DateTime
 from sqlalchemy import Integer, String, Text, ForeignKey, Numeric, Enum as SAEnum, Boolean, JSON, CheckConstraint, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from db.models.base import Base, TimestampMixin
+from utils.item_status import ItemStatus
 
 if TYPE_CHECKING:
     from db.models.user import User
     from db.models.rental import Rental
     from db.models.photo import Photo
-
-class ItemStatus(enum.Enum): # это еще надо понять надо тут или нет, похожее уже где-то есть.
-    PENDING = "PENDING" # "pending"
-    APPROVED = "APPROVED" # "approved"
-    REJECTED = "REJECTED" # "rejected"
-    HIDDEN = "HIDDEN" # "hidden"
 
 class Item(Base, TimestampMixin):
     """Модель предмета/вещи для аренды"""
@@ -114,5 +107,3 @@ class Item(Base, TimestampMixin):
         Index("ix_items_category_available", "category_id", "is_available"),
         Index("ix_items_owner_available", "user_id", "is_available"),
     )
-
-    # to_dict
