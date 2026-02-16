@@ -258,7 +258,7 @@ async def start_create_item_from_my_items(
 
     # ⚙️ Получаем категории
     try:
-        categories = await category_service.list_main() or []
+        categories = await category_service.list_main_categories() or []
     except Exception as e:
         logger.error("start_create_item_from_my_items(): не удалось получить категории: %s", e, exc_info=True)
         await callback.message.answer("⚠️ Не удалось загрузить категории. Попробуйте позже.")

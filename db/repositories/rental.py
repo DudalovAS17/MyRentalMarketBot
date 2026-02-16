@@ -294,16 +294,10 @@ class RentalRepository:
 
     # --------------------------------------------------------------------------------------------------
 
-    # В сервисе: moderate_set_status()
+    # Для сервиса объявлений: moderate_set_status()
     async def has_open_rentals_for_item(self, item_id: int) -> bool:
         """Техническая проверка: есть ли у item открытые сделки."""
-        # Считаем "open" статусы сделок:
-        open_statuses = [st for st in RentalStatus if is_open_status(st)]
-        #open_statuses = []
-        #for st in RentalStatus:
-        #    if is_open_status(st):
-        #        open_statuses.append(Rental.status.in_(open_statuses))
-        # Rental.status должен хранится как Enum (→ status.value)
+        open_statuses = [st for st in RentalStatus if is_open_status(st)] # Считаем "open" статусы сделок
 
         async with self._sf() as s:
             stmt = select(

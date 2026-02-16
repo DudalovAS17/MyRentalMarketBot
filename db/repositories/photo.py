@@ -52,7 +52,7 @@ class PhotoRepository:
             await s.refresh(obj)
             return obj
 
-    async def delete(self, photo_id: int) -> int:
+    async def delete(self, photo_id: int) -> bool:
         """Удалить фото по id. Возвращает True - если удалено, False - если не найдено"""
         async with self._sf() as s:
             obj = await s.get(Photo, photo_id)
@@ -67,7 +67,7 @@ class PhotoRepository:
                 raise
             return True
 
-    # --------------------------------------------------------------
+
     async def reorder(self, item_id: int):
         """Перенумеровать order = 0,.., N после удаления/добавления.
         Чтобы порядок был всегда плотным."""

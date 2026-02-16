@@ -15,5 +15,9 @@ class ConflictError(ServiceError):
     """Конфликт состояния (инварианты/статусы/занятость и т.п.)."""
 
 
+class ValidationError(ServiceError):
+    """Ошибка бизнес-валидации входных данных."""
+
+
 # DomainError
 # ValidationError (не путать с Pydantic)

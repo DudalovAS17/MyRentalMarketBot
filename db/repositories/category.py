@@ -48,13 +48,12 @@ class CategoryRepository:
             res = await s.execute(stmt)
             return list(res.scalars())
 
-    # name = name.strip() - нужно вынести в хендлеры
+    # name = name.strip()
     async def get_by_name_within_parent(self, *, name: str, parent_id: Optional[int]) -> Optional[Category]:
         """ Получение категории по имени
         — если parent_id=None: найти категорию по имени;
         — если parent_id=X: найти подкатегорию по имени внутри категории X.
         """
-        name = name.strip()
         async with self._sf() as s:
             cond = and_(
                 Category.name == name,
@@ -65,10 +64,9 @@ class CategoryRepository:
             res = await s.execute(select(Category).where(cond))
             return res.scalar_one_or_none()
 
-    # name = name.strip() - нужно вынести в хендлеры
+
     async def exists_by_name_within_parent(self, *, name: str, parent_id: Optional[int]) -> bool:
         """Проверка «есть ли такая запись?»  Когда нужен просто ответ «есть / нет»"""
-        name = name.strip()
         async with self._sf() as s:
             cond = and_(
                 Category.name == name,
@@ -80,7 +78,7 @@ class CategoryRepository:
             return bool(res.scalar())
 
     # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-    # name = name.strip() - нужно вынести в хендлеры
+
     async def create(self, *, name: str, emoji: Optional[str] = None, parent_id: Optional[int] = None) -> Category:
         """
         — parent_id=None: создать категорию;
@@ -99,7 +97,6 @@ class CategoryRepository:
             await s.refresh(obj)
             return obj
 
-    # name = name.strip() - нужно вынести в хендлеры
     async def update(self, category_id: int, *, name: Optional[str] = None, emoji: Optional[str] = None) -> Optional[Category]:
         """переименовать/сменить emoji у категории или подкатегории."""
         async with self._sf() as s:
@@ -128,11 +125,11 @@ class CategoryRepository:
             await s.refresh(obj)
             return obj
 
-    async def delete(self, category_id: int) -> int:
+    async def delete(self, category_id: int) -> bool:
         """Удалить категорию или подкатегорию (Если удаляешь категорию — её подкатегории тоже уйдут, каскад)
         Возвращает True если удалили, False если не нашли/ошибка."""
         async with self._sf() as s:
-            obj = s.get(Category, category_id)
+            obj = await s.get(Category, category_id)
             if not obj:
                 return False
 

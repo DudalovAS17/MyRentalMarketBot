@@ -38,7 +38,7 @@ async def show_categories(
 
     # ⚙️ Получаем категории
     try:
-        categories = await category_service.list_main() or []
+        categories = await category_service.list_main_categories() or []
     except Exception as e:
         logger.error("show_categories(): не удалось получить категории: %s", e, exc_info=True)
         categories = []
