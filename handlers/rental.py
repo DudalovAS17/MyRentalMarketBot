@@ -1,10 +1,11 @@
 import logging
 from aiogram import F, Router
-from aiogram.types import (CallbackQuery, Message, InlineKeyboardMarkup, InlineKeyboardButton,
-                           ReplyKeyboardMarkup, KeyboardButton)
+from aiogram.types import (CallbackQuery, Message, InlineKeyboardMarkup, InlineKeyboardButton)
 from aiogram.fsm.context import FSMContext
 from datetime import datetime, timedelta
 from aiogram.exceptions import TelegramBadRequest
+
+from services.notif_service import NotificationService
 from utils.functions import send_or_edit
 
 
@@ -14,15 +15,13 @@ from db.models.rental import RentalStatus
 
 from handlers.rental_ui import build_rental_details_ui
 
-from states.review import ReviewStates
-
 from services.item_service import ItemService
 from services.user_service import UserService
 from services.rental_service import RentalService
-from services.review_service import ReviewService
 
 from utils.domain_exceptions import ItemNotAvailable
-from keyboards.user_kb import get_review_rating_keyboard
+from helpers.formatters.notification import format_new_rental_request
+from keyboards.rental_kb import get_open_rental_keyboard
 
 logger = logging.getLogger(__name__)
 rental_router = Router(name="items")
@@ -383,8 +382,9 @@ async def confirm_rent(
     callback: CallbackQuery,
     state: FSMContext,
     rental_service: RentalService,
-    #user_service: UserService,
-    #item_service: ItemService,
+    user_service: UserService,
+    item_service: ItemService,
+    notification_service: NotificationService,
     user
 ):
     """Создаёт сделку со статусом REQUESTED и уведомляет владельца."""
@@ -467,18 +467,17 @@ async def confirm_rent(
 
     # 2️⃣ Создаём сделку через сервис
     try:
-        new_rental = await rental_service.create_rental(
-            RentalCreate(
-                item_id=rent_item["id"],
-                renter_id=user.id,
-                owner_id=rent_item["owner_id"],
-                start_date=start_dt,
-                end_date=end_dt,
-                total_price=total_price,
-                deposit_amount=rent_item.get("deposit_amount"),
-                status=RentalStatus.REQUESTED, # Начальный статус
-            )
-        )
+        new_rental = await rental_service.create(RentalCreate(
+            item_id=rent_item["id"],
+            renter_id=user.id,  # db_user_id ✅
+            owner_id=rent_item["owner_id"],  # db_user_id ✅
+            start_date=start_dt,
+            end_date=end_dt,
+            total_price=total_price,
+            deposit_amount=rent_item.get("deposit_amount"),
+            status=RentalStatus.REQUESTED,  # Начальный статус
+        ))
+
     except Exception as e:
         logger.exception(f"[Rent] Ошибка создания аренды: {e}")
         #await callback.message.edit_text(
@@ -500,6 +499,35 @@ async def confirm_rent(
         return
 
     logger.info(f"[Rent] Создана аренда #{new_rental.id}")
+
+
+    # -------------- Notification logic - уведомление владельцу товара о новом запросе -------------------
+    item = await item_service.get_item_by_id(new_rental.item_id)
+    renter = await user_service.get_by_id(new_rental.renter_id)
+    owner = await user_service.get_by_id(new_rental.owner_id)
+
+    #renter_display = str(new_rental.renter_id)
+    text = format_new_rental_request(
+        item_title=getattr(item, "title", "—"),
+        renter_username=getattr(renter, "username", None)
+    )
+
+    # Ошибку исправил этим кодом, но пока не осознал - костыль
+    if owner and getattr(owner, "telegram_id", None):
+        await notification_service.notify_user(
+            owner.telegram_id,  # rental.owner_id
+            text,
+            reply_markup=get_open_rental_keyboard(new_rental.id),
+        )
+    else:
+        logger.warning(
+            "Не удалось отправить уведомление владельцу %s: отсутствует telegram_id",
+            new_rental.owner_id,
+        )
+
+    # Ответ пользователю (UI)
+    #await message.answer("✅ Заявка на аренду отправлена владельцу.")
+    # ---------------------------------------------------------------------------------------------------
 
     """ Обработка результата
     if new_rental:
@@ -568,7 +596,7 @@ async def view_my_rentals(event: Message | CallbackQuery, rental_service: Rental
     logger.info(f"[Rentals] Пользователь {user.id} запросил список сделок")
 
     # Получаем сделки
-    rentals = await rental_service.get_user_rentals(user.id) # Изменение 1
+    rentals = await rental_service.list_user_rentals(user.id)  # Изменение 1
 
     # Если сделок нет
     if not rentals:
@@ -665,12 +693,19 @@ async def render_rental_details(callback: CallbackQuery, rental_service: RentalS
         await callback.message.answer("❌ Не удалось загрузить детали сделки или у вас нет доступа.")
         return
 
+    rental = details.rental
+    owner = details.owner
+    logger.info(
+        "статус аренды: rental_id=%s status=%s owner_id=%s actor=%s",
+        rental_id,
+        rental.status, # Enum ✅
+        owner.id, # db_user_id ✅
+        user.id
+    )
+
     # 2️⃣ Формируем текст
     # 3️⃣ Формируем кнопки в зависимости от статуса и роли
     text, markup = build_rental_details_ui(details)
-
-    logger.info("статус аренды: rental_id=%s status=%s owner_id=%s actor=%s",
-                rental_id, details["status"], details["owner"]["id"], user.id)
 
     # 4️⃣ Пытаемся редактировать сообщение, если нельзя — отправляем новое
     try:

@@ -44,7 +44,7 @@ class CategoryService:
                 raise NotFoundError(f"Category not found: id={category_id}")
             return None
 
-        return CategoryOut.model_validate(cat) if cat else None
+        return CategoryOut.model_validate(cat)
 
     # ───────────────────────────────────────────────────────────────────────────────────────────────────────
     # Admin-only writes (логируем как admin action / бизнес-событие)

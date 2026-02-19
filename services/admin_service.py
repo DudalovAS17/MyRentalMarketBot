@@ -1,36 +1,35 @@
-#import json
-#import logging
-from typing import Optional #, Any, Mapping
-from db.repositories.admin import AdminActionRepository
+import enum
+import logging
+from typing import Optional
 
-# logger = logging.getLogger(__name__)
+from db.repositories.admin import AdminActionRepository
+from schemas.admin import AdminActionOut
+
+logger = logging.getLogger(__name__)
 
 class AdminActionService:
     def __init__(self, repo: AdminActionRepository): #  -> None:
         self.repo = repo
 
     async def log_action(
-        self, # *,
+        self, *,
         admin_id: int,
-        action_type: str,
-        entity_type: str,
-        entity_id: int,
-        payload: Optional[dict] = None, # Mapping[str, Any]
-    ): #  -> None:
-        # try:
-        return await self.repo.create(
+        action_type: str | enum.Enum,
+        entity_type: str | enum.Enum,
+        entity_id: str | int,
+        note: Optional[str] = None,
+        payload: Optional[dict] = None, # Optional[dict[str, Any]]
+    ) -> AdminActionOut:
+        action_type_str = action_type.value if isinstance(action_type, enum.Enum) else str(action_type)
+        entity_type_str = entity_type.value if isinstance(entity_type, enum.Enum) else str(entity_type)
+
+        obj =  await self.repo.create(
             admin_id=admin_id,
-            action_type=action_type,
-            entity_type=entity_type,
-            entity_id=entity_id,
-            payload=payload, # = json.dumps(payload, ensure_ascii=False),
+            action_type=action_type_str, # привели
+            entity_type=entity_type_str, # к
+            entity_id=str(entity_id), # строкам
+            note=note,
+            payload=payload
         )
-        # except Exception:
-        # logger.exception(
-        #     "Audit log failed: admin_id=%s action=%s entity=%s id=%s",
-        #     admin_id,
-        #     action_type,
-        #     entity_type,
-        #     entity_id,
-        # )
-        # raise
+
+        return AdminActionOut.model_validate(obj)

@@ -23,6 +23,14 @@ class RentalStatus(enum.Enum): # enum.StrEnum
 
     DISPUTED = "disputed"        # Открыт спор
 
+# "requested": "⏳ Запрошена",
+# "confirmed": "✅ Подтверждена",
+# "active": "▶️ Активна",
+# "completed": "🏁 Завершена",
+# "cancelled": "❌ Отменена",
+# "rejected": "🚫 Отклонена",
+# "disputed": "⚠️ Спор",
+# "payment_pending": "💰 Ожидает оплаты",
 
 """ Мы сознательно используем "complet", а не "complete", 
 чтобы ловить и completed, и complete, и completion при необходимости.

@@ -93,3 +93,99 @@ async def try_update_status(...) -> bool:
 
 ---
 
+### `list_user_rentals()`
+
+```
+dto = RentalOut.model_validate(r, from_attributes=True)
+result.append(RentalWithRoleOut(**dto.model_dump(), user_role=user_role))
+```
+
+- r — ORM объект SQLAlchemy (Rental)
+- RentalOut — Pydantic DTO с полями сделки (id, item_id, status, start_date…)
+- RentalWithRoleOut — расширенный DTO: всё как RentalOut + user_role
+
+### `dto = RentalOut.model_validate(r, from_attributes=True)`
+- преобразование ORM → DTO (Pydantic-модель)
+
+Без `from_attributes=True` Pydantic по умолчанию ожидает mapping/dict-like вход 
+(или модель/объект, который он умеет превращать в dict). ORM-объект — не dict.
+
+✅ `from_attributes=True` включает режим: читай поля через `getattr(obj, field_name)`.
+
+### ```result.append(RentalWithRoleOut(**dto.model_dump(), user_role=user_role))```
+
+Тут две идеи:
+- взять все поля сделки из dto
+- добавить одно поле user_role
+
+`dto.model_dump()` — Это Pydantic v2 способ получить словарь полей DTO.
+
+`**dto.model_dump()` ** — это распаковка словаря в именованные аргументы функции.
+
+```
+То есть:
+RentalWithRoleOut(**dto.model_dump(), user_role=user_role)
+
+эквивалентно:
+RentalWithRoleOut(
+  id=dto.id,
+  renter_id=dto.renter_id,
+  owner_id=dto.owner_id,
+  status=dto.status,
+  created_at=dto.created_at,
+  ...,
+  user_role=user_role
+)
+```
+
+[`RentalWithRoleOut(...)` = новый Pydantic объект (чистый + user_role)
+]()
+
+---
+
+### `create_rental()`
+
+Сервис создал аренду → handler решает, отправлять ли уведомление и какую клавиатуру прикладывать.
+
+- `owner_id` (в rental) = db_user_id
+- `telegram_id` (в User) = Telegram ID, по нему и отправляем.
+
+Мы ушли от details = {} как dict, к
+```
+RentalDetailsOut(
+    id=rental.id,
+    rental=RentalOut.model_validate(rental),
+    item=ItemOut.model_validate(item),
+    renter=UserOut.model_validate(renter),
+    owner=UserOut.model_validate(owner),
+    user_role=role
+)
+```
+
+единственное, что он не учитывает: “Неизвестный товар”, “-”, 0 — это UI-дефолты.
+✅ По Законам такие дефолты должны быть:
+- в handler (UI слой)
+- в helpers/formatters
+
+Там это будет примерно так:
+```
+      item_title = details.item.title or "Неизвестный товар"
+      item_desc = details.item.description or "-"
+      location = details.item.location or "-"
+      
+      owner_name = details.owner.full_name or "-"
+      renter_name = details.renter.full_name or "-"
+```
+
+### `confirm_requested()`
+
+    ok=True  →  статус реально сменился в базе (1 строка обновлена)
+    ok=False →  ничего не изменилось (0 строк обновлено), значит:
+                - либо статус уже не REQUESTED,        
+                - либо rental_id не существует,        
+                - либо owner_id не совпал (не тот актёр).        
+    И сервис превращает это в понятную ошибку.
+
+
+###  Тут пока остановился
+    ====== ADMIN MANAGEMENT — админка ======

@@ -1,13 +1,12 @@
 import logging
-from typing import Dict, Any, List, Optional, Union
+from typing import List, Optional
 
-from db.models import Item
 from db.repositories.item import ItemRepository
 from db.repositories.photo import PhotoRepository
 from db.repositories.rental import RentalRepository
 from schemas.item import ItemCreate, ItemUpdate, ItemOut
 from schemas.photo import PhotoOut
-from utils.errors import ConflictError, NotFoundError, ValidationError
+from utils.errors import ConflictError, NotFoundError
 from utils.item_status import can_transition, ItemStatus
 
 logger = logging.getLogger(__name__)
@@ -15,7 +14,12 @@ logger = logging.getLogger(__name__)
 class ItemService:
     """Сервис для работы с объявлениями (Items + Photos)."""
 
-    def __init__(self, item_repo: ItemRepository, photo_repo: PhotoRepository, rental_repo: RentalRepository) -> None:
+    def __init__(
+            self,
+            item_repo: ItemRepository,
+            photo_repo: PhotoRepository,
+            rental_repo: RentalRepository # тут только кросс-доменный инвариант в moderate_set_status() - оставляем
+    ) -> None:
         self.item_repo = item_repo
         self.photo_repo = photo_repo
         self.rental_repo = rental_repo
@@ -100,7 +104,7 @@ class ItemService:
 
     async def create(self, item_data: ItemCreate) -> ItemOut:
         """Создать объявление с фото"""
-        obj: Item = await self.item_repo.create(item_data)
+        obj = await self.item_repo.create(item_data)
         logger.info("Создано объявление: id=%s user_id=%s", obj.id, obj.user_id)
         return ItemOut.model_validate(obj)
 

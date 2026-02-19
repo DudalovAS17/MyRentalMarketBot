@@ -1,13 +1,11 @@
-from typing import List, Optional
+import logging
+from typing import List, Optional, Literal
 
 from db.repositories.photo import PhotoRepository
-from schemas.photo import PhotoCreate, PhotoOut
-from db.models.photo import Photo
-from sqlalchemy.exc import SQLAlchemyError
-import logging
+from schemas.photo import PhotoOut
+from utils.errors import NotFoundError, ConflictError
 
 logger = logging.getLogger(__name__)
-
 
 class PhotoService:
     """Сервис для управления фотографиями объявления."""
@@ -15,31 +13,45 @@ class PhotoService:
     def __init__(self, photo_repo: PhotoRepository):
         self.photo_repo = photo_repo
 
+    async def get_photos(self, item_id: int) -> List[PhotoOut]:
+        """Возвращает все фото объявления в правильном порядке."""
+        photos = await self.photo_repo.list_by_item_id(item_id)
+        return [PhotoOut.model_validate(p) for p in photos]
+
+    async def get_photo(self, photo_id: int, *, strict: bool = False) -> Optional[PhotoOut]:
+        """Получить одно фото"""
+        photo = await self.photo_repo.get_by_id(photo_id)
+        if not photo:
+            if strict:
+                raise NotFoundError(f"Фото не найдено: id={photo_id}")
+            return None
+
+        return PhotoOut.model_validate(photo)
+
+    # ────────────────────────────────────────────────────────────────────────────────────────────────────────
+
     async def add_photo(self, *, item_id: int, telegram_file_id: str, order: Optional[int] = None) -> PhotoOut:
         """Добавляет фото к объявлению (если order не указан → ставим в конец)"""
 
-        try:
-            # если order не указан — нужно узнать текущий максимум
-            if order is None:
-                photos = await self.photo_repo.list_by_item_id(item_id)
-                order = len(photos)
+        is_insert = order is not None
 
-            new_photo = await self.photo_repo.create(
-                item_id=item_id,
-                telegram_file_id=telegram_file_id,
-                order=order,
-            )
+        if order is None:
+            order = await self.photo_repo.count_by_item(item_id)
 
+        new_photo = await self.photo_repo.create(
+            item_id=item_id,
+            telegram_file_id=telegram_file_id,
+            order=order,
+        )
+
+        if is_insert:
             # После добавления перестраиваем порядок (без дырок)
             await self.photo_repo.reorder(item_id)
 
-            return PhotoOut.model_validate(new_photo)
+        dto = PhotoOut.model_validate(new_photo)
+        logger.info("A photo added for the item: item_id=%s", item_id)
+        return dto
 
-        except SQLAlchemyError as e:
-            logger.error(f"[PhotoService.add_photo] Ошибка БД: {e}", exc_info=True)
-            raise
-
-    # работает, но не обдумывал
     async def add_photos(self, item_id: int, file_ids: list[str]) -> list[PhotoOut]:
         """Добавить несколько фотографий к объявлению.
         Порядок назначается «хвостом» после уже существующих.
@@ -47,11 +59,9 @@ class PhotoService:
         if not file_ids:
             return []
 
-        existing = await self.photo_repo.list_by_item_id(item_id)
-        start_order = len(existing)
+        start_order = await self.photo_repo.count_by_item(item_id)
 
         result: list[PhotoOut] = []
-
         for offset, file_id in enumerate(file_ids):
             photo = await self.photo_repo.create(
                 item_id=item_id,
@@ -60,104 +70,66 @@ class PhotoService:
             )
             result.append(PhotoOut.model_validate(photo))
 
-        # при желании можно вызвать reorder, но тут порядок и так плотный
-        # await self.repo.reorder(item_id)
-
+        logger.info("Photos added for the item: item_id=%s count=%s", item_id, len(result))
         return result
 
-    async def get_photos(self, item_id: int) -> List[PhotoOut]:
-        """Возвращает все фото объявления в правильном порядке."""
-        photos = await self.photo_repo.list_by_item_id(item_id)
-        return [PhotoOut.model_validate(p) for p in photos]
+    async def delete_photo(self, photo_id: int, *, strict: bool = False) -> bool:
+        """Удаляет фото и уплотнить порядок у оставшихся"""
 
-    async def get_photo(self, photo_id: int) -> Optional[PhotoOut]:
-        """Получить одно фото."""
+        # ищем фото
         photo = await self.photo_repo.get_by_id(photo_id)
-        return PhotoOut.model_validate(photo) if photo else None
+        if not photo:
+            if strict:
+                raise NotFoundError(f"Фото не найдено: id={photo_id}")
+            return False
 
+        # удаляем фото
+        deleted = await self.photo_repo.delete(photo_id)
+        if not deleted:
+            if strict:
+                raise NotFoundError(f"Фото не найдено: id={photo_id}")
+            return False
 
-    async def delete_photo(self, photo_id: int) -> bool:
-        """Удаляет фото и пересортировывает порядок."""
-        try:
-            photo = await self.photo_repo.get_by_id(photo_id)
-            if not photo:
-                return False
+        # уплотняем порядок
+        await self.photo_repo.reorder(photo.item_id)
 
-            item_id = photo.item_id
+        logger.info("The photo id=%s is deleted from the item item_id=%s", photo_id, photo.item_id)
+        return True
 
-            deleted = await self.photo_repo.delete(photo_id)
-            if not deleted:
-                return False
+    # ────────────────────────────────────────────────────────────────────────────────────────────────────────
 
-            # Перестраиваем порядок у оставшихся
-            await self.photo_repo.reorder(item_id)
-            return True
-
-        except SQLAlchemyError as e:
-            logger.error(f"[PhotoService.delete_photo] Ошибка удаления: {e}", exc_info=True)
-            raise
-
-
-    async def move_photo(self, photo_id: int, direction: str) -> bool:
+    # ───────────────────────────────────── Admin-logic ────────────────────────────────────────────────────
+    async def move_photo(self, photo_id: int, direction: Literal["up", "down"], strict: bool = False) -> bool:
         """Перемещает фото вверх или вниз (direction: 'up' | 'down')"""
 
         photo = await self.photo_repo.get_by_id(photo_id)
         if not photo:
+            if strict:
+                raise NotFoundError(f"Фото не найдено: id={photo_id}")
             return False
 
-        photos = await self.photo_repo.list_by_item_id(photo.item_id)
-        photos_sorted = sorted(photos, key=lambda p: p.order)
+        # repo должен найти соседа и сделать swap атомарно
+        ok = await self.photo_repo.swap_with_neighbor(
+            item_id=photo.item_id,
+            photo_id=photo_id,
+            direction=direction
+        )
+        if not ok and strict:
+            raise ConflictError("Нельзя переместить фото (уже крайнее или изменилось)")
 
-        idx = next((i for i, p in enumerate(photos_sorted) if p.id == photo_id), None)
-        if idx is None:
-            return False
+        return ok
 
-        # swap with previous
-        if direction == "up" and idx > 0:
-            photos_sorted[idx].order, photos_sorted[idx - 1].order = (
-                photos_sorted[idx - 1].order,
-                photos_sorted[idx].order,
-            )
-
-        # swap with next
-        elif direction == "down" and idx < len(photos_sorted) - 1:
-            photos_sorted[idx].order, photos_sorted[idx + 1].order = (
-                photos_sorted[idx + 1].order,
-                photos_sorted[idx].order,
-            )
-        else:
-            return False
-
-        # сохраняем изменения
-        async with self.photo_repo._sf() as s:
-            async with s.begin():
-                for p in photos_sorted:
-                    s.add(p)
-
-        # опять перестраиваем порядок, чтобы было 0,1,2,3
-        await self.photo_repo.reorder(photo.item_id)
-
-        return True
-
-    async def set_order(self, photo_id: int, new_order: int) -> bool:
+    async def set_order(self, photo_id: int, new_order: int, strict: bool = False) -> bool:
         """Установить явный order для фото."""
         photo = await self.photo_repo.get_by_id(photo_id)
         if not photo:
+            if strict:
+                raise NotFoundError(f"Фото не найдено: id={photo_id}")
             return False
 
-        photos = await self.photo_repo.list_by_item_id(photo.item_id)
-        if new_order < 0 or new_order >= len(photos):
-            return False
+        ok = await self.photo_repo.set_order(photo_id=photo_id, item_id=photo.item_id, new_order=new_order)
 
-        # вставляем фото на позицию new_order
-        photos_sorted = [p for p in photos if p.id != photo_id]
-        photos_sorted.insert(new_order, photo)
+        if not ok and strict:
+            raise ConflictError("Нельзя изменить порядок (позиция вне диапазона или данные изменились)")
 
-        # сохраняем порядок
-        async with self.photo_repo._sf() as s:
-            async with s.begin():
-                for i, p in enumerate(photos_sorted):
-                    p.order = i
-                    s.add(p)
-
-        return True
+        return ok

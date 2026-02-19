@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Callable, Optional, List
 from sqlalchemy import update, or_
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 from sqlalchemy import select, exists, and_
 
 from db.models.rental import Rental
@@ -70,6 +71,21 @@ class RentalRepository:
             res = await s.execute(stmt)
             return list(res.scalars())
 
+    # позволяет убрать зависимость сервиса сделок от сервисов объявлений, пользователей и тд.
+    async def get_details_by_id(self, rental_id: int) -> Optional[Rental]:
+        async with self._sf() as s:
+            stmt = (
+                select(Rental)
+                .where(Rental.id == rental_id)
+                .options( # ✅ “Подгрузи эти связи заранее, пока сессия живая”.
+                    selectinload(Rental.item),
+                    selectinload(Rental.renter),
+                    selectinload(Rental.owner),
+                )
+            )
+            res = await s.execute(stmt)
+            return res.scalar_one_or_none()
+
     # ---------------------------------- для admin-панели --------------------------------------------------------------
     async def list_recent(self, *, limit: int, offset: int = 0) -> List[Rental]:
         """Последние сделки (по убыванию created_at)"""
@@ -83,6 +99,24 @@ class RentalRepository:
             )
             res = await s.execute(stmt)
             return list(res.scalars())
+
+    # для сервиса admin_rental_service
+    async def list_recent_with_details_for_admins(self, *, limit: int, offset: int) -> List[Rental]:
+        async with self._sf() as s:
+            stmt = (
+                select(Rental)
+                .order_by(Rental.created_at.desc()) # , Rental.id.desc()
+                .limit(limit)
+                .offset(offset)
+                .options(
+                    selectinload(Rental.item),
+                    selectinload(Rental.owner),
+                    selectinload(Rental.renter),
+                )
+            )
+            res = await s.execute(stmt)
+            return list(res.scalars())
+
     # ------------------------------------------------------------------------------------------------------------------
 
     async def create(self, rental_data: RentalCreate) -> Rental:
@@ -182,7 +216,6 @@ class RentalRepository:
             updated_rows = int(getattr(res, "rowcount", 0) or 0)
             return updated_rows > 0
 
-
     async def try_update_status_if_participant(self, *,
         rental_id: int,
         new_status: RentalStatus,
@@ -230,7 +263,7 @@ class RentalRepository:
                 raise
 
             updated_rows = int(getattr(res, "rowcount", 0) or 0)
-            return updated_rows > 0 # True - арендатор подтвердил передачу вещи
+            return updated_rows > 0 # True - владелец подтвердил передачу
 
     async def try_set_renter_confirm_receive(self, *, rental_id: int, renter_id: int) -> bool:
         """Арендатор отмечает: 'получил вещь' (только если CONFIRMED, и он renter, и флаг ещё False)"""

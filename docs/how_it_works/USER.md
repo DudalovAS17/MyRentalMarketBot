@@ -11,6 +11,13 @@
 * logger.error("delete() — ошибка при удалении пользователя id=%s: %s", user_id, e, exc_info=True)
 ---
 
+# Service
+
+## `register_user()`
+
+`UserUpdate(**user_data.model_dump(exclude_unset=True))` - мы создаём объект UserUpdate с теми же данными, 
+что и в UserCreate
+
 
 
                 

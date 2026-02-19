@@ -1,5 +1,8 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from services.rental_service import RentalStatus
+from utils.rental_status import RentalActorRole
+from schemas.rental import RentalDetailsOut
+from helpers.formatters.ui_defaults import ui_str, ui_money
 
 STATUS_LABELS = {
     RentalStatus.REQUESTED: "Запрос отправлен",
@@ -15,32 +18,59 @@ STATUS_LABELS = {
     RentalStatus.CANCELLED_CONFIRMED_BY_RENTER: "Отменена арендатором (до получения)",
 }
 
+def format_rental_status(status: RentalStatus) -> str:
+    return status.value.replace("_", " ").replace("-", " ").capitalize()
 
-def build_rental_details_ui(details: dict) -> tuple[str, InlineKeyboardMarkup]:
+def build_rental_details_ui(details: RentalDetailsOut) -> tuple[str, InlineKeyboardMarkup]:
     """
     Собирает текст + клавиатуру для экрана "Детали сделки".
     Никаких БД/сервисов/Telegram-отправки — только UI.
     """
+    rental_id = details.id
+    rental = details.rental
+    item = details.item
+    renter = details.renter
+    owner = details.owner
+    user_role = details.user_role
 
-    rental_id = details["id"]
-    item = details["item"]
-    renter = details["renter"]
-    owner = details["owner"]
-    status: RentalStatus = details["status"]
-    role = details["current_user_role"]  # "owner" | "renter"
+    # Было: getattr(item, "title", "Неизвестный товар")
+    item_title = ui_str(getattr(item, "title", None), "Неизвестный товар")
+    # getattr(item, "description", "-")
+    item_desc = ui_str(getattr(item, "description", None), "-") # [:100]???
+    # getattr(item, "location", "-")
+    item_location = ui_str(getattr(item, "location", None), "-")
 
-    owner_ok = bool(details.get("owner_handover_confirmed"))
-    renter_ok = bool(details.get("renter_receive_confirmed"))
+    # getattr(item, "price", 0)
+    item_price = ui_money(getattr(item, "price", None), "0")
+    # deposit": getattr(item, "deposit", 0)
+    item_deposit = ui_money(getattr(item, "deposit", None), "0") # 'Нет'
 
+    # "full_name": renter.full_name if renter else "Неизвестный арендатор",
+    renter_name = ui_str(getattr(renter, "full_name", None), "Неизвестный арендатор")
+    # owner.full_name if owner else "Неизвестный владелец"
+    owner_name = ui_str(getattr(owner, "full_name", None), "Неизвестный владелец")
+
+    """ 
+    "item": {
+        "id": item.id if item else None,
+        # "photos": getattr(item, "photos", []), # !!! Фото лучше тянуть через PhotoService/Repository.
+    }
+    owner": {
+            "id": owner.id if owner else None,
+            "username": owner.username if owner else None,
+            "phone": owner.phone if owner else None,
+    }
+    """
+
+    owner_ok = bool(rental.owner_handover_confirmed)
+    renter_ok = bool(rental.renter_receive_confirmed)
     owner_flag = "✅" if owner_ok else "⏳"
-    #owner_flag = "✅" if details["owner_handover_confirmed"] else "⏳"
     renter_flag = "✅" if renter_ok else "⏳"
-    #renter_flag = "✅" if details["renter_receive_confirmed"] else "⏳"
 
+    renter_username = renter.username
+    owner_username = owner.username
     # Красивое имя вида: "Александр С. (@potch)"
-    def fmt_person(p: dict) -> str:
-        name = p.get("full_name") or "—"
-        username = p.get("username")
+    def fmt_person(name: str, username: str = None) -> str:
         return f"{name} (@{username})" if username else name
 
     """
@@ -64,25 +94,28 @@ def build_rental_details_ui(details: dict) -> tuple[str, InlineKeyboardMarkup]:
     owner_contact = format_contact(owner)
     """
 
+    status: RentalStatus = rental.status
     status_text = STATUS_LABELS.get(status, status.value)
+
+    #status_display = format_rental_status(status)
 
     text = (
         f"🔎 <b>Детали сделки #{rental_id}</b>\n\n"
-        f"📦 <b>Товар:</b> {item.get('title', '—')}\n"
-        # f"<b>Описание</b>: {item.get('description', '—')[:100]???}...\n" # Можно добавить краткое описание
-        f"💰 <b>Цена аренды:</b> {item.get('price', 0)} ₽/день\n"
-        f"🛡 <b>Залог:</b> {item.get('deposit', 0)} ₽\n\n" # 'Нет'
+        f"📦 <b>Товар:</b> {item_title}\n"
+        f"<b>Описание</b>: {item_desc}\n" # }...\n" (если сделаю логику [:100])
+        f"💰 <b>Цена аренды:</b> {item_price} ₽/день\n"
+        f"🛡 <b>Залог:</b> {item_deposit} ₽\n\n"
 
         f"<b>Стороны:</b>\n"
-        f"👤 <b>Арендатор:</b> {fmt_person(renter)}\n"
-        f"👑 <b>Владелец:</b> {fmt_person(owner)}\n\n"
+        f"👤 <b>Арендатор:</b> {fmt_person(renter_name, renter_username)}\n"
+        f"👑 <b>Владелец:</b> {fmt_person(owner_name, renter_username)}\n\n"
 
         f"<b>Период аренды:</b>\n"
-        f"📅 Начало: <b>{details['start_date']:%d.%m.%Y}</b>\n"
-        f"📅 Конец: <b>{details['end_date']:%d.%m.%Y}</b>\n\n"
+        f"📅 Начало: <b>{rental.start_date:%d.%m.%Y}</b>\n"
+        f"📅 Конец: <b>{rental.end_date:%d.%m.%Y}</b>\n\n"
 
         f"<b>Оплата:</b>\n"
-        f"💵 Итого: <b>{details['total_price']} ₽</b>\n\n"
+        f"💵 Итого: <b>{item_price} ₽</b>\n\n"
 
         f"<b>Статус сделки:</b> <b>{status_text}</b>\n" # {status.value}
         
@@ -94,7 +127,7 @@ def build_rental_details_ui(details: dict) -> tuple[str, InlineKeyboardMarkup]:
     # кнопки
     rows = []
 
-    if role == "owner":
+    if user_role == RentalActorRole.OWNER:
         rows.extend(_build_owner_actions(status, rental_id, owner_ok, renter_ok))
     else:
         rows.extend(_build_renter_actions(status, rental_id, owner_ok, renter_ok))

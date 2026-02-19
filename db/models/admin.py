@@ -16,13 +16,12 @@ class AdminAction(Base, TimestampMixin):
     # именно tg_id, не user_id
     admin_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
 
-    action_type: Mapped[str] = mapped_column(String(64), nullable=False) # на будущее AdminActionType(enum.Enum) ?
+    action_type: Mapped[str] = mapped_column(String(64), nullable=False) # сервис обязан приводить к str
 
-    # Например: "rental", "item", "user", "complaint", "support_ticket"
-    entity_type: Mapped[str] = mapped_column(String(32), nullable=False) # на будущее EntityType(enum.Enum) ?
+    entity_type: Mapped[str] = mapped_column(String(32), nullable=False) # сервис обязан приводить к str
 
-    # Универсальный ID сущности (entity_id хранится строкой, а при записи int приводим к str в сервисе)
-    entity_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    # Универсальный ID сущности
+    entity_id: Mapped[str] = mapped_column(String(64), nullable=False) # сервис обязан приводить к str
 
     # Короткая человеко-читаемая заметка (опционально)
     note: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)

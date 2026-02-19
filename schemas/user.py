@@ -18,12 +18,7 @@ class UserCreate(BaseModel):
     #rating: float = Field(0.0, ge=0, le=5) # float = 0.0
     #rating_count: int = Field(0, ge=0) # int = 0
     #is_blocked: bool = False
-    #account_status: str = "ACTIVE"
-
-    # бан-поля — строго админские
-    #banned_at: Optional[datetime] = None
-    #banned_by_admin_id: Optional[int] = None
-    #ban_reason: Optional[str] = None
+    #account_status: AccountStatus = AccountStatus.ACTIVE
 
 
 class UserUpdate(BaseModel):
@@ -41,7 +36,7 @@ class UserAdminUpdate(BaseModel):
     """Схема для админского обновления пользователя"""
 
     is_admin: Optional[bool] = None
-    is_blocked: Optional[bool] = None
+    is_blocked: Optional[bool] = None # в будущем уберем
     account_status: Optional[AccountStatus] = None
 
     # аудит бана
@@ -49,19 +44,12 @@ class UserAdminUpdate(BaseModel):
     banned_by_admin_id: Optional[int] = None
     ban_reason: Optional[str] = None
 
-    # рейтинг (если у вас это админская/системная зона)
-    rating: Optional[float] = Field(None, ge=0, le=5)
-    rating_count: Optional[int] = Field(None, ge=0)
-
-# Если рейтинг считается автоматически из Review — то лучше вообще убрать rating/rating_count из любых Update-схем
-# и менять только сервисом.
-
 
 class UserOut(BaseModel):
     """Схема для возврата данных о пользователе наружу"""
-
     id: int
     telegram_id: int
+
     username: Optional[str] = None
     first_name: Optional[str] = None
     last_name: Optional[str] = None
@@ -72,7 +60,7 @@ class UserOut(BaseModel):
     # В Out дефолты не вредят, но чаще делают просто типы (без = False)
     rating: float # = Field(0.0, ge=0, le=5)
     rating_count: int # = Field(0, ge=0) # = 0
-    is_blocked: bool # = False
+    is_blocked: bool # = False # уберем в будущем
     is_admin: bool # = False
     account_status: AccountStatus # = AccountStatus.ACTIVE
 
@@ -85,3 +73,8 @@ class UserOut(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+
+# Если рейтинг считается автоматически из Review — то лучше вообще убрать rating/rating_count из любых
+# Update-схем и менять только сервисом.
+    #rating: Optional[float] = Field(default=None, ge=0, le=5) # default=?
+    #rating_count: Optional[int] = Field(default=None, ge=0)

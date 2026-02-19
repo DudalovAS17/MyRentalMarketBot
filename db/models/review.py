@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from db.models.rental import Rental
 
 class Review(Base, TimestampMixin):
-    """Модель для хранения отзывов о (завершённых?) сделках аренды"""
+    """Модель для хранения отзывов о сделках аренды"""
     __tablename__ = 'reviews'
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
@@ -19,9 +19,9 @@ class Review(Base, TimestampMixin):
     # Связь со сделкой
     rental_id: Mapped[int] = mapped_column(ForeignKey("rentals.id", ondelete="CASCADE"), nullable=False)
 
-    # удалил юзера → удалились отзывы. Не подходит. История сделок/репутации должна сохраняться. Поэтому "RESTRICT", а не "CASCADE"
     # Кто оставил отзыв
     reviewer_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"), nullable=False)
+    # удалил юзера → удалились отзывы. Не подходит. История сделок/репутации должна сохраняться. Поэтому "RESTRICT", а не "CASCADE"
 
     # Кому оставлен отзыв
     reviewee_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"),  nullable=False)

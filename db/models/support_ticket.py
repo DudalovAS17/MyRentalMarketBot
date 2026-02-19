@@ -53,7 +53,7 @@ class SupportTicket(Base, TimestampMixin):
     )
 
     closed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
-    closed_by_admin_id: Mapped[Optional[int]] = mapped_column(BigInteger, nullable=True)
+    closed_by_admin_tg_id: Mapped[Optional[int]] = mapped_column(BigInteger, nullable=True)
     admin_last_reply_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
 
     user: Mapped["User"] = relationship("User", back_populates="support_tickets")

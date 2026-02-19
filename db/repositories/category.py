@@ -85,7 +85,7 @@ class CategoryRepository:
         — parent_id=X: создать подкатегорию в категории X.
         (Дубликаты по (parent_id, name) не создаст — вернёт существующую.)
         """
-        name = name.strip()
+        #name = name.strip()
         obj = Category(name=name, emoji=emoji, parent_id=parent_id)
         async with self._sf() as s:
             s.add(obj)

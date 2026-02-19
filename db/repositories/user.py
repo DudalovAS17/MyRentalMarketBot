@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from typing import Callable, Optional, List
-from sqlalchemy import select, exists
+from typing import Callable, Optional, List, Union
+from sqlalchemy import select, exists, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.models.user import User
-from schemas.user import UserCreate, UserUpdate
+from schemas.user import UserCreate, UserUpdate, UserAdminUpdate
 
 
 class UserRepository:
@@ -61,7 +61,9 @@ class UserRepository:
             await s.refresh(obj)
             return obj
 
-    async def update(self, user_id: int, update_data: UserUpdate) -> Optional[User]:
+    UpdateSchema = Union[UserUpdate, UserAdminUpdate]
+
+    async def update(self, user_id: int, update_data: UpdateSchema) -> Optional[User]:
         """Обновить данные пользователя (только переданные поля)"""
         async with self._sf() as s:
             obj: Optional[User] = await s.get(User, user_id)
@@ -94,3 +96,24 @@ class UserRepository:
                 await s.rollback()
                 raise
             return True
+
+
+    # для сервиса отзывов - Обновить рейтинг пользователя
+    async def update_rating(self, *, user_id: int, rating: float, rating_count: int) -> bool:
+        """Обновить кеш рейтинга пользователя. Возвращает True, если строка обновлена."""
+        async with self._sf() as s:
+            stmt = (
+                update(User)
+                .where(User.id == user_id)
+                .values(rating=rating, rating_count=rating_count)
+            )
+
+            try:
+                res = await s.execute(stmt)
+                await s.commit()
+            except Exception:
+                await s.rollback()
+                raise
+
+            updated_rows = int(getattr(res, "rowcount", 0) or 0)
+            return updated_rows > 0

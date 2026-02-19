@@ -1,14 +1,12 @@
 import logging
 from typing import List, Optional
 
-from db.models.review import Review
 from db.models.rental import RentalStatus
-
 from db.repositories.review import ReviewRepository
 from db.repositories.rental import RentalRepository
 from db.repositories.user import UserRepository
-
-from schemas.review import ReviewCreate, ReviewOut #, ReviewUpdate
+from schemas.review import ReviewCreate, ReviewOut
+from utils.errors import NotFoundError, ConflictError
 
 logger = logging.getLogger(__name__)
 
@@ -25,29 +23,32 @@ class ReviewService:
         self.rental_repo = rental_repo
         self.user_repo = user_repo
 
-    async def get_by_id(self, review_id: int) -> Optional[ReviewOut]:
+    async def get_by_id(self, review_id: int, *, strict: bool = False) -> Optional[ReviewOut]:
         """Получает один конкретный отзыв по его ID"""
         review = await self.review_repo.get_by_id(review_id)
         if not review:
+            if strict:
+                raise NotFoundError(f"Отзыв не найден: id={review_id}")
             return None
+
         return ReviewOut.model_validate(review)
 
-    async def get_reviews_by_rental(self, rental_id: int) -> List[ReviewOut]:
+    async def list_reviews_by_rental(self, rental_id: int) -> List[ReviewOut]:
         """Возвращает все отзывы, связанные с конкретной сделкой"""
         reviews = await self.review_repo.list_by_rental_id(rental_id)
         return [ReviewOut.model_validate(r) for r in reviews]
 
-    async def get_reviews_about_user(self, user_id: int) -> List[ReviewOut]:
+    async def list_reviews_about_user(self, user_id: int) -> List[ReviewOut]:
         """Отзывы о пользователе"""
         reviews = await self.review_repo.list_by_reviewee_id(user_id)
         return [ReviewOut.model_validate(r) for r in reviews]
 
-    async def get_reviews_by_user(self, user_id: int) -> List[ReviewOut]:
+    async def list_reviews_by_user(self, user_id: int) -> List[ReviewOut]:
         """Отзывы, оставленные пользователем"""
         reviews = await self.review_repo.list_by_reviewer_id(user_id)
         return [ReviewOut.model_validate(r) for r in reviews]
 
-    async def create_review(self, data: ReviewCreate) -> ReviewOut:
+    async def create_review(self, actor_id: int, data: ReviewCreate, *, strict: bool = True,) -> ReviewOut:
         """
         Создать отзыв:
         - только по завершённой сделке
@@ -56,71 +57,62 @@ class ReviewService:
         (автоматически пересчитывает рейтинг получателя)
         """
 
-        # 1️⃣ Проверяем сделку
         rental = await self.rental_repo.get_by_id(data.rental_id)
         if not rental:
-            raise ValueError("Сделка не найдена")
+            if strict:
+                raise NotFoundError(f"Сделка не найдена: id={data.rental_id}")
+            raise NotFoundError(f"Сделка не найдена: id={data.rental_id}") # ?
 
         if rental.status != RentalStatus.COMPLETED:
-            raise ValueError("Отзыв можно оставить только после завершения аренды")
+            raise ConflictError("Отзыв можно оставить только после завершения аренды")
 
-        # 2️⃣ Проверяем участие пользователя
-        if data.reviewer_id not in (rental.renter_id, rental.owner_id):
-            raise PermissionError("Вы не участник этой сделки")
+        # actor должен быть участником сделки
+        if actor_id not in (rental.renter_id, rental.owner_id):
+            raise ConflictError("Нет доступа: вы не участник этой сделки")
 
-        # 3️⃣ Проверяем, что отзыв ещё не оставлен
+        # Проверяем, что отзыв ещё не оставлен
         already_exists = await self.review_repo.exists_for_rental(
             rental_id=data.rental_id,
-            reviewer_id=data.reviewer_id,
+            reviewer_id=actor_id,
         )
         if already_exists:
-            raise ValueError("Вы уже оставили отзыв по этой сделке")
+            raise ConflictError("Вы уже оставили отзыв по этой сделке")
 
-        """
-        # Определяем, кто оставляет отзыв (и о ком)
-        expected_reviewee = (
-            rental.owner_id
-            if data.reviewer_id == rental.renter_id
-            else rental.renter_id
-        )
-        """
+        # Кому оставляем отзыв (второй участник)
+        reviewee_id = rental.owner_id if actor_id == rental.renter_id else rental.renter_id
 
-        # 4️⃣ Валидируем рейтинг
-        if not 1 <= data.rating <= 5:
-            raise ValueError("Рейтинг должен быть от 1 до 5")
+        # Валидируем рейтинг - не нужно: уже гарантируется моделью - Field(ge/le)
+        #if not 1 <= data.rating <= 5:
+        #    raise ValueError("Рейтинг должен быть от 1 до 5")
 
-        # 5️⃣ Создаём отзыв
+        # Создаём отзыв
+        comment = (data.comment.strip() if data.comment else None) or None
         review = await self.review_repo.create(
             rental_id=data.rental_id,
-            reviewer_id=data.reviewer_id,
-            reviewee_id=data.reviewee_id,
+            reviewer_id=actor_id,
+            reviewee_id=reviewee_id,
             rating=data.rating,
-            comment=data.comment,
+            comment=comment,
         )
 
         logger.info(
-            "Создан отзыв: rental_id={}, reviewer_id={}, rating={}",
-            data.rental_id,
-            data.reviewer_id,
-            data.rating,
+            "Review created id=%s rental_id=%s reviewer_id=%s reviewee_id=%s rating=%s",
+            review.id, data.rental_id,  actor_id, reviewee_id, data.rating,
         )
 
-        # 6️⃣ Пересчитываем рейтинг пользователя
-        await self.recalculate_user_rating(data.reviewee_id)
+        # Пересчитываем рейтинг пользователя
+        await self.recalculate_user_rating(reviewee_id)
 
         return ReviewOut.model_validate(review)
 
     async def recalculate_user_rating(self, user_id: int) -> None:
         """Пересчитать рейтинг пользователя на основе всех отзывов"""
+        avg_rating, count = await self.review_repo.get_stats_for_user(reviewee_id=user_id)
 
+        """ Старый код:    
         reviews: List[Review] = await self.review_repo.list_by_reviewee_id(user_id)
-
         if not reviews:
-            await self.user_repo.update_rating(
-                user_id=user_id,
-                rating=0.0,
-                rating_count=0,
-            )
+            await self.user_repo.update_rating(user_id=user_id,rating=0.0,rating_count=0)
             return
 
         # reviews = [Review(rating=5), Review(rating=4), Review(rating=3),]
@@ -128,16 +120,11 @@ class ReviewService:
         count = len(reviews) # count = 3 - количество отзывов
         avg_rating = round(total_rating / count, 1) #  average = 12 / 3 = 4.0 - средний рейтинг пользователя
         # round(4.3333, 1) → 4.3 - округляет
+        """
 
-        await self.user_repo.update_rating(
-            user_id=user_id,
-            rating=avg_rating,
-            rating_count=count,
-        )
+        await self.user_repo.update_rating(user_id=user_id, rating=avg_rating, rating_count=count)
 
         logger.info(
-            "Рейтинг пользователя {} обновлён: {} ({} отзывов)",
-            user_id,
-            avg_rating,
-            count,
+            "Рейтинг пользователя {} обновлён: {} ({} отзывов)"
+            ,user_id, avg_rating, count
         )

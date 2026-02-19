@@ -19,4 +19,8 @@ stmt = (
 * logger.warning("delete() — фото id=%s не найдено", photo_id)
 * logger.info("delete() — фото id=%s удалено", photo_id)
 * logger.error("delete() — ошибка при удалении фото id=%s: %s", photo_id, e, exc_info=True)
-* 
+
+
+## `swap_with_neighbor()` и `set_order()` 
+
+Ну оч плохо понятые функции, но пока оставил, вроде работают.
