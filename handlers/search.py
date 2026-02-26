@@ -159,3 +159,26 @@ async def paginate_search(callback: CallbackQuery, state: FSMContext, item_servi
 # async def search_in_all_categories(callback: CallbackQuery, state: FSMContext):
 #     """Поиск по всем категориям.
 #     Показываем популярные объявления из разных категорий"""
+
+
+"""
+SEARCH_CITY_CB = "search_by_city"
+SEARCH_FILTERS_CB = "search_filters"
+
+     ALL_CATEGORY_CB: Поиску по всем категориям - search_in_all_categories() - ALL_CATEGORY_CB
+ 
+    "search_by_name": Выбран поиск по названию - search_by_name()
+
+    "search_by_city": Выбран поиск по городу - process_search_by_city() - SEARCH_CITY_CB
+
+    "search_filters": Выбраны фильтры поиска - process_search_filters() - SEARCH_FILTERS_CB
+
+    Поиск имени подкатегории по ID - get_subcategory_name_by_id()
+
+    search_text = (
+        "🔎 <b>Поиск по названию</b>\n\n"
+        "Введите название вещи, которую хотите найти.\n"
+        "Например: 'палатка', 'велосипед', 'дрель'...\n\n"
+        "Вы можете искать по любым ключевым словам."
+    )
+"""

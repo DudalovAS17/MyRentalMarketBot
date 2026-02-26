@@ -122,14 +122,14 @@ async def main():
 
     # создаём сервисы
     user_service = UserService(user_repo)
-    item_service = ItemService(item_repo, photo_repo)
+    item_service = ItemService(item_repo, photo_repo, rental_repo)
     notification_service = NotificationService(bot)
-    rental_service = RentalService(rental_repo, item_service, user_service, notification_service)
+    rental_service = RentalService(rental_repo) # , item_service, user_service, notification_service
     category_service = CategoryService(category_repo)
     photo_service = PhotoService(photo_repo)
     review_service = ReviewService(review_repo, rental_repo, user_repo)
     admin_service = AdminActionService(admin_repo)
-    admin_rental_service = AdminRentalService(rental_repo, item_service, user_service, admin_service)
+    admin_rental_service = AdminRentalService(rental_repo, admin_service) # item_service, user_service,
     support_service = SupportService(support_repo)
 
 

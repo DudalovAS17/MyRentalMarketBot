@@ -7,7 +7,7 @@ from aiogram.types import Message, CallbackQuery
 from services.user_service import UserService
 
 from utils.functions import deny
-from utils.user_status import BANNED
+#from utils.user_status import BANNED
 
 logger = logging.getLogger(__name__)
 

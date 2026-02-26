@@ -1,6 +1,6 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 from schemas.user import UserOut
-from typing import Sequence
+
 
 def get_main_menu_keyboard(user: UserOut | None = None) -> ReplyKeyboardMarkup:
     """Создает клавиатуру главного меню с учетом информации о пользователе
@@ -45,45 +45,5 @@ def get_back_inline_keyboard(step_callback: str = None) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
 
-def build_category_keyboard(
-    categories: Sequence,
-    prefix: str,
-    *,
-    #buttons_per_row: int = 2,
-    extra_buttons: list[list[InlineKeyboardButton]] | None = None
-) -> InlineKeyboardMarkup:
-    """
-    Универсальный генератор клавиатур для категорий / подкатегорий.
 
-    Args:
-        categories: список ORM-объектов или Pydantic-моделей (cat.id, cat.name, cat.emoji)
-        prefix: префикс callback_data (например 'create_cat:' или 'browse_cat:')
-        #buttons_per_row: количество кнопок в строке
-        extra_buttons: дополнительные кнопки (например 'Назад' или 'Отмена')
-
-    Returns:
-        InlineKeyboardMarkup
-    """
-
-    # строим клавиатуру (2 кнопки в ряд)
-    rows: list[list[InlineKeyboardButton]] = [] # keyboard_rows
-    row: list[InlineKeyboardButton] = []
-
-    for i, cat in enumerate(categories, start=1):
-        # ожидаем, что dict вида {"id": int, "name": str, "emoji": Optional[str]}
-        btn_text = f"{(cat.emoji or '').strip()} {cat.name}".strip() # "🏕️ Туризм и спорт"
-        btn_cb = f"{prefix}{cat.id}" # CAT_CB_PREFIX
-        row.append(InlineKeyboardButton(text=btn_text, callback_data=btn_cb))
-
-        if i % 2 == 0: # i % buttons_per_row
-            rows.append(row)
-            row = []
-
-    if row:
-        rows.append(row)
-
-    if extra_buttons:
-        rows.extend(extra_buttons)
-
-    return InlineKeyboardMarkup(inline_keyboard=rows)
 

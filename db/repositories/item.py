@@ -136,9 +136,9 @@ class ItemRepository:
 
     # ───────────────────────────────────────────────────────────────────────────────────────────────────────
 
-    async def create(self, item_data: ItemCreate) -> Optional[Item]:
+    async def create(self,  user_id: int, item_data: ItemCreate) -> Optional[Item]:
         """Создать объявление"""
-        obj = Item(**item_data.model_dump())
+        obj = Item(user_id=user_id, **item_data.model_dump())
         async with self._sf() as s:
             s.add(obj)
             try:

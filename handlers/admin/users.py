@@ -8,7 +8,7 @@ from keyboards.admin_kb import get_admin_users_menu_keyboard, get_admin_user_car
 from services.user_service import UserService
 from states.admin import AdminStates
 from utils.functions import send_or_edit
-from utils.user_status import ACTIVE, BANNED
+#from utils.user_status import ACTIVE, BANNED
 
 logger = logging.getLogger(__name__)
 admin_users_router = Router()

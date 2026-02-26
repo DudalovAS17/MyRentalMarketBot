@@ -102,10 +102,10 @@ class ItemService:
         return ItemOut.model_validate(item) if item else None
     # ────────────────────────────────────────────────────────────────────────────────────────────────────────
 
-    async def create(self, item_data: ItemCreate) -> ItemOut:
+    async def create(self, user_id: int, item_data: ItemCreate) -> ItemOut:
         """Создать объявление с фото"""
-        obj = await self.item_repo.create(item_data)
-        logger.info("Создано объявление: id=%s user_id=%s", obj.id, obj.user_id)
+        obj = await self.item_repo.create(user_id=user_id, item_data=item_data)
+        logger.info("Создано объявление: id=%s user_id=%s", obj.id, user_id)
         return ItemOut.model_validate(obj)
 
     async def update(self, item_id: int, update_data: ItemUpdate, *, strict: bool = False) -> Optional[ItemOut]:

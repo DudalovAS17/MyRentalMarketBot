@@ -69,3 +69,26 @@ class RentalAdminDetailsOut(BaseModel):
     owner: UserOut
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class RentalCreateDraft(BaseModel):
+    """
+    FSM-черновик для создания сделки аренды.
+    Поля совпадают с RentalCreate, но start/end/total могут быть пустыми до выбора дат.
+    """
+    model_config = ConfigDict(extra="forbid")
+
+    item_id: Optional[int] = None
+    renter_id: Optional[int] = None
+    owner_id: Optional[int] = None
+
+    start_date: Optional[str] = None # "DD.MM.YYYY"
+    end_date: Optional[str] = None # "DD.MM.YYYY"
+
+    #start_date: Optional[datetime] = None
+    #end_date: Optional[datetime] = None
+
+    total_price: Optional[Decimal] = Field(default=None, ge=0)
+    deposit_amount: Optional[Decimal] = Field(default=None, ge=0)
+
+    status: RentalStatus = RentalStatus.REQUESTED

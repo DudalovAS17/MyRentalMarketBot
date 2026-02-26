@@ -2,15 +2,17 @@ import logging
 from aiogram import F, Router
 from aiogram.types import (CallbackQuery, Message, InlineKeyboardMarkup, InlineKeyboardButton)
 from aiogram.fsm.context import FSMContext
-from datetime import datetime, timedelta
+from datetime import datetime, timezone, timedelta, time
 from aiogram.exceptions import TelegramBadRequest
+from decimal import Decimal
 
+from keyboards.category_kb import RENT_ITEM_CB
 from services.notif_service import NotificationService
-from utils.functions import send_or_edit
+from utils.functions import send_or_edit, abort_rent_flow
 
 
 from states.rental import RentStates
-from schemas.rental import RentalCreate
+from schemas.rental import RentalCreate, RentalCreateDraft
 from db.models.rental import RentalStatus
 
 from handlers.rental_ui import build_rental_details_ui
@@ -21,7 +23,8 @@ from services.rental_service import RentalService
 
 from utils.domain_exceptions import ItemNotAvailable
 from helpers.formatters.notification import format_new_rental_request
-from keyboards.rental_kb import get_open_rental_keyboard
+from keyboards.rental_kb import get_open_rental_keyboard, build_rent_end_date_keyboard
+from utils.errors import ServiceError, ValidationError
 
 logger = logging.getLogger(__name__)
 rental_router = Router(name="items")
@@ -35,6 +38,18 @@ DISPUTE_CB = "dispute"
 CANCEL_CB = "cancel"
 BACK_CB = "back"
 
+ITEM_DETAILS = "item_details:"
+RENT_ITEM_CB = "rent_item:"
+START_DATE_CB = "start_date:"
+END_DATE_CB = "end_date:"
+CONFIRM_RENT_CB = "confirm_rent"
+
+"""
+Recoverable ошибка → просто показываем сообщение и не чистим FSM (пользователь может попробовать снова).
+
+Fatal ошибка (битый callback, item не найден/недоступен/сломанные данные) → завершаем rent-flow через 
+единый helper: обновить rent-UI (если он уже есть) / иначе ответить обычным сообщением + state.clear().
+"""
 
 def _format_item_not_available_message(exc: ItemNotAvailable) -> str:
     end_str = exc.end_date if exc.end_date else "" #exc.end_date.strftime("%d.%m.%Y") if exc.end_date else None
@@ -45,82 +60,83 @@ def _format_item_not_available_message(exc: ItemNotAvailable) -> str:
         return f"⛔ Эта вещь уже в аренде до {end_str}. Сделка #{rental_id} статус {status}."
     return f"⛔ Эта вещь уже в аренде. Сделка #{rental_id} статус {status}."
 
-@rental_router.callback_query(F.data.startswith("rent_item:")) # callback_data=f"rent:{item_id}" (хендлер категории)
-#@rental_router.callback_query(F.data.startswith("back_to_start_date:")) # эта логика у нас также через "rent_item:"
+@rental_router.callback_query(F.data.startswith(RENT_ITEM_CB))
+#@rental_router.callback_query(F.data.startswith("back_to_start_date:"))
 async def start_rent_process(
     callback: CallbackQuery,
     state: FSMContext,
     item_service: ItemService,
     rental_service: RentalService,
     user,
-):
+) -> None:
     """Старт процесса аренды"""
 
-    item_id = int(callback.data.split(":")[1])
-    #user_id = callback.from_user.id
     await callback.answer()
+
+    try:
+        item_id = int(callback.data.split(":")[1]) # .split(":", 1)
+    except (IndexError, ValueError):
+        await send_or_edit(callback, "⚠️ Не удалось распознать объявление.") # Некорректная кнопка аренды
+        return
+
     logger.info(f"Пользователь {user.id} начинает процесс аренды для товара {item_id}")
 
-    # 1️⃣ Получаем товар
-    item = await item_service.get_item_by_id(item_id)
+    # Получаем товар
+    try:
+        item = await item_service.get_item_by_id(item_id)
+    except ServiceError:
+        await send_or_edit(callback, "⚠️ Не удалось загрузить объявление. Попробуйте позже.")
+        return
+
     if not item:
-        await callback.message.edit_text("❌ Объявление не найдено.",)
-        logger.warning(f"Товар {item_id} не найден в БД.")
+        await send_or_edit(callback, "❌ Объявление не найдено.")
         return
 
-    # 2️⃣ Нельзя арендовать свою вещь
+    # Нельзя арендовать свою вещь
     if item.user_id == user.id: # Проверяем, что пользователь не владелец
-        await callback.answer(
-            "Вы не можете арендовать свою собственную вещь.",
-            show_alert=True
-        )
-        logger.warning(f"Владелец пытается арендовать свой товар.")
+        await send_or_edit(callback, "Вы не можете арендовать свою собственную вещь.")
+        #await callback.answer("Вы не можете арендовать свою собственную вещь.", show_alert=True)
         return
 
-    #!!!!!!!! стоп: доменная проверка ДО запуска выбора дат !!!!!!!!!!!!!!!
+    # доменная проверка доступности (защита от старых кнопок/гонок) (ДО запуска выбора дат)
     # тут не должен быть пользователь (кнопки нет), но это защита от: старых сообщений, параллельных кликов, гонок.
     try:
         await rental_service.ensure_item_available(item.id)
     except ItemNotAvailable as e:
-        # await callback.answer() # нет! ты отправляешь новое сообщение -> Telegram сам уберёт “часики” при answer()
         await callback.message.answer(_format_item_not_available_message(e))
         return
-    # !!!!!!!!!!!!-
 
-    # 3️⃣ Сохраняем данные в FSM
-    await state.update_data(
-        rent_item={
-            "id": item.id,
-            "name": item.title,
-            "price_per_day": item.price,
-            "deposit_amount": item.deposit,
-            "owner_id": item.user_id,
-            "min_rent_days": item.min_rental_period or 1,
-            "max_rent_days": item.max_rental_period or 30,
-            "location": item.location,
-        }
+    draft = RentalCreateDraft(
+        item_id=item.id,
+        renter_id=user.id,
+        owner_id=item.user_id,
+        deposit_amount=item.deposit
     )
 
-    # 4️⃣ Формируем кнопки выбора даты начала
-    today = datetime.now()
-    rows = [[InlineKeyboardButton(text="📅 Выберите дату начала аренды:", callback_data="ignore")]]  # dummy_start
+    await state.clear()  # ✅ новый rent-flow — чистим старый мусор
+    await state.update_data(
+        #item_id=item.id,
+        rent_draft=draft.model_dump(), # mode="json" для дат?
+        rent_ui_message_id=None,
+    )
+
+    # Формируем кнопки выбора даты начала
+    today = datetime.now(timezone.utc)
+    rows = [[InlineKeyboardButton(text="📅 Выберите дату начала аренды:", callback_data="ignore")]] # dummy_start
 
     for i in range(1, 6):
         date = today + timedelta(days=i)
-        ds = date.strftime("%d.%m.%Y")
+        ds = date.strftime("%d.%m.%Y") # для кнопок
         rows.append([InlineKeyboardButton(text=ds, callback_data=f"start_date:{ds}")])
 
-    # Кнопка назад
-    rows.append([
-        InlineKeyboardButton(
+    rows.append([InlineKeyboardButton(
             text="🔙 Назад к объявлению",
             callback_data=f"item_details:{item.id}"
         )
-    ])
+    ]) # убираем?
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=rows)
 
-    # 5️⃣ Формируем сообщение
     text = (
         f"🤝 <b>Аренда вещи</b>\n\n"
         f"Вы  собираетесь арендовать: <b>{item.title}</b>\n"
@@ -129,255 +145,240 @@ async def start_rent_process(
         f"Выберите дату начала аренды:"
     )
 
-    #await callback.message.edit_text(
-    #    text,
-    #    reply_markup=keyboard,
-    #    parse_mode="HTML"
-    #)
-
-    # ✅ отправляем ОТДЕЛЬНОЕ сообщение (не трогаем карточку)
-    sent = await callback.message.answer(
-        text,
-        reply_markup=keyboard,
-        parse_mode="HTML"
-    )
-
-    # ✅ сохраняем message_id “экрана аренды”, чтобы дальше редактировать только его
+    # ✅ отправляем ОТДЕЛЬНОЕ сообщение - “экран аренды” (не трогаем карточку объявления)
+    sent = await callback.message.answer(text, reply_markup=keyboard, parse_mode="HTML")
+    # чтобы дальше редактировать только его
     await state.update_data(rent_ui_message_id=sent.message_id)
 
     await state.set_state(RentStates.start_date)
 
 
-@rental_router.callback_query(RentStates.start_date, F.data.startswith("start_date:"))
-async def process_start_date(
-    callback: CallbackQuery,
-    state: FSMContext,
-    user,
-):
+@rental_router.callback_query(RentStates.start_date, F.data.startswith(START_DATE_CB))
+async def process_start_date(callback: CallbackQuery, state: FSMContext, item_service: ItemService, user) -> None:
     """Обработка выбранной даты начала аренды и переход к выбору даты окончания."""
 
     await callback.answer()
 
-    # 1️⃣ Получаем дату из callback_data
-    _, date_str = callback.data.split(":")  # "start_date:12.03.2025" → берём вторую часть
-    logger.info(f"[Rent] User {user.id} выбрал стартовую дату: {date_str}")
-
-    # 2️⃣ Достаём данные из FSM
-    data = await state.get_data()
-    rent_item = data.get("rent_item")
-
-    rent_ui_message_id = data.get("rent_ui_message_id") # логика - редактировать сообщение “экрана аренды”
-
-    if not rent_item:
-        logger.warning(f"[Rent] rent_item отсутствует в FSM для пользователя {user.id}")
-        #await callback.message.edit_text("❌ Ошибка. Попробуйте начать аренду заново.")
-        if rent_ui_message_id:
-            await callback.bot.edit_message_text(
-                chat_id=callback.message.chat.id,
-                message_id=rent_ui_message_id,
-                text="❌ Ошибка. Попробуйте начать аренду заново.",
-                parse_mode="HTML",
-            )
-        else:
-            sent = await callback.message.answer("❌ Ошибка. Попробуйте начать аренду заново.", parse_mode="HTML")
-            await state.update_data(rent_ui_message_id=sent.message_id)
-
-        return
-
-    item_id = rent_item["id"]
-
-    # Сохраняем дату начала
-    await state.update_data(start_date=date_str)
-
-    # 3️⃣ Готовим диапазон дат
     try:
-        start_dt = datetime.strptime(date_str, "%d.%m.%Y")
-    except ValueError:
-        await callback.message.edit_text("❌ Ошибка формата даты. Попробуйте снова.")
+        start_str = callback.data.split(":", 1)[1]  # dd.mm.YYYY (12.03.2025)
+        start_date = datetime.strptime(start_str, "%d.%m.%Y").date() # date(2025, 3, 12)
+    except (IndexError, ValueError):
+        await send_or_edit(callback, "❌ Некорректная дата начала аренды.")
+        # "❌ Ошибка формата даты. Попробуйте снова."
         return
 
-    min_days = rent_item["min_rent_days"]
-    max_days = rent_item["max_rent_days"]
+    data = await state.get_data()
+    rent_ui_message_id = data.get("rent_ui_message_id")
+    rent_draft_dict = data.get("rent_draft") or {}
+    draft = RentalCreateDraft.model_validate(rent_draft_dict)
 
-    # Показываем варианты до max_days, но не более ~10-14 для читаемости
-    limit_days = min(max_days, 7)
+    item_id = draft.item_id
+    try:
+        item = await item_service.get_item_by_id(item_id)
+    except ServiceError:
+        await send_or_edit(callback, "⚠️ Не удалось загрузить объявление. Попробуйте позже.")
+        return
 
-    # 4️⃣ Строим клавиатуру выбора даты окончания
-    rows = [
-        [InlineKeyboardButton(text="📅 Выберите дату окончания аренды:", callback_data="ignore")]
-    ]
+    if not item:
+        await send_or_edit(callback, "❌ Не удалось определить объявление для аренды. Начните заново.")
+        return
 
-    for days in range(min_days, limit_days + 1):
-        end_dt = start_dt + timedelta(days=days)
-        end_str = end_dt.strftime("%d.%m.%Y")
+    # # Доменная проверка доступности (страховка от гонок)
+    # try:
+    #     await rental_service.ensure_item_available(item_id)
+    # except ItemNotAvailable as e:
+    #     await callback.message.answer(_format_item_not_available_message(e))
+    #     return
 
-        rows.append([
-            InlineKeyboardButton(
-                text=f"{end_str} ({days} дн.)",
-                callback_data=f"end_date:{end_str}:{days}"
-            )
-        ])
+    draft.start_date = start_str
+    await state.update_data(rent_draft=draft.model_dump(mode="json"))
 
-    # кнопка назад
-    rows.append([
-        InlineKeyboardButton(
-            text="🔙 Назад к выбору даты начала",
-            callback_data=f"rent_item:{item_id}"
-        )
-    ])
+    # Готовим диапазон дат
+    min_days = item.min_rental_period or 1
+    max_days = item.max_rental_period or 30
 
-    keyboard = InlineKeyboardMarkup(inline_keyboard=rows)
+    keyboard = build_rent_end_date_keyboard(start_date=start_date, min_days=min_days, max_days=max_days)
 
     # 5️⃣ Формируем текст сообщения
     text = (
         f"🤝 <b>Аренда вещи</b>\n\n"
-        f"Вы собираетесь арендовать товар: <b>{rent_item['name']}</b>\n"
-        f"📅 Дата начала аренды: <b>{date_str}</b>\n"
-        f"💰 Цена: <b>{rent_item['price_per_day']} ₽/день</b>\n"
-        f"🔒 Залог: <b>{rent_item['deposit_amount'] or 'Нет'} ₽</b>\n\n"
+        f"Вы собираетесь арендовать товар: <b>{item.title}</b>\n"
+        f"📅 Дата начала аренды: <b>{start_str}</b>\n"
+        f"💰 Цена: <b>{item.price} ₽/день</b>\n"
+        f"🔒 Залог: <b>{item.deposit or 'Нет'} ₽</b>\n\n"
         f"Теперь выберите дату окончания аренды:"
     )
 
-    #await callback.message.edit_text(
-    #    text,
-    #    reply_markup=keyboard,
-    #    parse_mode="HTML"
-    #)
-
     if rent_ui_message_id:
-        await callback.bot.edit_message_text(
-            chat_id=callback.message.chat.id,
-            message_id=rent_ui_message_id,
-            text=text,
-            reply_markup=keyboard,
-            parse_mode="HTML",
-        )
-    else: # ???
-        sent = await callback.message.answer(
-            text,
-            reply_markup=keyboard,
-            parse_mode="HTML",
-        )
+        try:
+            await callback.bot.edit_message_text(
+                chat_id=callback.message.chat.id,
+                message_id=rent_ui_message_id,
+                text=text, # "❌ Ошибка. Попробуйте начать аренду заново."
+                reply_markup=keyboard,
+                parse_mode="HTML",
+            )
+        except TelegramBadRequest:
+            sent = await callback.message.answer(text, reply_markup=keyboard, parse_mode="HTML")
+            await state.update_data(rent_ui_message_id=sent.message_id)
+    else:
+        sent = await callback.message.answer(text, reply_markup=keyboard, parse_mode="HTML")
         await state.update_data(rent_ui_message_id=sent.message_id)
 
     # остаёмся в том же состоянии FSM
     await state.set_state(RentStates.end_date)
 
 
-@rental_router.callback_query(RentStates.end_date, F.data.startswith("end_date:"))
-async def process_end_date(
-    callback: CallbackQuery,
-    state: FSMContext,
-    user,
-):
+@rental_router.callback_query(RentStates.end_date, F.data.startswith(END_DATE_CB))
+async def process_end_date(callback: CallbackQuery, state: FSMContext, item_service: ItemService, user) -> None:
     """Обработка выбранной даты окончания аренды и показ подтверждения."""
 
     await callback.answer()
 
-    # 1️⃣ Парсим данные из callback_data
-    # end_date:12.03.2025:3
-    _, end_date_str, days_str = callback.data.split(":")
-    days_count = int(days_str)
+    try:
+        payload = callback.data.split(":", 2) # "end_date:DD.MM.YYYY:<days>" (:12.03.2025:3)
+        end_str = payload[1] # "15.03.2025"
+        days = int(payload[2]) # 3
+        end_date = datetime.strptime(end_str, "%d.%m.%Y").date()
+    except (IndexError, ValueError):
+        await send_or_edit(callback, "❌ Некорректная дата окончания.")
+        return
 
-    logger.info(f"[Rent] User {user.id} выбрал дату окончания {end_date_str} ({days_count} дн.)")
+    if days < 1:
+        await send_or_edit(callback, "❌ Некорректная длительность аренды.")
+        return
 
     # 2️⃣ Достаём данные из FSM
     data = await state.get_data()
-    rent_item = data.get("rent_item")
-    start_date = data.get("start_date")
+    rent_ui_message_id = data.get("rent_ui_message_id")
+    draft_dict = data.get("rent_draft") or {}
+    draft = RentalCreateDraft.model_validate(draft_dict)
 
-    rent_ui_message_id = data.get("rent_ui_message_id")  # логика - редактировать сообщение “экрана аренды”
-
-    if not rent_item or not start_date:
-        logger.warning(f"[Rent] Нет rent_item/start_date в FSM у {user.id}")
-        #await callback.message.edit_text("❌ Ошибка. Попробуйте начать аренду заново.")
-        if rent_ui_message_id:
-            await callback.bot.edit_message_text(
-                chat_id=callback.message.chat.id,
-                message_id=rent_ui_message_id,
-                text="❌ Ошибка. Попробуйте начать аренду заново.",
-                parse_mode="HTML",
-            )
-        else:
-            sent = await callback.message.answer("❌ Ошибка. Попробуйте начать аренду заново.", parse_mode="HTML")
-            await state.update_data(rent_ui_message_id=sent.message_id)
-
+    item_id = draft.item_id
+    start_date = draft.start_date
+    if not draft.item_id or not draft.start_date:
+        await send_or_edit(callback, "❌ Не удалось восстановить данные аренды. Начните заново.")
+        # if rent_ui_message_id:
+        #     await callback.bot.edit_message_text(
+        #         chat_id=callback.message.chat.id,
+        #         message_id=rent_ui_message_id,
+        #         text="❌ Ошибка. Попробуйте начать аренду заново.",
+        #         parse_mode="HTML",
+        #     )
+        # else:
+        #     sent = await callback.message.answer("❌ Ошибка. Попробуйте начать аренду заново.", parse_mode="HTML")
+        #     await state.update_data(rent_ui_message_id=sent.message_id)
         return
 
-    item_id = rent_item["id"]
+    try:
+        item = await item_service.get_item_by_id(item_id)
+    except ServiceError:
+        await send_or_edit(callback, "⚠️ Не удалось загрузить объявление. Попробуйте позже.")
+        return
 
-    # 3️⃣ Обновляем FSM
-    await state.update_data(
-        end_date=end_date_str,
-        days_count=days_count,
-        total_price=rent_item["price_per_day"] * days_count
-    )
+    if not item:
+        await send_or_edit(callback, "❌ Объявление не найдено.")
+        return
 
-    price_per_day = rent_item["price_per_day"]
-    total_price = price_per_day * days_count
-    deposit = rent_item["deposit_amount"] or 0
+    # # Доменная проверка доступности (страховка от гонок)
+    # try:
+    #     await rental_service.ensure_item_available(item.id)
+    # except ItemNotAvailable as e:
+    #     await callback.message.answer(_format_item_not_available_message(e))
+    #     return
 
-    # Сохраняем общую стоимость аренды
-    # await state.update_data(rent_item={"total_price": total_price})
+    try:
+        start_date = datetime.strptime(draft.start_date, "%d.%m.%Y").date()
+    except ValueError:
+        await send_or_edit(callback, "❌ Некорректная дата начала в черновике. Начните заново.")
+        return
+
+    if end_date <= start_date:
+        await send_or_edit(callback, "❌ Дата окончания должна быть позже даты начала.")
+        return
+
+    # (опционально) проверим длительность по датам
+    actual_days = (end_date - start_date).days
+    if actual_days != days:
+        # не фейлим, а синхронизируем на фактическое значение
+        days = actual_days
+
+    min_days = item.min_rental_period or 1
+    max_days = item.max_rental_period or 30
+
+    if days < min_days:
+        await send_or_edit(callback, f"❌ Минимальный срок аренды: {min_days} дн.")
+        return
+
+    if days > max_days:
+        await send_or_edit(callback, f"❌ Максимальный срок аренды: {max_days} дн.")
+        return
+
+    # 6) Считаем итоговую стоимость
+    # item.price может быть Decimal — ок. Если вдруг float/int — приведём к Decimal.
+    price_per_day = item.price if isinstance(item.price, Decimal) else Decimal(str(item.price))
+    total_price = (price_per_day * Decimal(days)).quantize(Decimal("0.01"))
+
+    # Обновляем draft
+    draft.end_date = end_str
+    draft.total_price = total_price
+    # deposit_amount уже может быть проставлен на старте из item.deposit
+    if draft.deposit_amount is None and getattr(item, "deposit", None) is not None:
+        draft.deposit_amount = item.deposit
+
+    await state.update_data(rent_draft=draft.model_dump())
 
     # 4️⃣ Кнопки подтверждения аренды
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
-            [InlineKeyboardButton( text="✅ Отправить запрос владельцу", callback_data="confirm_rent")],
-            [InlineKeyboardButton(text="🔙 Изменить дату окончания", callback_data=f"start_date:{start_date}")],
-            [InlineKeyboardButton(text="❌ Отменить аренду", callback_data=f"item_details:{item_id}")],
+            [InlineKeyboardButton( text="✅ Отправить запрос владельцу", callback_data=CONFIRM_RENT_CB)],
+            [InlineKeyboardButton(text="🔙 Изменить дату окончания", callback_data=f"{START_DATE_CB}{start_date}")],
+            [InlineKeyboardButton(text="❌ Отменить аренду", callback_data=f"{ITEM_DETAILS}{item_id}")],
         ]
     )
 
     # 5️⃣ Текст подтверждения
     text = (
         f"🤝 <b>Подтверждение аренды</b>\n\n"
-        f"📦 <b>{rent_item['name']}</b>\n"
-        f"👤 Владелец: {rent_item.get('owner_name', '—')}\n" # ??? owner_id
-        f"📍 {rent_item.get('location', '—')}\n\n"
+        f"📦 <b>{item.title}</b>\n"
+        #f"👤 Владелец: {rent_item.get('owner_name', '—')}\n" # ???
+        f"📍 {item.location or '-'}\n\n"
 
         f"<b>Выбранный период:</b>\n"
         f"📅 Начало: <b>{start_date}</b>\n"
-        f"📅 Окончание: <b>{end_date_str}</b>\n"
-        f"⏱️ Длительность: <b>{days_count} дн.</b>\n\n"
+        f"📅 Окончание: <b>{end_str}</b>\n"
+        f"⏱️ Длительность: <b>{days} дн.</b>\n\n"
 
         f"<b>Расчёт стоимости:</b>\n"
-        f"💰 {price_per_day} ₽/день × {days_count} дн. = <b>{total_price} ₽</b>\n"
-        f"🛡 Залог: <b>{deposit or 'Нет'} ₽</b>\n"
-        f"💵 Итого к оплате (после подтверждения владельцем): <b>{total_price + deposit} ₽</b>\n\n"
+        f"💰 {price_per_day} ₽/день × {days} дн. = <b>{total_price} ₽</b>\n"
+        f"🛡 Залог: <b>{item.deposit or 'Нет'} ₽</b>\n"
+        f"💵 Итого к оплате (после подтверждения владельцем): <b>{total_price + item.deposit} ₽</b>\n\n"
 
         f"❗ Залог будет возвращен после завершения аренды и возврата вещи в исходном состоянии.\n\n"
         f"Отправить запрос на аренду владельцу?"
     )
 
-    #await callback.message.edit_text(
-    #    text,
-    #    reply_markup=keyboard,
-    #    parse_mode="HTML"
-    #)
-
     if rent_ui_message_id:
-        await callback.bot.edit_message_text(
-            chat_id=callback.message.chat.id,
-            message_id=rent_ui_message_id,
-            text=text,
-            reply_markup=keyboard,
-            parse_mode="HTML",
-        )
-    else: # ???
-        sent = await callback.message.answer(
-            text,
-            reply_markup=keyboard,
-            parse_mode="HTML",
-        )
+        try:
+            await callback.bot.edit_message_text(
+                chat_id=callback.message.chat.id,
+                message_id=rent_ui_message_id,
+                text=text,
+                reply_markup=keyboard,
+                parse_mode="HTML",
+            )
+        except TelegramBadRequest:
+            sent = await callback.message.answer(text, reply_markup=keyboard, parse_mode="HTML")
+            await state.update_data(rent_ui_message_id=sent.message_id)
+    else:
+        sent = await callback.message.answer(text, reply_markup=keyboard, parse_mode="HTML")
         await state.update_data(rent_ui_message_id=sent.message_id)
 
-
-    # 6️⃣ Переходим в состояние подтверждения аренды
+    # Переходим в состояние подтверждения аренды
     await state.set_state(RentStates.confirmation)
 
 
-@rental_router.callback_query(RentStates.confirmation, F.data == "confirm_rent")
+@rental_router.callback_query(RentStates.confirmation, F.data == CONFIRM_RENT_CB)
 async def confirm_rent(
     callback: CallbackQuery,
     state: FSMContext,
@@ -386,116 +387,128 @@ async def confirm_rent(
     item_service: ItemService,
     notification_service: NotificationService,
     user
-):
+) -> None:
     """Создаёт сделку со статусом REQUESTED и уведомляет владельца."""
 
     await callback.answer()
+    # chat_id = callback.message.chat.id
+
     data = await state.get_data()
-
-    # Получаем данные аренды из контекста
-    rent_item = data.get("rent_item")
-    start_date = data.get("start_date")
-    end_date = data.get("end_date")
-    days_count = data.get("days_count")
-    total_price = data.get("total_price")
-
     rent_ui_message_id = data.get("rent_ui_message_id")
-    chat_id = callback.message.chat.id
+    draft_dict = data.get("rent_draft") or {}
 
-    if not rent_item or not start_date or not end_date:
-        #await callback.message.edit_text("❌ Ошибка: данные аренды не найдены. Попробуйте начать заново.")
-        err_text = "❌ Ошибка: данные аренды не найдены. Попробуйте начать заново."
-
-        if rent_ui_message_id:
-            await callback.bot.edit_message_text(
-                chat_id=chat_id,
-                message_id=rent_ui_message_id,
-                text=err_text,
-                parse_mode="HTML",
-            )
-        else:
-            await callback.message.answer(err_text, parse_mode="HTML")
-
-        await state.clear() # Очищаем некорректные данные
+    try:
+        draft = RentalCreateDraft.model_validate(draft_dict)
+    except ValidationError:
+        await send_or_edit(callback, "❌ Данные аренды повреждены. Начните заново.")
         return
 
-    logger.info(f"[Rent] User {user.id} подтверждает аренду товара {rent_item['id']}")
+    item_id = draft.item_id
+    start_date = draft.start_date
+    end_date = draft.end_date
+    owner_id = draft.owner_id
+    renter_id = draft.renter_id
 
-    # 1️⃣ Преобразуем даты из строк в datetime объекты
-    try:
-        start_dt = datetime.strptime(start_date, "%d.%m.%Y") # (f"{start_date} 00:00:00", "%d.%m.%Y %H:%M:%S")
-        end_dt = datetime.strptime(end_date, "%d.%m.%Y") # (f"{end_date]} 23:59:59", "%d.%m.%Y %H:%M:%S")
-    except ValueError:
-        #await callback.message.edit_text("❌ Ошибка формата дат. Выберите даты заново.")
-        err_text = "❌ Ошибка формата дат. Выберите даты заново."
-
-        if rent_ui_message_id:
-            await callback.bot.edit_message_text(
-                chat_id=chat_id,
-                message_id=rent_ui_message_id,
-                text=err_text,
-                parse_mode="HTML",
-            )
-        else:
-            await callback.message.answer(err_text, parse_mode="HTML")
-
-        await state.clear()
+    if not (item_id and owner_id and renter_id and start_date and end_date):
+        await send_or_edit(callback, "❌ Не хватает данных для создания аренды. Начните заново.")
+        # err_text = "❌ Ошибка: данные аренды не найдены. Попробуйте начать заново."
+        # if rent_ui_message_id:
+        #     await callback.bot.edit_message_text(
+        #         chat_id=chat_id,
+        #         message_id=rent_ui_message_id,
+        #         text=err_text,
+        #         parse_mode="HTML",
+        #     )
+        # else:
+        #     await callback.message.answer(err_text, parse_mode="HTML")
+        #
+        # await state.clear() # Очищаем некорректные данные
         return
 
-    #!!!!!!!! жёсткий стоп: доменная проверка перед созданием записи в БД (двойная защита) !!!!!!!!!!!!!!!!!!!!!!!
-    # тут не должен быть пользователь (кнопки нет), но это защита от: старых сообщений, параллельных кликов, гонок.
-    item_id = rent_item["id"]
     try:
-        await rental_service.ensure_item_available(item_id) # ищет открытую аренду по item_id
-        # если не находит → просто делает return (возвращает управление обратно в confirm_rent без эффекта)
+        item = await item_service.get_item_by_id(item_id)
+    except ServiceError:
+        await send_or_edit(callback, "⚠️ Не удалось загрузить объявление. Попробуйте позже.")
+        return
+
+    if not item:
+        await send_or_edit(callback, "❌ Объявление не найдено.")
+        return
+
+    # # нельзя арендовать своё (ну для супер безопасности)
+    # if item.user_id == user.id:
+    #     await callback.answer("Вы не можете арендовать свою собственную вещь.", show_alert=True)
+    #     return
+
+    # Доменная проверка доступности (страховка от гонок)
+    try:
+        await rental_service.ensure_item_available(item_id)
     except ItemNotAvailable as e:
-        err_text = _format_item_not_available_message(e)
-        if rent_ui_message_id:
-            await callback.bot.edit_message_text(
-                chat_id=chat_id,
-                message_id=rent_ui_message_id,
-                text=err_text,
-                parse_mode="HTML",
-            )
-        else:
-            await callback.message.answer(err_text, parse_mode="HTML")
-
-        # await callback.answer() # нет! ты отправляешь новое сообщение -> Telegram сам уберёт “часики” при answer()
-        await state.clear()
+        await callback.message.answer(_format_item_not_available_message(e))
         return
-    # !!!!!!!!!!!!
 
-    # 2️⃣ Создаём сделку через сервис
     try:
-        new_rental = await rental_service.create(RentalCreate(
-            item_id=rent_item["id"],
-            renter_id=user.id,  # db_user_id ✅
-            owner_id=rent_item["owner_id"],  # db_user_id ✅
+        start_date = datetime.strptime(start_date, "%d.%m.%Y").date()
+        end_date = datetime.strptime(end_date, "%d.%m.%Y").date()
+    except ValueError:
+        await send_or_edit(callback, "❌ Некорректные даты. Начните заново.")
+        err_text = "❌ Ошибка формата дат. Выберите даты заново."
+        # if rent_ui_message_id:
+        #     await callback.bot.edit_message_text(
+        #         chat_id=chat_id,
+        #         message_id=rent_ui_message_id,
+        #         text=err_text,
+        #         parse_mode="HTML",
+        #     )
+        # else:
+        #     await callback.message.answer(err_text, parse_mode="HTML")
+        # await state.clear()
+        return
+
+    tz = datetime.now().astimezone().tzinfo
+    start_dt = datetime.combine(start_date, time.min).replace(tzinfo=tz)
+    end_dt = datetime.combine(end_date, time.min).replace(tzinfo=tz)
+
+    try:
+        payload = RentalCreate(
+            item_id=item_id,
+            renter_id=user.id, # берём из контекста (middleware), не доверяем state на 100%
+            owner_id=owner_id,
             start_date=start_dt,
             end_date=end_dt,
-            total_price=total_price,
-            deposit_amount=rent_item.get("deposit_amount"),
-            status=RentalStatus.REQUESTED,  # Начальный статус
-        ))
+            total_price=draft.total_price,
+            deposit_amount=draft.deposit_amount,
+            #status=RentalStatus.REQUESTED,  # Начальный статус
+        )
+    except ValidationError:
+        await send_or_edit(callback, "❌ Ошибка в данных аренды. Проверьте параметры и попробуйте снова.")
+        # if rent_ui_message_id:
+        #     await callback.bot.edit_message_text(
+        #         chat_id=chat_id,
+        #         message_id=rent_ui_message_id,
+        #         text=err_text,
+        #         parse_mode="HTML",
+        #     )
+        # else:
+        #     await callback.message.answer(err_text, parse_mode="HTML")
+        # await state.clear()
+        return
 
-    except Exception as e:
-        logger.exception(f"[Rent] Ошибка создания аренды: {e}")
-        #await callback.message.edit_text(
-        #    "❌ Не удалось создать запрос на аренду. Попробуйте позже."
-        #)
-        err_text = "❌ Не удалось создать запрос на аренду. Попробуйте позже."
-
-        if rent_ui_message_id:
-            await callback.bot.edit_message_text(
-                chat_id=chat_id,
-                message_id=rent_ui_message_id,
-                text=err_text,
-                parse_mode="HTML",
-            )
-        else:
-            await callback.message.answer(err_text, parse_mode="HTML")
-
-        await state.clear()
+    # Создаём сделку через сервис
+    try:
+        new_rental = await rental_service.create(payload)
+    except ServiceError:
+        await send_or_edit(callback, "❌ Не удалось создать запрос аренды. Попробуйте позже.")
+        # if rent_ui_message_id:
+        #     await callback.bot.edit_message_text(
+        #         chat_id=chat_id,
+        #         message_id=rent_ui_message_id,
+        #         text=err_text,
+        #         parse_mode="HTML",
+        #     )
+        # else:
+        #     await callback.message.answer(err_text, parse_mode="HTML")
+        # await state.clear()
         return
 
     logger.info(f"[Rent] Создана аренда #{new_rental.id}")
