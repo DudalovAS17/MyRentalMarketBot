@@ -1,6 +1,4 @@
-def main():
-    pass
-    
-   
-if __name__ = '__main__':
-    main() 
+from .router import rental_router
+from . import flow_create, details, actions
+
+__all__ = ["rental_router"]

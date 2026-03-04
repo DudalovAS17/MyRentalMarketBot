@@ -1,6 +1,3 @@
-def main():
-    pass
-    
-   
-if __name__ = '__main__':
-    main() 
+from aiogram import Router
+
+rental_router = Router(name="rentals")

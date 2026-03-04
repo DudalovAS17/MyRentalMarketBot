@@ -1,4 +1,5 @@
-from aiogram.types import Message, CallbackQuery
+from typing import Optional
+from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup
 from aiogram.exceptions import TelegramBadRequest
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from aiogram.fsm.context import FSMContext
@@ -13,13 +14,13 @@ async def send_or_edit(event, text, markup=None, parse_mode="HTML"):
     if isinstance(event, CallbackQuery):
         try:
             return await event.message.edit_text(
-                text, markup=markup, parse_mode=parse_mode
+                text, reply_markup=markup, parse_mode=parse_mode
             )
         except TelegramBadRequest:
             #logger.warning("Не удалось отредактировать сообщение подкатегорий: %s", e) # списка объявлений # категорий
-            return await event.message.answer(text, markup=markup, parse_mode=parse_mode)
+            return await event.message.answer(text, reply_markup=markup, parse_mode=parse_mode)
     else:
-        return await event.answer(text, markup=markup, parse_mode=parse_mode)
+        return await event.answer(text, reply_markup=markup, parse_mode=parse_mode)
 
 # Вспомогательная функция для send
 async def send_reply(event, text: str, markup=None, parse_mode: str = "HTML"):
@@ -28,9 +29,9 @@ async def send_reply(event, text: str, markup=None, parse_mode: str = "HTML"):
         - Message → answer()
     """
     if isinstance(event, CallbackQuery):
-        return await event.message.answer(text, markup=markup, parse_mode=parse_mode)
+        return await event.message.answer(text, reply_markup=markup, parse_mode=parse_mode)
 
-    return await event.answer(text, markup=markup, parse_mode=parse_mode)
+    return await event.answer(text, reply_markup=markup, parse_mode=parse_mode)
 
 
 async def deny(
@@ -81,12 +82,22 @@ async def deny(
 📌 В админке и проверках прав — почти всегда True.
 """
 
-async def abort_rent_flow(callback: CallbackQuery, state: FSMContext, err_text: str) -> None:
+
+# ---------------------------------------------------------------------------------------------
+async def abort_rent_flow(
+        callback: CallbackQuery,
+        state: FSMContext,
+        err_text: str,
+        rent_ui_message_id: Optional[int] = None,
+) -> None:
     """Показывает ошибку в rent-UI (если есть) и очищает FSM rent-flow."""
 
-    data = await state.get_data()
-    rent_ui_message_id = data.get("rent_ui_message_id")
     chat_id = callback.message.chat.id
+
+    # если id не передали — пробуем взять из state
+    if rent_ui_message_id is None:
+        data = await state.get_data()
+        rent_ui_message_id = data.get("rent_ui_message_id")
 
     if rent_ui_message_id:
         try:
@@ -100,8 +111,47 @@ async def abort_rent_flow(callback: CallbackQuery, state: FSMContext, err_text: 
             await callback.message.answer(err_text, parse_mode="HTML")
     else:
         await callback.message.answer(err_text, parse_mode="HTML")
+        # await send_or_edit(callback, err_text)
 
     await state.clear() # Очищаем некорректные данные
+
+
+async def render_rent_ui(
+    callback: CallbackQuery,
+    state: FSMContext,
+    text: str,
+    keyboard: Optional[InlineKeyboardMarkup] = None,
+    rent_ui_message_id: Optional[int] = None,
+) -> int:
+    """Обновляет rent-UI сообщение (если есть) или создаёт новое. ✅ НЕ чистит state.
+    Возвращает актуальный message_id"""
+
+    chat_id = callback.message.chat.id
+
+    # если id не передали — пробуем взять из state
+    if rent_ui_message_id is None:
+        data = await state.get_data()
+        rent_ui_message_id = data.get("rent_ui_message_id")
+
+    if rent_ui_message_id:
+        try:
+            await callback.bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=rent_ui_message_id,
+                text=text, # "❌ Ошибка. Попробуйте начать аренду заново."
+                reply_markup=keyboard,
+                parse_mode="HTML",
+            )
+            return rent_ui_message_id
+        except TelegramBadRequest:
+            pass
+
+    sent = await callback.message.answer(text, reply_markup=keyboard, parse_mode="HTML")
+    await state.update_data(rent_ui_message_id=sent.message_id)
+    return sent.message_id
+
+# ---------------------------------------------------------------------------------------------
+
 
 # def format_price(price: int | float) -> str:
 #     return f"{price:,.2f}".replace(",", " ").replace(".00", "")

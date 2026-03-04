@@ -3,7 +3,7 @@ import logging
 from typing import Optional
 
 from aiogram import Router, F
-from aiogram.types import Message, CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.types import Message, CallbackQuery #, InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.fsm.context import FSMContext
 from aiogram.filters import CommandStart
 from aiogram.exceptions import TelegramAPIError
@@ -17,7 +17,6 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from handlers.category import show_categories
 from handlers.item import show_my_items, start_create_item_from_menu
-from handlers.rental import view_my_rentals
 #from handlers.auth import profile, show_statistics, show_achievements, show_settings - циклический повтор! ошибка
 from handlers.search import start_search
 
@@ -238,7 +237,7 @@ async def show_main_menu(
     reply_markup = get_main_menu_keyboard(user)
 
     # отправка сообщения
-    return await send_reply(event, welcome_message, reply_markup=reply_markup)
+    return await send_reply(event, welcome_message, markup=reply_markup)
 
 
 # ================================== Commands ==================================
@@ -390,7 +389,7 @@ async def text_message_handler(
             # FSM-сценарии
             # "📞 Поддержка": lambda: start_support_dialog(message, state)
             "🔍 Арендовать": lambda: show_categories(message, category_service),
-            "📦 Сдать в аренду": lambda: start_create_item_from_menu(message, state, user_service),
+            "📦 Сдать в аренду": lambda: start_create_item_from_menu(message, state, user),
             "📦 Мои объявления": lambda: show_my_items(message, item_service),
             "🔎 Поиск": lambda: start_search(message, state),
             #"📱 Изменить номер": lambda: request_phone_number_change(message, state),

@@ -5,9 +5,8 @@ from aiogram import BaseMiddleware
 from aiogram.types import Message, CallbackQuery
 
 from services.user_service import UserService
-
+from utils.user_status import AccountStatus
 from utils.functions import deny
-#from utils.user_status import BANNED
 
 logger = logging.getLogger(__name__)
 
@@ -75,7 +74,7 @@ class RegistrationCheckMiddleware(BaseMiddleware):
         #is_admin = bool(getattr(user, "is_admin", False)) or (user_id is not None and int(user_id) in admin_ids)
 
         # 🚫 Проверка статуса аккаунта (блокируем всех, кроме админов)
-        if getattr(user, "account_status", None) == BANNED and not is_admin:
+        if getattr(user, "account_status", None)  == AccountStatus.BANNED and not is_admin:
             logger.warning(
                 "[Middleware] BANNED пользователь %s попытался выполнить действие",
                 user_id,

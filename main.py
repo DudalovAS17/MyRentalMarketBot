@@ -37,7 +37,7 @@ from handlers.base import base_router
 from handlers.category import category_router
 from handlers.auth import auth_router
 from handlers.item import items_router
-from handlers.rental import rental_router
+from handlers.rentals.rental_trash import rental_router
 from handlers.search import search_router
 from handlers.admin import admin_router
 from handlers.support import support_router

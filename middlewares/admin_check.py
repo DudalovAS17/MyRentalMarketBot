@@ -4,7 +4,6 @@ from typing import Any, Awaitable, Callable, Dict, Union, Iterable
 
 from aiogram import BaseMiddleware
 from aiogram.types import Message, CallbackQuery
-from aiogram.exceptions import TelegramBadRequest
 
 from utils.functions import deny
 

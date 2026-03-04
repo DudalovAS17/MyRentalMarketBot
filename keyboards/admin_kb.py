@@ -1,5 +1,5 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-
+from utils.item_status import ItemStatus
 
 def get_admin_menu_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
@@ -54,7 +54,7 @@ def get_admin_deals_list_keyboard(rentals_rows: list[dict], page: int, has_next:
     return InlineKeyboardMarkup(inline_keyboard=kb)
 
 
-def get_admin_deal_details_keyboard(rental_id: int, status_value: str) -> InlineKeyboardMarkup:
+def get_admin_deal_details_keyboard(rental_id: int, status_value: ItemStatus) -> InlineKeyboardMarkup:
     kb = []
 
     kb.append([InlineKeyboardButton(text="🔄 Обновить", callback_data=f"admin:deals:view:{rental_id}")])
@@ -103,7 +103,7 @@ def get_admin_support_list_keyboard(tickets_rows: list[dict], page: int, has_nex
     return InlineKeyboardMarkup(inline_keyboard=kb)
 #get_admin_support_list_kb
 
-def get_admin_support_ticket_keyboard(ticket_id: int, status_value: str) -> InlineKeyboardMarkup:
+def get_admin_support_ticket_keyboard(ticket_id: int, status_value: ItemStatus) -> InlineKeyboardMarkup:
     kb = []
     kb.append([InlineKeyboardButton(text="🔄 Обновить", callback_data=f"admin:support:view:{ticket_id}")])
 
@@ -146,7 +146,7 @@ def get_admin_users_menu_keyboard() -> InlineKeyboardMarkup:
         ]
     )
 
-def get_admin_user_card_keyboard(user_id: int, account_status: str) -> InlineKeyboardMarkup:
+def get_admin_user_card_keyboard(user_id: int, account_status: ItemStatus) -> InlineKeyboardMarkup:
     kb = []
 
     if account_status == "ACTIVE":
@@ -173,7 +173,7 @@ def get_admin_items_menu_keyboard() -> InlineKeyboardMarkup:
 
 def get_admin_items_list_keyboard(
         items: list,
-        status: str,
+        status: ItemStatus,
         page: int,
         has_next: bool
 ) -> InlineKeyboardMarkup:

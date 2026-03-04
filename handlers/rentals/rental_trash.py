@@ -26,8 +26,6 @@ RENTAL_DETAILS_CB = "rental_details:"
 CANCEL_RENT_FLOW_CB = "cancel_rent_flow" # new
 
 
-
-
 # ✅ Обновляем UI: безопасно (иногда это caption/photo)
 # await _safe_edit(callback, "✅ Заявка подтверждена владельцем.")
 async def _safe_edit(callback: CallbackQuery, text: str, reply_markup=None):

@@ -1,5 +1,8 @@
+from datetime import datetime
 from dataclasses import dataclass
 from typing import Optional
+
+from utils.rental_status import RentalStatus
 
 """ ! Доменные ошибки ! """
 
@@ -28,8 +31,8 @@ dataclass = удобная форма записи структуры данны
 class ItemNotAvailable(DomainError): # Exception - чтобы корректно работало с raise / except
     item_id: int # какая вещь
     rental_id: int # Optional[int] # какая аренда блокирует
-    status: str # Optional[int] # её статус
-    end_date: Optional[str] = None # Optional[datetime] # до какого времени (может быть None)
+    status: RentalStatus # её статус
+    end_date: Optional[datetime]
 
 
 @dataclass

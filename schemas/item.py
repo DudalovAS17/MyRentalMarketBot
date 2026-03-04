@@ -77,6 +77,11 @@ class ItemOut(BaseModel):
     status: ItemStatus
     views_count: int # default установлен моделью
     orders_count: int # default установлен моделью
+
+    moderated_at: Optional[AwareDatetime] = None # ?
+    moderated_by_admin_id: Optional[int] = None # ?
+    moderation_reason: Optional[str] = None # ?
+
     created_at: AwareDatetime # Optional[datetime] = None
     updated_at: AwareDatetime # Optional[datetime] = None
 

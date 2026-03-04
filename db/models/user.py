@@ -56,6 +56,7 @@ class User(Base, TimestampMixin):
     items: Mapped[List["Item"]] = relationship(
         "Item",
         back_populates="owner",
+        foreign_keys="Item.user_id",
         cascade="all, delete-orphan",   # удалили юзера → удалились его вещи (если в Item FK ondelete=CASCADE — идеально)
         single_parent=True,
         passive_deletes=True,

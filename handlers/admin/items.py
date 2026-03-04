@@ -10,6 +10,7 @@ from keyboards.admin_kb import (
     get_admin_items_menu_keyboard,
 )
 from utils.functions import send_or_edit, format_price
+from utils.item_status import ItemStatus
 
 
 admin_items_router = Router()
@@ -19,7 +20,7 @@ async def _show_items_list(
     event: Message | CallbackQuery,
     item_service: ItemService,
     state: FSMContext,
-    status: str,
+    status: ItemStatus,
     page: int,
 ) -> None:
     items, has_next = await item_service.admin_list_by_status(status=status, page=page)

@@ -17,12 +17,13 @@ print("SEED DATABASE_URL =", DATABASE_URL)
 DATA_PATH = Path("categories.json")
 
 UPSERT_SQL = """
-INSERT INTO categories (id, name, emoji, parent_id)
-VALUES (:id, :name, :emoji, :parent_id)
+INSERT INTO categories (id, name, emoji, parent_id, created_at, updated_at)
+VALUES (:id, :name, :emoji, :parent_id, now(), now())
 ON CONFLICT (id) DO UPDATE SET
   name = EXCLUDED.name,
   emoji = EXCLUDED.emoji,
-  parent_id = EXCLUDED.parent_id
+  parent_id = EXCLUDED.parent_id,
+  updated_at = now()
 """
 
 async def main() -> None:
