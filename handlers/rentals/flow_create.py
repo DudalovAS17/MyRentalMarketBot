@@ -17,10 +17,13 @@ from utils.functions import send_or_edit, render_rent_ui, abort_rent_flow
 from utils.domain_exceptions import ItemNotAvailable
 from utils.errors import ServiceError, ValidationError
 from schemas.rental import RentalCreate, RentalCreateDraft
-from keyboards.rental_kb import get_open_rental_keyboard, build_rent_end_date_keyboard
+from keyboards.rental_kb import get_open_rental_keyboard, build_rent_end_date_keyboard, build_rent_confirmation_keyboard
 from helpers.formatters.notification import format_new_rental_request
 
 logger = logging.getLogger(__name__)
+
+
+IGNORE_CB = "ignore"
 
 ITEM_DETAILS = "item_details:"
 RENT_ITEM_CB = "rent_item:"
@@ -56,19 +59,13 @@ def _format_item_not_available_message(exc: ItemNotAvailable) -> str:
 
 @rental_router.callback_query(F.data.startswith(RENT_ITEM_CB))
 #@rental_router.callback_query(F.data.startswith("back_to_start_date:"))
-async def start_rent_process(
-    callback: CallbackQuery,
-    state: FSMContext,
-    item_service: ItemService,
-    rental_service: RentalService,
-    user,
-) -> None:
+async def start_rent_process(callback: CallbackQuery, state: FSMContext, item_service: ItemService, rental_service: RentalService, user) -> None:
     """Старт процесса аренды"""
 
     await callback.answer()
 
     try:
-        item_id = int(callback.data.split(":")[1]) # .split(":", 1)
+        item_id = int(callback.data.split(":", 1)[1])
         logger.info(f"Пользователь {user.id} начинает процесс аренды для товара {item_id}")
     except (IndexError, ValueError):
         # Fatal: некорректная кнопка → чистим FSM и выходим
@@ -94,6 +91,7 @@ async def start_rent_process(
         await send_or_edit(callback, "Вы не можете арендовать свою собственную вещь.")
         return
 
+    # Проверь, выполняет ли она свою функцию!
     # доменная проверка доступности (защита от старых кнопок/гонок) (ДО запуска выбора дат)
     # тут не должен быть пользователь (кнопки нет), но это защита от: старых сообщений, параллельных кликов, гонок.
     try:
@@ -113,45 +111,24 @@ async def start_rent_process(
     await state.clear()  # ✅ новый rent-flow — чистим старый мусор
     await state.update_data(
         #item_id=item.id,
-        rent_draft=draft.model_dump(), # mode="json" для дат?
+        rent_draft=draft.model_dump(mode="json"),
         rent_ui_message_id=None,
     )
 
-    # Формируем кнопки выбора даты начала
-    today = datetime.now(timezone.utc)
-    rows = [[InlineKeyboardButton(text="📅 Выберите дату начала аренды:", callback_data="ignore")]] # dummy_start
+    keyboard = _build_start_date_keyboard(item.id)
+    text = _format_start_date_rent_text(item)
 
-    for i in range(1, 6):
-        date = today + timedelta(days=i)
-        ds = date.strftime("%d.%m.%Y") # для кнопок
-        rows.append([InlineKeyboardButton(text=ds, callback_data=f"start_date:{ds}")])
-
-    rows.append([InlineKeyboardButton(
-            text="🔙 Назад к объявлению",
-            callback_data=f"item_details:{item.id}"
-        )
-    ]) # убираем?
-
-    keyboard = InlineKeyboardMarkup(inline_keyboard=rows)
-
-    text = (
-        f"🤝 <b>Аренда вещи</b>\n\n"
-        f"Вы  собираетесь арендовать: <b>{item.title}</b>\n"
-        f"💰 Цена: <b>{item.price} ₽/день</b>\n"
-        f"🔒 Залог: <b>{item.deposit or 'Нет'} ₽</b>\n\n"
-        f"Выберите дату начала аренды:"
-    )
-
-    # ✅ отправляем ОТДЕЛЬНОЕ сообщение - “экран аренды” (не трогаем карточку объявления)
-    sent = await callback.message.answer(text, reply_markup=keyboard, parse_mode="HTML")
+    # ✅ отправляем ОТДЕЛЬНОЕ сообщение - “экран аренды” (не трогаем карточку объявления),
     # чтобы дальше редактировать только его
+    sent = await callback.message.answer(text, reply_markup=keyboard, parse_mode="HTML")
+
     await state.update_data(rent_ui_message_id=sent.message_id)
 
     await state.set_state(RentStates.start_date)
 
 
 @rental_router.callback_query(RentStates.start_date, F.data.startswith(START_DATE_CB))
-async def process_start_date(callback: CallbackQuery, state: FSMContext, item_service: ItemService) -> None:
+async def process_start_date(callback: CallbackQuery, state: FSMContext, item_service: ItemService, rental_service: RentalService) -> None:
     """Обработка выбранной даты начала аренды и переход к выбору даты окончания."""
 
     await callback.answer()
@@ -162,6 +139,12 @@ async def process_start_date(callback: CallbackQuery, state: FSMContext, item_se
     except (IndexError, ValueError):
         # Fatal: битый callback-data → завершаем flow
         await abort_rent_flow(callback, state,"⚠️ Некорректная дата начала. Попробуйте начать аренду заново.")
+        return
+
+    # защита от tampered callback: нельзя выбрать дату начала в прошлом или сегодня
+    today = datetime.now(timezone.utc).date()
+    if start_date <= today:
+        await send_or_edit(callback, "❌ Дата начала должна быть не раньше завтрашнего дня.")
         return
 
     data = await state.get_data()
@@ -190,7 +173,6 @@ async def process_start_date(callback: CallbackQuery, state: FSMContext, item_se
         )
         return
 
-
     item_id = draft.item_id
     try:
         item = await item_service.get_item_by_id(item_id)
@@ -208,12 +190,13 @@ async def process_start_date(callback: CallbackQuery, state: FSMContext, item_se
         )
         return
 
-    # # Доменная проверка доступности (страховка от гонок)
-    # try:
-    #     await rental_service.ensure_item_available(item_id)
-    # except ItemNotAvailable as e:
-    #     await callback.message.answer(_format_item_not_available_message(e))
-    #     return
+    # Доменная проверка доступности (страховка от гонок)
+    try:
+        await rental_service.ensure_item_available(item_id)
+    except ItemNotAvailable as e:
+        # Recoverable: вещь занята, просто показываем сообщение
+        await callback.message.answer(_format_item_not_available_message(e))
+        return
 
     draft.start_date = start_str
     await state.update_data(rent_draft=draft.model_dump(mode="json"))
@@ -223,25 +206,16 @@ async def process_start_date(callback: CallbackQuery, state: FSMContext, item_se
     max_days = item.max_rental_period or 30
 
     keyboard = build_rent_end_date_keyboard(start_date=start_date, min_days=min_days, max_days=max_days)
-
-    # 5️⃣ Формируем текст сообщения
-    text = (
-        f"🤝 <b>Аренда вещи</b>\n\n"
-        f"Вы собираетесь арендовать товар: <b>{item.title}</b>\n"
-        f"📅 Дата начала аренды: <b>{start_str}</b>\n"
-        f"💰 Цена: <b>{item.price} ₽/день</b>\n"
-        f"🔒 Залог: <b>{item.deposit or 'Нет'} ₽</b>\n\n"
-        f"Теперь выберите дату окончания аренды:"
-    )
+    text = _format_end_date_rent_text(item, start_str)
 
     await render_rent_ui(callback, state, text, keyboard, rent_ui_message_id)
 
-    # остаёмся в том же состоянии FSM
+    # Переходим к выбору даты окончания
     await state.set_state(RentStates.end_date)
 
 
 @rental_router.callback_query(RentStates.end_date, F.data.startswith(END_DATE_CB))
-async def process_end_date(callback: CallbackQuery, state: FSMContext, item_service: ItemService) -> None:
+async def process_end_date(callback: CallbackQuery, state: FSMContext, item_service: ItemService, rental_service: RentalService) -> None:
     """Обработка выбранной даты окончания аренды и показ подтверждения."""
 
     await callback.answer()
@@ -279,8 +253,8 @@ async def process_end_date(callback: CallbackQuery, state: FSMContext, item_serv
         return
 
     item_id = draft.item_id
-    start_date = draft.start_date
-    if not item_id or not start_date:
+    start_date_str = draft.start_date
+    if not item_id or not start_date_str:
         # Fatal: нет item_id/start_date → завершаем flow
         await abort_rent_flow(
             callback,
@@ -307,13 +281,13 @@ async def process_end_date(callback: CallbackQuery, state: FSMContext, item_serv
         )
         return
 
-    # # Доменная проверка доступности (страховка от гонок)
-    # try:
-    #     await rental_service.ensure_item_available(item.id)
-    # except ItemNotAvailable as e:
-    #     # Recoverable: вещь занята → просто сообщаем
-    #     await callback.message.answer(_format_item_not_available_message(e))
-    #     return
+    # Доменная проверка доступности (страховка от гонок)
+    try:
+        await rental_service.ensure_item_available(item.id)
+    except ItemNotAvailable as e:
+        # Recoverable: вещь занята → просто сообщаем
+        await callback.message.answer(_format_item_not_available_message(e))
+        return
 
     try:
         start_date = datetime.strptime(draft.start_date, "%d.%m.%Y").date()
@@ -363,40 +337,16 @@ async def process_end_date(callback: CallbackQuery, state: FSMContext, item_serv
     if draft.deposit_amount is None and getattr(item, "deposit", None) is not None:
         draft.deposit_amount = item.deposit
 
-    await state.update_data(rent_draft=draft.model_dump())
+    await state.update_data(rent_draft=draft.model_dump(mode="json"))
 
-    # 4️⃣ Кнопки подтверждения аренды
-    keyboard = InlineKeyboardMarkup(
-        inline_keyboard=[
-            [InlineKeyboardButton( text="✅ Отправить запрос владельцу", callback_data=CONFIRM_RENT_CB)],
-            [InlineKeyboardButton(text="🔙 Изменить дату окончания", callback_data=f"{START_DATE_CB}{draft.start_date}")],
-            [InlineKeyboardButton(text="❌ Отменить аренду", callback_data=CANCEL_RENT_FLOW_CB)], # или f"{ITEM_DETAILS}{item_id}"???
-        ]
-    )
+    # Кнопки подтверждения аренды
+    keyboard = build_rent_confirmation_keyboard(start_date_str)
 
     deposit = item.deposit if isinstance(item.deposit, Decimal) else Decimal(str(item.deposit or 0))
     total_with_deposit = (total_price + deposit).quantize(Decimal("0.01"))
 
-    # 5️⃣ Текст подтверждения
-    text = (
-        f"🤝 <b>Подтверждение аренды</b>\n\n"
-        f"📦 <b>{item.title}</b>\n"
-        #f"👤 Владелец: {rent_item.get('owner_name', '—')}\n" # ???
-        f"📍 {item.location or '-'}\n\n"
-
-        f"<b>Выбранный период:</b>\n"
-        f"📅 Начало: <b>{draft.start_date}</b>\n"
-        f"📅 Окончание: <b>{end_str}</b>\n"
-        f"⏱️ Длительность: <b>{days} дн.</b>\n\n"
-
-        f"<b>Расчёт стоимости:</b>\n"
-        f"💰 {price_per_day} ₽/день × {days} дн. = <b>{total_price} ₽</b>\n"
-        f"🛡 Залог: <b>{item.deposit if deposit > 0 else  'Нет'} ₽</b>\n"
-        f"💵 Итого к оплате (после подтверждения владельцем): <b>{total_with_deposit} ₽</b>\n\n"
-
-        f"❗ Залог будет возвращен после завершения аренды и возврата вещи в исходном состоянии.\n\n"
-        f"Отправить запрос на аренду владельцу?"
-    )
+    # Текст подтверждения
+    text = _format_rent_confirmation_text(item, start_date_str, end_str, days, price_per_day, total_price, deposit, total_with_deposit)
 
     await render_rent_ui(callback, state, text, keyboard, rent_ui_message_id)
 
@@ -614,3 +564,85 @@ async def cancel_rent_flow(callback: CallbackQuery, state: FSMContext) -> None:
     await render_rent_ui(callback, state, text, markup, rent_ui_message_id)
 
     await state.clear()
+
+
+@rental_router.callback_query(F.data == IGNORE_CB)
+async def ignore_callback(callback: CallbackQuery) -> None:
+    """No-op обработчик для служебных кнопок-заголовков."""
+    await callback.answer()
+
+
+# ----------------------------------    -------------------------------------
+
+
+START_DATE_DAYS_AHEAD = 5
+def _build_start_date_keyboard(item_id: int, days_ahead: int = START_DATE_DAYS_AHEAD) -> InlineKeyboardMarkup:
+    """Собирает клавиатуру выбора даты начала аренды."""
+
+    # Формируем кнопки выбора даты начала
+    today = datetime.now(timezone.utc)
+    rows = [[InlineKeyboardButton(text="📅 Выберите дату начала аренды:", callback_data=IGNORE_CB)]] # dummy_start
+
+    for i in range(1, days_ahead + 1):
+        date = today + timedelta(days=i)
+        ds = date.strftime("%d.%m.%Y") # для кнопок
+        rows.append([InlineKeyboardButton(text=ds, callback_data=f"{START_DATE_CB}{ds}")])
+
+    rows.append([
+        InlineKeyboardButton(text="🔙 Назад к объявлению", callback_data=f"{ITEM_DETAILS}{item_id}")
+    ]) # убираем?
+
+    return InlineKeyboardMarkup(inline_keyboard=rows)
+
+def _format_start_date_rent_text(item) -> str:
+    """Формирует текст первого экрана аренды."""
+    return (
+        f"🤝 <b>Аренда вещи</b>\n\n"
+        f"Вы собираетесь арендовать: <b>{item.title}</b>\n"
+        f"💰 Цена: <b>{item.price} ₽/день</b>\n"
+        f"🔒 Залог: <b>{item.deposit or 'Нет'} ₽</b>\n\n"
+        "Выберите дату начала аренды:"
+    )
+
+def _format_end_date_rent_text(item, start_str: str) -> str:
+    """Формирует текст шага выбора даты окончания."""
+    return (
+        f"🤝 <b>Аренда вещи</b>\n\n"
+        f"Вы собираетесь арендовать товар: <b>{item.title}</b>\n"
+        f"📅 Дата начала аренды: <b>{start_str}</b>\n"
+        f"💰 Цена: <b>{item.price} ₽/день</b>\n"
+        f"🔒 Залог: <b>{item.deposit or 'Нет'} ₽</b>\n\n"
+        "Теперь выберите дату окончания аренды:"
+    )
+
+def _format_rent_confirmation_text(
+    item,
+    start_date_str: str,
+    end_date_str: str,
+    days: int,
+    price_per_day: Decimal,
+    total_price: Decimal,
+    deposit: Decimal,
+    total_with_deposit: Decimal,
+) -> str:
+    """Текст экрана подтверждения аренды."""
+
+    return (
+        f"🤝 <b>Подтверждение аренды</b>\n\n"
+        f"📦 <b>{item.title}</b>\n"
+        # f"👤 Владелец: {...}\n"
+        f"📍 {item.location or '-'}\n\n"
+        
+        f"<b>Выбранный период:</b>\n"
+        f"📅 Начало: <b>{start_date_str}</b>\n"
+        f"📅 Окончание: <b>{end_date_str}</b>\n"
+        f"⏱️ Длительность: <b>{days} дн.</b>\n\n"
+        
+        f"<b>Расчёт стоимости:</b>\n"
+        f"💰 {price_per_day} ₽/день × {days} дн. = <b>{total_price} ₽</b>\n"
+        f"🛡 Залог: <b>{deposit if deposit > 0 else 'Нет'} ₽</b>\n"
+        f"💵 Итого к оплате (после подтверждения владельцем): <b>{total_with_deposit} ₽</b>\n\n"
+        
+        "❗ Залог будет возвращен после завершения аренды и возврата вещи в исходном состоянии.\n\n"
+        "Отправить запрос на аренду владельцу?"
+    )

@@ -2,6 +2,8 @@ from datetime import date, timedelta
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 CANCEL_RENT_FLOW_CB = "cancel_rent_flow"
+START_DATE_CB = "start_date:"
+CONFIRM_RENT_CB = "confirm_rent"
 
 def get_open_rental_keyboard(rental_id: int) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
@@ -37,3 +39,13 @@ def build_rent_end_date_keyboard(start_date: date, min_days: int, max_days: int,
     #rows.append([InlineKeyboardButton(text="🔙 Назад к выбору даты начала", callback_data=f"rent_item:{item_id}")])
 
     return InlineKeyboardMarkup(inline_keyboard=rows)
+
+def build_rent_confirmation_keyboard(start_date: str) -> InlineKeyboardMarkup:
+    """Клавиатура финального шага подтверждения аренды."""
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="✅ Отправить запрос владельцу", callback_data=CONFIRM_RENT_CB)],
+            [InlineKeyboardButton(text="🔙 Изменить дату окончания", callback_data=f"{START_DATE_CB}{start_date}")],
+            [InlineKeyboardButton(text="❌ Отменить аренду", callback_data=CANCEL_RENT_FLOW_CB)], # или f"{ITEM_DETAILS}{item_id}"???
+        ]
+    )
