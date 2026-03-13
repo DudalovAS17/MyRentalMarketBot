@@ -8,6 +8,8 @@ from utils.errors import ServiceError
 
 logger = logging.getLogger(__name__)
 
+# Пока не актуальный - не понимаю что и зачем
+
 """ Каноничный Global Error Middleware (aiogram 3)
 
 - Централизованный перехват только неожиданных/технических ошибок
@@ -21,7 +23,7 @@ logger = logging.getLogger(__name__)
 """
 
 class GlobalErrorMiddleware(BaseMiddleware):
-    """Единый обработчик технических ошибок (глобальный)"""
+    """Единый обработчик технических ошибок (глобальный): лог + безопасный ответ пользователю"""
 
     async def __call__(
         self,

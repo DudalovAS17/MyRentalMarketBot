@@ -11,36 +11,34 @@ from sqlalchemy.ext.asyncio import (
     AsyncEngine,
 )
 
-from config import DATABASE_URL
+from config import settings
 from db.models.base import Base
 
 logger = logging.getLogger(__name__)
 
 async_engine: Optional[AsyncEngine] = None
-AsyncSessionLocal: Optional[async_sessionmaker[AsyncSession]] = None
+AsyncSessionLocal: Optional[async_sessionmaker[AsyncSession]] = None # sessionmaker
 
 
-def _is_sqlite(url: str) -> bool:
-    return url.startswith("sqlite+aiosqlite:///")
+def _get_database_url() -> str:
+    return settings.database_url
 
-
-async def init_db(*, create_tables: bool = True) -> None:
-    """
-    Инициализация подключения к БД и создание таблиц.
+async def init_db(*, create_tables: bool = False) -> None: # bool = True
+    """ Инициализация подключения к БД и создание таблиц.
 
     create_tables=True — DEV/MVP режим: создаём таблицы через create_all.
     В PROD режиме (с Alembic) нужно будет вызывать init_db(create_tables=False).
     """
     global async_engine, AsyncSessionLocal
 
-    if async_engine is not None:
+    if async_engine is not None and AsyncSessionLocal is not None:
         logger.info("init_db(): база уже инициализирована")
         return
 
-    logger.info("init_db(): подключение к БД: %s", DATABASE_URL)
+    database_url = _get_database_url()
 
     async_engine = create_async_engine(
-        DATABASE_URL,
+        database_url,
         echo=False,
         future=True,
         pool_pre_ping=True,  # полезно для Postgres
@@ -69,8 +67,9 @@ def get_session_factory() -> Callable[[], AsyncSession]:
 
 async def check_db_connection() -> bool:
     """Проверка соединения с БД (SELECT 1)."""
+    database_url = _get_database_url()
     try:
-        async_test_engine = create_async_engine(DATABASE_URL, future=True, pool_pre_ping=True)
+        async_test_engine = create_async_engine(database_url, future=True, pool_pre_ping=True)
         async with async_test_engine.connect() as conn:
             result = await conn.execute(text("SELECT 1"))
             ok = result.scalar() == 1
@@ -87,5 +86,6 @@ async def close_db() -> None:
 
     if async_engine is not None:
         await async_engine.dispose()
+
     async_engine = None
     AsyncSessionLocal = None

@@ -211,7 +211,7 @@ async def rental_confirm(callback: CallbackQuery, rental_service, user):
         rental_service=rental_service,
         user=user,
         rental_id=rental_id,
-        service_call=lambda: rental_service.confirm_requested(rental_id=rental_id, actor_id=user.id),
+        service_call=lambda: rental_service.confirm_requested(rental_id=rental_id, owner_id=user.id),
         ok_text="Подтверждено",
         fail_text="Не удалось подтвердить (статус изменился или нет прав).",
         # log_name="confirm_requested",

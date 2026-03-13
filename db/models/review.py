@@ -21,7 +21,7 @@ class Review(Base, TimestampMixin):
 
     # Кто оставил отзыв
     reviewer_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"), nullable=False)
-    # удалил юзера → удалились отзывы. Не подходит. История сделок/репутации должна сохраняться. Поэтому "RESTRICT", а не "CASCADE"
+    # Удаление юзера → удалились отзывы. Не подходит. История сделок/репутации должна сохраняться. Поэтому "RESTRICT", а не "CASCADE"
 
     # Кому оставлен отзыв
     reviewee_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"),  nullable=False)
@@ -46,5 +46,11 @@ class Review(Base, TimestampMixin):
         CheckConstraint("rating >= 1 AND rating <= 5", name="ck_reviews_rating_range"),
 
         # Один отзыв на сделку от одного пользователя (Без этого: пользователь сможет 10 раз нажать «Оставить отзыв»)
-        UniqueConstraint("rental_id", "reviewer_id", name="uq_reviews_rental_reviewer")
+        UniqueConstraint("rental_id", "reviewer_id", name="uq_reviews_rental_reviewer"),
+
+        # Быстрые выборки:
+        # рейтинг пользователя
+        Index("ix_reviews_reviewee_rating", "reviewee_id", "rating"),
+        # связка сделка+получатель
+        Index("ix_reviews_rental_reviewee", "rental_id", "reviewee_id"),
     )

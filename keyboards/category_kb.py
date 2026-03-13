@@ -101,7 +101,7 @@ def build_item_details_kb(
     *,
     is_busy: bool,
     selected_subcategory_id: int | None,
-    end_date: str,
+    end_date: str | None,
 ) -> InlineKeyboardMarkup:
     buttons: list[list[InlineKeyboardButton]] = []
 

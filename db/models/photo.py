@@ -12,8 +12,8 @@ class Photo(Base, TimestampMixin):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
 
-    item_id: Mapped[int] = mapped_column(ForeignKey(
-        "items.id", ondelete="CASCADE"),
+    item_id: Mapped[int] = mapped_column(
+        ForeignKey("items.id", ondelete="CASCADE"),
         nullable=False
     )
 
@@ -31,11 +31,11 @@ class Photo(Base, TimestampMixin):
     )
 
     # Отношения
-    item = relationship("Item", back_populates="item_photos")
+    item = relationship("Item", back_populates="item_photos") # : Mapped["Item"]
 
     __table_args__ = (
         # быстрый поиск всех фото по item_id (создаёт в базе индекс на колонку item_id)
         Index("ix_photos_item_order", "item_id", "order"),
 
-        CheckConstraint('"order" >= 0', name="ck_photos_order_nonneg")
+        CheckConstraint('"order" >= 0', name="ck_photos_order_non_neg")
     )

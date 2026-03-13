@@ -385,12 +385,12 @@ async def confirm_rent(
         return
 
     item_id = draft.item_id
-    start_date = draft.start_date
-    end_date = draft.end_date
+    start_date_str = draft.start_date
+    end_date_str = draft.end_date
     owner_id = draft.owner_id
     renter_id = draft.renter_id
 
-    if not (item_id and owner_id and renter_id and start_date and end_date):
+    if not (item_id and owner_id and renter_id and start_date_str and end_date_str):
         # Fatal: не хватает данных → завершаем flow
         await abort_rent_flow(
             callback,
@@ -432,8 +432,8 @@ async def confirm_rent(
         return
 
     try:
-        start_date = datetime.strptime(start_date, "%d.%m.%Y").date()
-        end_date = datetime.strptime(end_date, "%d.%m.%Y").date()
+        start_date = datetime.strptime(start_date_str, "%d.%m.%Y").date()
+        end_date = datetime.strptime(end_date_str, "%d.%m.%Y").date()
     except ValueError:
         # Fatal: даты битые → завершаем flow
         await abort_rent_flow(
@@ -449,7 +449,7 @@ async def confirm_rent(
         await send_or_edit(callback, "❌ Дата окончания должна быть позже даты начала.")
         return
 
-    tz = datetime.now().astimezone().tzinfo
+    tz = datetime.now(timezone.utc).astimezone().tzinfo
     start_dt = datetime.combine(start_date, time.min).replace(tzinfo=tz)
     end_dt = datetime.combine(end_date, time.min).replace(tzinfo=tz)
 
@@ -518,16 +518,7 @@ async def confirm_rent(
 
     days_count = (end_date - start_date).days
     # 3️⃣ Отображаем сообщение об успешном создании запроса
-    text = (
-        f"✅ <b>Запрос на аренду отправлен!</b>\n\n"
-        f"📦 <b>{item.title}</b>\n"
-        f"📅 {start_date} — {end_date}\n"
-        f"⏱️ {days_count} дн.\n\n"
-        f"💰 Стоимость: <b>{total_price} ₽</b>\n"
-        f"💵🛡 Залог: <b>{deposit_amount if deposit_amount is not None else 'Нет'} ₽</b>\n\n"
-        f"ℹ️ Статус: <b>Ожидает подтверждения владельцем</b>\n\n"
-        f"Вы получите уведомление, когда владелец ответит на ваш запрос."
-    )
+    text = _build_success_text(item, start_date_str, end_date_str, days_count, total_price, deposit_amount)
 
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
@@ -572,7 +563,7 @@ async def ignore_callback(callback: CallbackQuery) -> None:
     await callback.answer()
 
 
-# ----------------------------------    -------------------------------------
+# -----------------------------------------------------------------------
 
 
 START_DATE_DAYS_AHEAD = 5
@@ -645,4 +636,24 @@ def _format_rent_confirmation_text(
         
         "❗ Залог будет возвращен после завершения аренды и возврата вещи в исходном состоянии.\n\n"
         "Отправить запрос на аренду владельцу?"
+    )
+
+def _build_success_text(
+        item,
+        start_date: str,
+        end_date: str,
+        days: int,
+        total_price: Decimal,
+        deposit: Decimal,
+) -> str:
+    """Текст экрана успеха для аренды."""
+    return (
+        f"✅ <b>Запрос на аренду отправлен!</b>\n\n"
+        f"📦 <b>{item.title}</b>\n"
+        f"📅 {start_date} — {end_date}\n"
+        f"⏱️ {days} дн.\n\n"
+        f"💰 Стоимость: <b>{total_price} ₽</b>\n"
+        f"💵🛡 Залог: <b>{deposit if deposit is not None else 'Нет'} ₽</b>\n\n"
+        f"ℹ️ Статус: <b>Ожидает подтверждения владельцем</b>\n\n"
+        f"Вы получите уведомление, когда владелец ответит на ваш запрос."
     )

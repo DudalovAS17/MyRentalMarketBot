@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Callable, Optional, List
+from typing import Callable, Optional
 from sqlalchemy import select, exists, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -15,14 +15,14 @@ class CategoryRepository:
 
     # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 
-    async def list_all(self) -> List[Category]:
+    async def list_all(self) -> list[Category]:
         """Получает все категории (с подкатегориями)"""
         async with self._sf() as s:
             res = await s.execute(select(Category))
             return list(res.scalars())
 
-    async def list_roots(self) -> List[Category]:
-        """Достает все категории, без подкатегорий. В алфав-м порядке"""
+    async def list_roots(self) -> list[Category]:
+        """Достает все категории, без подкатегорий. В алфавитном порядке"""
         async with self._sf() as s:
             stmt = (
                 select(Category)
@@ -37,7 +37,7 @@ class CategoryRepository:
         async with self._sf() as s:
             return await s.get(Category, category_id)
 
-    async def list_subcategories(self, parent_id: int) -> List[Category]:
+    async def list_subcategories(self, parent_id: int) -> list[Category]:
         """Получение подкатегорий для указанной категории"""
         async with self._sf() as s:
             stmt = (

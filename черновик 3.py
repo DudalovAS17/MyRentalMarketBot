@@ -4,7 +4,20 @@
 
 
 
+""" Незаконченное
+1) Время в TimestampMixin.
+    а) server_default=func.timezone("utc", func.now()),
+        onupdate=func.timezone("utc", func.now())
+    б) server_default=func.now()
+        onupdate=func.now()
+    с) default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
 
+2) db/models/user.py
+Нужно будет убрать is_admin!
+is_admin не хранится в БД, потому что источник истины — settings.admin_ids (Telegram ID),
+иначе гарантирован рассинхрон.
+"""
 
 
 

@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Awaitable, Callable, Dict, Union
+from typing import Any, Awaitable, Callable, Union, FrozenSet
 
 from aiogram import BaseMiddleware
 from aiogram.types import Message, CallbackQuery
@@ -10,97 +10,102 @@ from utils.functions import deny
 
 logger = logging.getLogger(__name__)
 
+"""
+1) Перехватывает каждый update до вызова твоего хендлера
+Middleware работает как фильтр: всё сообщение сначала проходит через него.
+
+2) Определяет Telegram ID пользователя
+Если ID нет → пропускает update дальше.
+
+3) Пропускает команды /start и /register без проверок
+Это нужно, чтобы незарегистрированный пользователь мог запустить регистрацию
+
+4) Проверяет, существует ли пользователь в БД
+5) Проверяет: заблокирован ли пользователь
+6) Проверяет: указан ли телефон (в хендлеры бот пускает только пользователей с завершённой регистрацией)
+
+7) Если всё хорошо — кладёт user в data
+8) Передаёт управление хендлеру
+
+👉 Middleware гарантирует, что в хендлер попадут только полностью зарегистрированные и 
+не заблокированные пользователи, 
+а новый пользователь может пройти только /start → регистрацию.
+"""
 
 class RegistrationCheckMiddleware(BaseMiddleware):
     """
     Middleware, проверяющее регистрацию и блокировку пользователя перед вызовом хендлеров.
 
-    🔹 Проверяет наличие пользователя в БД
-    🔹 Проверяет наличие телефона (регистрация завершена)
-    🔹 Проверяет блокировку
-    🔹 Если всё ок — добавляет `user` в data
+    1) Пропускает /start и сообщения с контактом (иначе регистрацию не завершить).
+    2) Проверяет, что пользователь существует в БД.
+    3) Проверяет ограничения (бан/блок/телефон) — админов пропускает.
+    4) Если всё ок — кладёт `user` в data для DI в хендлеры.
     """
 
-    def __init__(self, user_service: UserService): # , skip_commands: tuple[str, ...] = ("/start", "/register")
+    def __init__(self, user_service: UserService, admin_ids: FrozenSet[int]): # , skip_commands: tuple[str, ...] = ("/start", "/register")
         super().__init__()
         self.user_service = user_service
-        #self.skip_commands = skip_commands  # команды, которые пропускаются без проверки
+        self._admin_ids = admin_ids
+        #self.skip_commands = skip_commands # команды, которые пропускаются без проверки
+
+    def _is_admin(self, tg_user_id: int) -> bool:
+        return tg_user_id in self._admin_ids
 
     async def __call__(
         self,
-        handler: Callable[[Union[Message, CallbackQuery], Dict[str, Any]], Awaitable[Any]],
+        handler: Callable[[Union[Message, CallbackQuery], dict[str, Any]], Awaitable[Any]],
             # следующий обработчик в цепочке (следующий middleware или уже хендлер)
         event: Union[Message, CallbackQuery],
-        data: Dict[str, Any], # DI-контейнер (в него можно докладывать переменные,
-            # которые затем будут инжектиться в хендлер как параметры - user, user_service, и т.д.)
+        data: dict[str, Any], # DI-контейнер (в него можно докладывать переменные,
+            # которые затем -> в хендлер как параметры - user, user_service, и т.д.)
     ) -> Any:
         """Основная точка входа в middleware"""
 
-        # 🧠 Определяем Telegram ID пользователя
-        user_id = getattr(event.from_user, "id", None)
-        if not user_id:
-            logger.warning("[Middleware] event without user_id, blocked")
-            return None
+        # Определяем Telegram ID пользователя
+        tg_user_id = _tg_user_id(event)
+        if not tg_user_id:
+            logger.warning("[RegistrationCheck] event без tg_user_id, блокируем проход")
+            return None # Прерываем выполнение цепочки — хендлер не вызывается
 
-        # 1️⃣ Пропускаем команду /start без проверки
-        if isinstance(event, Message) and event.text and event.text.startswith("/start"):
-            return await handler(event, data)
+        # Пропускаем команду /start без проверки
         # Чтобы новые пользователи могли вызвать /start без «предварительной регистрации»
-
-        # 2️⃣ Пропускаем любые сообщения, содержащие контакт (иначе регистрацию никогда не завершить.)
-        if isinstance(event, Message) and event.contact:
+        if _is_start(event):
             return await handler(event, data)
 
-        user = await self.user_service.get_by_telegram_id(user_id)
+        # Пропускаем любые сообщения, содержащие контакт (иначе регистрацию никогда не завершить.)
+        if _is_contact_message(event):
+            return await handler(event, data)
 
-        # deny() - цель: “остановить цепочку и объяснить пользователю почему”
+        user = await self.user_service.get_by_telegram_id(tg_user_id)
 
         # 🧩 Проверяем наличие пользователя в базе
         if not user:
-            logger.info(f"[Middleware] Пользователь {user_id} не найден → предложить регистрацию")
-            await deny(event,
-                        "⚠️ Для доступа к функциям необходимо пройти регистрацию.\n"
-                        "Введите /start, чтобы зарегистрироваться."
-                        ) # ❌ Ваш профиль не найден. Пожалуйста, зарегистрируйтесь через /start.
+            logger.info(f"[RegistrationCheck] Пользователь {tg_user_id} не найден → предложить регистрацию")
+            await deny(event, MSG_NEED_REGISTER)
             return None # Прерываем выполнение цепочки — хендлер не вызывается
 
-
         # ──────────────────────────────────────────── NEW (Admin-User logic) ──────────────────────────────────────
-        admin_ids = set(data.get("admin_ids") or []) # типо защитит от admin_ids = None/str
-        #data.get("admin_ids", set())
-        is_admin = user_id is not None and int(user_id) in admin_ids
-
-        # если добавить поле is_admin в модель, то можно (не обязательно, но поднимает устойчивость):
-        #is_admin = bool(getattr(user, "is_admin", False)) or (user_id is not None and int(user_id) in admin_ids)
+        is_admin = self._is_admin(tg_user_id)
 
         # 🚫 Проверка статуса аккаунта (блокируем всех, кроме админов)
         if getattr(user, "account_status", None)  == AccountStatus.BANNED and not is_admin:
-            logger.warning(
-                "[Middleware] BANNED пользователь %s попытался выполнить действие",
-                user_id,
-            )
-            await deny(event, "Доступ ограничен. Обратитесь в поддержку.")
+            logger.warning("[RegistrationCheck] BANNED пользователь %s попытался выполнить действие",tg_user_id)
+            await deny(event, MSG_BANNED)
             return None
         # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────
 
-
         # 🚫 Проверка блокировки
         if getattr(user, "is_blocked", False):
-            logger.warning(f"[Middleware] Заблокированный пользователь {user_id} попытался выполнить действие")
-            await deny(event,
-                       "🚫 Ваша учётная запись заблокирована.\n"
-                        "Если вы считаете, что это ошибка — обратитесь в поддержку."
-                       )
+            logger.warning(f"[RegistrationCheck] Заблокированный пользователь {tg_user_id} попытался выполнить действие")
+            await deny(event, MSG_BLOCKED)
             return None
 
         # 🚫 Проверка подтверждения телефона (без телефона — не даём пользоваться ботом)
         if not getattr(user, "phone", None):
-            logger.info(f"[Middleware] Пользователь {user_id} не завершил регистрацию (нет телефона)")
-            await deny(event,
-                       "📱 Пожалуйста, подтвердите номер телефона, чтобы продолжить.\n"
-                       "Введите /start и завершите регистрацию."
-                       )
+            logger.info(f"[RegistrationCheck] Пользователь {tg_user_id} не завершил регистрацию (нет телефона)")
+            await deny(event,MSG_NEED_PHONE)
             return None
+
         # Если хотим, чтобы некоторые команды работали без телефона, нужно расширять skip_commands
 
         # ✅ Всё хорошо → добавляем пользователя в data
@@ -126,24 +131,27 @@ class RegistrationCheckMiddleware(BaseMiddleware):
         return await handler(event, data)
 
 
-"""
-1) Перехватывает каждый update до вызова твоего хендлера
-Middleware работает как фильтр: всё сообщение сначала проходит через него.
 
-2) Определяет Telegram ID пользователя
-Если ID нет → пропускает update дальше.
+# deny() - цель: “остановить цепочку и объяснить пользователю почему”
+MSG_NEED_REGISTER = (
+    "⚠️ Для доступа к функциям необходимо пройти регистрацию.\n"
+    "Введите /start, чтобы зарегистрироваться."
+) # ❌ Ваш профиль не найден. Пожалуйста, зарегистрируйтесь через /start.
+MSG_BANNED = "Доступ ограничен. Обратитесь в поддержку."
+MSG_BLOCKED = (
+    "🚫 Ваша учётная запись заблокирована.\n"
+    "Если вы считаете, что это ошибка — обратитесь в поддержку."
+)
+MSG_NEED_PHONE = (
+    "📱 Пожалуйста, подтвердите номер телефона, чтобы продолжить.\n"
+    "Введите /start и завершите регистрацию."
+)
 
-3) Пропускает команды /start и /register без проверок
-Это нужно, чтобы незарегистрированный пользователь мог запустить регистрацию
+def _tg_user_id(event: Message | CallbackQuery) -> int | None:
+    return getattr(getattr(event, "from_user", None), "id", None)
 
-4) Проверяет, существует ли пользователь в БД
-5) Проверяет: заблокирован ли пользователь
-6) Проверяет: указан ли телефон (в хендлеры бот пускает только пользователей с завершённой регистрацией)
+def _is_start(event: Message | CallbackQuery) -> bool:
+    return isinstance(event, Message) and bool(event.text) and event.text.startswith("/start")
 
-7) Если всё хорошо — кладёт user в data
-8) Передаёт управление хендлеру
-
-👉 Middleware гарантирует, что в хендлер попадут только полностью зарегистрированные и 
-не заблокированные пользователи, 
-а новый пользователь может пройти только /start → регистрацию.
-"""
+def _is_contact_message(event: Message | CallbackQuery) -> bool:
+    return isinstance(event, Message) and bool(event.contact)

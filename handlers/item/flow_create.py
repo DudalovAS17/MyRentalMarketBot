@@ -1,180 +1,38 @@
 import logging
-from aiogram import Router, F
+from aiogram import F
 from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardRemove
 from aiogram.fsm.context import FSMContext
 from aiogram.exceptions import TelegramBadRequest
 from decimal import Decimal, InvalidOperation
 
+from .router import items_router
+
 from services.item_service import ItemService
 from services.photo_service import PhotoService
 from services.category_service import CategoryService
-from utils.functions import format_price
 from schemas.item import ItemCreateDraft, ItemCreate
 from states.item import ItemCreateStates
 from keyboards.category_kb import build_category_keyboard
-from keyboards.item_kb import (get_photos_keyboard, build_my_items_keyboard, build_my_item_details_keyboard,
-                               build_edit_item_keyboard, cancel_keyboard)
-from utils.functions import send_or_edit, send_reply, format_step, format_days
+from keyboards.item_kb import get_photos_keyboard, build_edit_item_keyboard, cancel_keyboard
+from utils.functions import send_or_edit, format_step
 from utils.errors import ServiceError, ValidationError
 
 logger = logging.getLogger(__name__)
 
-items_router = Router(name="items")
-
-# Константы callback-данных
 CAT_FI_PREFIX = "cat_for_item:"
 SUBCAT_FI_PREFIX = "subcat_for_item:"
 
 BACK_TO_MENU_CB = "back_to_main_menu" # "back_to_menu"
-ALL_CATEGORY_CB = "all_cat"
 
 BACK_TO_CAT = "back_to_categories"
 ADD_ITEM_CB = "add_item"
-SHOW_ITEM_CB = "show_item:"
-MY_ITEMS_PREFIX = "my_items"
 
 PUBLISH_ITEM_CB = "publish_item:"
 EDIT_ITEM_CB = "edit_item:"
 CANCEL_ITEM_CB = "cancel_item:"
 
-"""Рекомендованное правило для проекта
-
-1) ServiceError (ожидаемая ошибка)
-пользователю: коротко
-лог: logger.warning(...) (обычно без exc_info=True)
-
-2) Любая “неожиданная” ошибка (Exception)
-не ловим в хендлере
-глобальный error middleware логирует stacktrace и показывает общий текст пользователю
-"""
-
-# tg_user_id = event.from_user.id
-# logger.error(f"Ошибка при показе деталей объявления:", exc_info=True)
-# logger.error(f"Ошибка при получении объявлений: {e}", exc_info=True)
-# очищаем только данные (без сброса FSM) - await state.update_data({})
-# print(">>> FSM ACTIVE:", await state.get_state())
-
-# Логика "возврат на шаг названия вещи, а не в меню!" - Убрана!
-
-
 MAX_PHOTOS = 5
 
-#=======================================мини-функции=================================
-def get_items_count_str(count: int) -> str:
-    """Возвращает правильное склонение слова 'объявление'"""
-    if count % 10 == 1 and count % 100 != 11:
-        return "объявление"
-    elif 2 <= count % 10 <= 4 and (count % 100 < 10 or count % 100 >= 20):
-        return "объявления"
-    else:
-        return "объявлений"
-
-def get_days_str(days: int) -> str:
-    """Возвращает правильное склонение слова 'день'"""
-    if days % 10 == 1 and days % 100 != 11:
-        return "день"
-    elif 2 <= days % 10 <= 4 and (days % 100 < 10 or days % 100 >= 20):
-        return "дня"
-    else:
-        return "дней"
-# ===================================================================================
-
-@items_router.message(F.text == "📦 Мои объявления")
-@items_router.callback_query(F.data == MY_ITEMS_PREFIX)
-async def show_my_items(event: Message | CallbackQuery, item_service: ItemService, user) -> None: #state: FSMContext,
-    """Показывает список объявлений пользователя"""
-
-    if isinstance(event, CallbackQuery):
-        await event.answer()
-
-    try:
-        items = await item_service.list_by_user(user.id)
-    except ServiceError:
-        # Ожидаемая бизнес-ошибка: коротко пользователю
-        await send_reply(event, "⚠️ Не удалось загрузить ваши объявления. Попробуйте позже.")
-        return # await show_main_menu()
-
-    items = items or []
-
-    if not items:
-        message_text = (
-            "📦 <b>Мои объявления</b>\n\n"
-            "У вас пока нет активных объявлений.\n"
-            "Создайте новое объявление, чтобы сдать вещи в аренду!"
-        )
-    else:
-        message_text = (
-            "📦 <b>Мои объявления</b>\n\n"
-            f"У вас {len(items)} {get_items_count_str(len(items))}.\n"
-            "Выберите объявление для просмотра или редактирования:"
-        )
-
-    markup = build_my_items_keyboard(items)
-
-    await send_or_edit(event, message_text, markup=markup)
-    return
-
-
-@items_router.callback_query(F.data.startswith(SHOW_ITEM_CB))
-async def show_item_details(
-        callback: CallbackQuery,
-        state: FSMContext,
-        item_service: ItemService,
-        category_service: CategoryService
-) -> None:
-    """Показывает детали объявления"""
-
-    await callback.answer()
-
-    try:
-        item_id = int(callback.data.split(":")[1]) # .split(":", 1)
-    except (IndexError, ValueError):
-        await send_or_edit(callback, "⚠️ Не удалось распознать объявление.")
-        return # show_my_items() ???
-
-    await state.update_data(selected_item_id=item_id)
-
-    try:
-        item = await item_service.get_item_by_id(item_id)
-    except ServiceError:
-        await send_or_edit(callback, "⚠️ Не удалось загрузить объявление. Попробуйте позже.")
-        return # show_my_items() ???
-
-    if not item:
-        markup = InlineKeyboardMarkup(
-            inline_keyboard=[[InlineKeyboardButton(text="🔙 Назад (к моим объявлениям)", callback_data=MY_ITEMS_PREFIX)]]
-        )
-        await send_or_edit(callback, "⚠️ Объявление не найдено.", markup=markup)
-        return # show_my_items() ???
-
-    # Получаем категорию и подкатегорию
-    try:
-        category = await category_service.get_category(item.category_id) if item.category_id else None
-        subcategory = await category_service.get_category(item.subcategory_id) if item.subcategory_id else None
-    except ServiceError:
-        category = None
-        subcategory = None
-
-    min_days = item.min_rental_period # or 1
-    item_details = (
-        f"📦 <b>{item.title or 'Без названия'}</b>\n\n"
-        f"📝 <b>Описание:</b>\n{item.description or 'Нет описания'}\n\n"
-        f"🏷️ <b>Категория:</b> {category.name or '-'} > {subcategory.name or '-'}\n"
-        f"💰 <b>Цена:</b> {format_price(item.price)} ₽/день\n"
-        f"🔐 <b>Залог:</b> {f'{format_price(item.deposit)} ₽' if item.deposit else 'Без залога'}\n"
-        f"🕒 <b>Минимальный срок аренды:</b> {min_days} {format_days(min_days)}\n"
-        f"📍 <b>Местоположение:</b> {item.location if item.location else 'Неизвестное'} \n"
-        #f"👤 <b>Владелец:</b> {item.user_id}\n"
-        #f"⭐ <b>Рейтинг:</b> ... ({item.views_count} отзывов)\n"
-        f"✅ <b>Доступность:</b> {'✅ Доступно для аренды' if item.is_available else '❌ Временно недоступно'}\n\n"
-    )
-
-    markup = build_my_item_details_keyboard(item)
-
-    await send_or_edit(callback, item_details, markup=markup)
-    # data сейчас: id (item), name (-)
-
-#===========================================Кнопка "Добавить объявление"==============================================
 """
 Начинает процесс создания объявления (оба сценария: с категорией и без неё)
 
@@ -184,16 +42,16 @@ async def show_item_details(
 
 Сценарий 2 (после выбора подкатегории): event = CallbackQuery с data вида "subcat:<id>"
     — извлекаем subcategory_id, берём category по parent_id, сохраняем в FSM и просим название.
-    
+
     «➕ Добавить объявление» (inline-кнопка внутри списка «Мои объявления»)
 """
 # ============================== СЦЕНАРИЙ 2 (Callback)  =================================
 @items_router.callback_query(F.data == ADD_ITEM_CB)
 async def start_create_item_from_my_items(
-    callback: CallbackQuery,
-    state: FSMContext,
-    category_service: CategoryService,
-    user
+        callback: CallbackQuery,
+        state: FSMContext,
+        category_service: CategoryService,
+        user
 ) -> None:
     """Запуск процесса создания объявления из списка 'Мои объявления'.
     Создаёт новый контекст FSM, подготавливает new_item и показывает категории."""
@@ -277,7 +135,7 @@ async def show_subcategories_for_creating_item(callback: CallbackQuery, state: F
         return
 
     if not category:
-        #await callback.answer("⚠️ Категория не найдена", show_alert=True)
+        # await callback.answer("⚠️ Категория не найдена", show_alert=True)
         await send_or_edit(callback, "⚠️ Категория не найдена")
         return
 
@@ -417,7 +275,7 @@ async def start_create_item_title(event: Message | CallbackQuery, state: FSMCont
 
     # переводим FSM в состояние ожидания названия
     await state.set_state(ItemCreateStates.title)
-    #logger.debug(f"[FSM] Установлено состояние: {await state.get_state()}")
+    # logger.debug(f"[FSM] Установлено состояние: {await state.get_state()}")
 
     await send_or_edit(event, text, markup=cancel_keyboard()) # get_back_inline_keyboard()
 
@@ -449,21 +307,21 @@ async def process_item_title(message: Message, state: FSMContext) -> None:
     draft = ItemCreateDraft.model_validate(data.get("new_item") or {})
     draft.title = title
     await state.update_data(new_item=draft.model_dump())
-    #logger.info("[FSM] Название сохранено: %s", title)
+    # logger.info("[FSM] Название сохранено: %s", title)
 
     description = ("📋 *Описание объявления* ✍️\n\n"
-        "Пожалуйста, введите подробное описание вещи. Укажите:\n"
-        "- Состояние и особенности\n"
-        "- Комплектацию\n"
-        "- Особенности использования\n"
-        "- Другую важную информацию")
+                   "Пожалуйста, введите подробное описание вещи. Укажите:\n"
+                   "- Состояние и особенности\n"
+                   "- Комплектацию\n"
+                   "- Особенности использования\n"
+                   "- Другую важную информацию")
 
     # переводим FSM в следующее состояние
     await state.set_state(ItemCreateStates.description)
     # data сейчас: mode, new_item (title), id (user | category | subcat), name (category|subcat)
 
     await message.answer(
-        format_step(description,2, 6),
+        format_step(description ,2, 6),
         parse_mode="HTML",
         reply_markup=cancel_keyboard() # get_back_inline_keyboard("back_to_item_title")
     )
@@ -494,20 +352,20 @@ async def process_item_description(message: Message, state: FSMContext) -> None:
     draft = ItemCreateDraft.model_validate(data.get("new_item") or {})
     draft.description = description
     await state.update_data(new_item=draft.model_dump())
-    #logger.info("[FSM] Описание сохранено: %s...", description[:40])
+    # logger.info("[FSM] Описание сохранено: %s...", description[:40])
 
     # Переход к следующему шагу
     await state.set_state(ItemCreateStates.price)
 
     price_mes = ("💰 *Цена аренды*\n\n"
-        "Укажите стоимость аренды за один день (только число).\n"
-        "Например: 500")
-    #"Укажите стоимость аренды в формате '500 руб/день' или '100 руб/час':"
+                 "Укажите стоимость аренды за один день (только число).\n"
+                 "Например: 500")
+    # "Укажите стоимость аренды в формате '500 руб/день' или '100 руб/час':"
 
     await message.answer(
-        format_step(price_mes,3, 6),
+        format_step(price_mes ,3, 6),
         parse_mode="HTML",
-        reply_markup= cancel_keyboard() #get_back_inline_keyboard("back_to_item_description")
+        reply_markup= cancel_keyboard() # get_back_inline_keyboard("back_to_item_description")
     )
 
 
@@ -523,12 +381,12 @@ async def process_item_price(message: Message, state: FSMContext) -> None:
         await message.answer(
             format_step("❌ Некорректное значение.\nВведите цену — только число, больше 0.",
                         3, 6),
-            reply_markup=cancel_keyboard(), #get_back_inline_keyboard("back_to_item_description"),
+            reply_markup=cancel_keyboard(), # get_back_inline_keyboard("back_to_item_description"),
         )
         return  # остаёмся в том же состоянии (price)
 
     if price <= 0:
-        text = format_step("❌ Цена должна быть положительным числом.",3, 6)
+        text = format_step("❌ Цена должна быть положительным числом." ,3, 6)
         await message.answer(text, reply_markup=cancel_keyboard(), parse_mode="HTML")
         return  # остаёмся в том же состоянии (price)
 
@@ -538,21 +396,21 @@ async def process_item_price(message: Message, state: FSMContext) -> None:
     draft = ItemCreateDraft.model_validate(data.get("new_item") or {})
     draft.price = price
     await state.update_data(new_item=draft.model_dump())
-    #logger.info(f"[FSM] Цена аренды сохранена: {price}")
+    # logger.info(f"[FSM] Цена аренды сохранена: {price}")
 
     # Переходим к следующему шагу FSM — залог
     await state.set_state(ItemCreateStates.deposit)
 
     # ✅ Следующий шаг: залог
     deposit_mes = ("🔐 *Залог*\n\n"
-        "Укажите сумму залога (только число).\n"
-        "💡 Залог возвращается после возврата вещи в исходном состоянии.\n"
-        "Например: 5000")
+                   "Укажите сумму залога (только число).\n"
+                   "💡 Залог возвращается после возврата вещи в исходном состоянии.\n"
+                   "Например: 5000")
 
     await message.answer(
-        format_step(deposit_mes,4, 6),
+        format_step(deposit_mes ,4, 6),
         parse_mode="HTML",
-        reply_markup=cancel_keyboard() #get_back_inline_keyboard("back_to_item_description")
+        reply_markup=cancel_keyboard() # get_back_inline_keyboard("back_to_item_description")
     )
 
 
@@ -565,12 +423,13 @@ async def process_item_deposit(message: Message, state: FSMContext) -> None:
     try:
         deposit = Decimal(deposit_text)
     except (InvalidOperation, ValueError):
-        text = format_step("❌ Некорректное значение. Пожалуйста, введите число.",4, 6)
-        await message.answer(text,reply_markup= cancel_keyboard(),parse_mode="HTML")  #get_back_inline_keyboard("back_to_item_price"),
+        text = format_step("❌ Некорректное значение. Пожалуйста, введите число." ,4, 6)
+        await message.answer(text ,reply_markup= cancel_keyboard()
+                             ,parse_mode="HTML")  # get_back_inline_keyboard("back_to_item_price"),
         return  # остаёмся в состоянии deposit
 
     if deposit < 0:
-        text = format_step("❌ Сумма залога не может быть отрицательной.",4, 6)
+        text = format_step("❌ Сумма залога не может быть отрицательной." ,4, 6)
         await message.answer(text, reply_markup=cancel_keyboard(), parse_mode="HTML") # get_back_inline_keyboard("back_to_item_price")
         return  # остаёмся в состоянии deposit
 
@@ -579,16 +438,16 @@ async def process_item_deposit(message: Message, state: FSMContext) -> None:
     draft = ItemCreateDraft.model_validate(data.get("new_item") or {})
     draft.deposit = deposit
     await state.update_data(new_item=draft.model_dump())
-    #logger.info(f"[FSM] Сумма залога сохранена: {deposit}")
+    # logger.info(f"[FSM] Сумма залога сохранена: {deposit}")
 
     await state.set_state(ItemCreateStates.location)
 
     # Переходим к следующему шагу FSM (местоположение)
     place_mes = ("📍 *Местоположение*\n\n"
-        "Укажите, где находится вещь (город, район, метро и т.д.).\n"
-        "Эта информация будет видна потенциальным арендаторам.")
+                 "Укажите, где находится вещь (город, район, метро и т.д.).\n"
+                 "Эта информация будет видна потенциальным арендаторам.")
 
-    await message.answer(format_step(place_mes,5, 6), parse_mode="HTML", reply_markup=cancel_keyboard()) # get_back_inline_keyboard("back_to_item_description")
+    await message.answer(format_step(place_mes ,5, 6), parse_mode="HTML", reply_markup=cancel_keyboard()) # get_back_inline_keyboard("back_to_item_description")
 
 
 @items_router.message(ItemCreateStates.location)
@@ -598,8 +457,9 @@ async def process_item_location(message: Message, state: FSMContext) -> None:
     location = (message.text or "").strip()
 
     if len(location) < 3:
-        text = format_step("❌ Местоположение слишком короткое. Пожалуйста, укажите хотя бы город/район.",5, 6)
-        await message.answer(text,reply_markup=cancel_keyboard(),parse_mode="HTML") # get_back_inline_keyboard("back_to_item_deposit")
+        text = format_step("❌ Местоположение слишком короткое. Пожалуйста, укажите хотя бы город/район." ,5, 6)
+        await message.answer(text ,reply_markup=cancel_keyboard()
+                             ,parse_mode="HTML") # get_back_inline_keyboard("back_to_item_deposit")
         return  # остаёмся в состоянии location
 
     # Сохраняем местоположение в FSM
@@ -613,10 +473,10 @@ async def process_item_location(message: Message, state: FSMContext) -> None:
     await state.set_state(ItemCreateStates.rental_period)
 
     min_period_mes = ("⏱️ <b>Отлично!</b>\n\n"
-        "Теперь укажите <b>минимальный срок аренды</b>.\n"
-        "Например: <code>1 день</code>, <code>3 часа</code>, <code>2 недели</code>.")
+                      "Теперь укажите <b>минимальный срок аренды</b>.\n"
+                      "Например: <code>1 день</code>, <code>3 часа</code>, <code>2 недели</code>.")
 
-    await message.answer(format_step(min_period_mes,6, 6), parse_mode="HTML", reply_markup=cancel_keyboard()) #get_back_inline_keyboard("back_to_item_location")
+    await message.answer(format_step(min_period_mes ,6, 6), parse_mode="HTML", reply_markup=cancel_keyboard()) # get_back_inline_keyboard("back_to_item_location")
 
 
 @items_router.message(ItemCreateStates.rental_period)
@@ -654,8 +514,8 @@ async def process_item_rental_period(message: Message, state: FSMContext) -> Non
     await state.set_state(ItemCreateStates.photos)
 
     text = ("📸 Теперь загрузите фотографии вещи.\n"
-        "Можно загрузить до 5 штук.\n"
-        "Когда закончите — нажмите <b>«Готово»</b>.")
+            "Можно загрузить до 5 штук.\n"
+            "Когда закончите — нажмите <b>«Готово»</b>.")
 
     await message.answer(text, reply_markup=get_photos_keyboard(), parse_mode="HTML")
 
@@ -778,18 +638,18 @@ async def show_item_confirmation(message: Message, state: FSMContext) -> None:
             # если caption/фото не прошло — покажем текстом
             pass
 
-    await message.answer(confirmation_text,reply_markup=keyboard,parse_mode="HTML")
+    await message.answer(confirmation_text ,reply_markup=keyboard ,parse_mode="HTML")
 
 # ======================================= финальные обработки ================================================
 
 # Обработка подтверждения ✅ публикации объявления
 @items_router.callback_query(F.data.startswith(PUBLISH_ITEM_CB))
 async def process_item_confirmation(
-    callback: CallbackQuery,
-    state: FSMContext,
-    item_service: ItemService,
-    photo_service: PhotoService,
-    user
+        callback: CallbackQuery,
+        state: FSMContext,
+        item_service: ItemService,
+        photo_service: PhotoService,
+        user
 ) -> None:
     """Обрабатывает подтверждение создания объявления - ПУБЛИКАЦИЯ ОБЪЯВЛЕНИЯ"""
 
@@ -825,7 +685,7 @@ async def process_item_confirmation(
 
     # Создание объявления (доменная логика внутри сервиса!)
     try:
-        #new_item["status"] = "PENDING"  # NEW (Admin logic) - дефолт устанавливает Модель/БД
+        # new_item["status"] = "PENDING"  # NEW (Admin logic) - дефолт устанавливает Модель/БД
         created_item = await item_service.create(user_id=user.id, item_data=payload)
     except ServiceError:
         await send_or_edit(callback, "❌ Не удалось создать объявление. Попробуйте позже.")
@@ -846,10 +706,10 @@ async def process_item_confirmation(
 
     # сообщение пользователю
     text = (f"✅ <b>Поздравляем!</b>\n\n"
-        f"Ваше объявление <b>«{created_item.title}»</b> успешно создано.\n\n"
-        "Сейчас объявление отправлено на модерацию, появится после одобрения, и "
-        "и его увидят другие пользователи в поиске. "
-        "Когда кто-то захочет арендовать вашу вещь — вы получите уведомление.")
+            f"Ваше объявление <b>«{created_item.title}»</b> успешно создано.\n\n"
+            "Сейчас объявление отправлено на модерацию, появится после одобрения, и "
+            "и его увидят другие пользователи в поиске. "
+            "Когда кто-то захочет арендовать вашу вещь — вы получите уведомление.")
 
     await callback.message.answer(
         text,
@@ -924,7 +784,7 @@ async def start_process_edit_item(callback: CallbackQuery, state: FSMContext, it
 
     safe_title = item.title or "Без названия"
     text = (f"✏️ <b>Редактирование объявления</b>\n\n"
-        f"Выберите, что вы хотите изменить в <b>«{safe_title}»</b>:",)
+            f"Выберите, что вы хотите изменить в <b>«{safe_title}»</b>:",)
 
     await send_or_edit(callback, text, markup=keyboard, parse_mode="HTML")
-#====================================== Редактирования ✏️ объявления ====================================================
+# ====================================== Редактирования ✏️ объявления ==================================================

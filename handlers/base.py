@@ -16,7 +16,8 @@ from services.user_service import UserService
 from sqlalchemy.exc import SQLAlchemyError
 
 from handlers.category import show_categories
-from handlers.item import show_my_items, start_create_item_from_menu
+from handlers.item.show import show_my_items
+from handlers.item.flow_create import start_create_item_from_menu
 #from handlers.auth import profile, show_statistics, show_achievements, show_settings - циклический повтор! ошибка
 from handlers.search import start_search
 

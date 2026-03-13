@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Optional, List
+from typing import Optional
 from sqlalchemy import Integer, String, ForeignKey, Index, UniqueConstraint, CheckConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -17,15 +17,16 @@ class Category(Base, TimestampMixin):
     parent_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("categories.id", ondelete="CASCADE"),
         nullable=True,
+        #index=True,  # быстрее выборки по parent_id
     )
 
     # Отношения
     parent: Mapped[Optional["Category"]] = relationship(
         "Category",
-        remote_side=[id],
+        remote_side="Category.id", # [id]
         back_populates="subcategories",
     )
-    subcategories: Mapped[List["Category"]] = relationship( # list["Category"]
+    subcategories: Mapped[list["Category"]] = relationship(
         "Category",
         back_populates="parent",
         cascade="all, delete-orphan",
@@ -35,10 +36,10 @@ class Category(Base, TimestampMixin):
 
     __table_args__ = (
         # в рамках одного родителя имя уникально
-        UniqueConstraint("parent_id", "name"),
+        UniqueConstraint("parent_id", "name", name="uq_categories_parent_id_name"),
 
         # защита от «сам себе родитель»
-        CheckConstraint("parent_id IS NULL OR parent_id <> id", name="no_self_parent"),
+        CheckConstraint("parent_id IS NULL OR parent_id <> id", name="ck_categories_no_self_parent"),
 
         # для быстрого получения категорий по parent_id
         Index("ix_categories_parent_id", "parent_id"),

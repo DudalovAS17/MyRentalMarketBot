@@ -9,7 +9,6 @@ MY_ITEMS_PREFIX = "my_items"
 
 EDIT_ITEM_CB = "edit_item"
 EDIT_FIELD_CB = "edit_field:"
-SHOW_ITEM_CB = "show_item:"
 
 def build_my_items_keyboard(items: Sequence[ItemOut]) -> InlineKeyboardMarkup:
     """

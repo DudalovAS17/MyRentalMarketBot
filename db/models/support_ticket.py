@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from typing import Optional, TYPE_CHECKING
-from sqlalchemy import Integer, BigInteger, String, Text, DateTime, ForeignKey, Enum as SAEnum, Index
+from sqlalchemy import Integer,  CheckConstraint, BigInteger, String, Text, DateTime, ForeignKey, Enum as SAEnum, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from db.models.base import Base, TimestampMixin
@@ -28,8 +28,7 @@ if TYPE_CHECKING:
     from db.models.user import User
 
 class SupportTicket(Base, TimestampMixin):
-    """
-    MVP тикет поддержки:
+    """MVP тикет поддержки:
     - один входящий текст от пользователя
     - админ отвечает отдельным сообщением
     """
@@ -39,7 +38,9 @@ class SupportTicket(Base, TimestampMixin):
 
     # Ниже три поля повторяющие поля модели User - смысл этого есть, спроси у GPT :D
     user_id: Mapped[int] = mapped_column(
-        ForeignKey("users.id", ondelete="RESTRICT"), nullable=False)
+        ForeignKey("users.id", ondelete="RESTRICT"),
+        nullable=False
+    )
     telegram_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
     username: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
 
@@ -63,6 +64,14 @@ class SupportTicket(Base, TimestampMixin):
         Index("ix_support_tickets_telegram_id", "telegram_id"),
         Index("ix_support_tickets_status", "status"),
 
+        # Нельзя закрыть тикет без даты закрытия (и наоборот)
+        CheckConstraint(
+            "(closed_at IS NULL AND closed_by_admin_tg_id IS NULL) "
+            "OR (closed_at IS NOT NULL AND closed_by_admin_tg_id IS NOT NULL)",
+            name="ck_support_tickets_closed_fields_consistent",
+        ), # либо оба closed_at и closed_by_admin_tg_id пустые, либо оба заполнены.
+
+        # Частые запросы в админке: "открытые тикеты" и "сортировка по дате"
         Index("ix_support_tickets_user_status", "user_id", "status"),
         Index("ix_support_tickets_status_created", "status", "created_at"),
     )

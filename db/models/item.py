@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from decimal import Decimal
 from datetime import datetime
-from typing import Optional, List, Dict, TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING
 from sqlalchemy import DateTime
 from sqlalchemy import Integer, String, Text, ForeignKey, Numeric, Enum as SAEnum, Boolean, JSON, CheckConstraint, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -15,8 +15,16 @@ if TYPE_CHECKING:
     from db.models.rental import Rental
     from db.models.photo import Photo
 
+# status — модерация/публикация (PENDING/APPROVED/REJECTED/etc.),
+# is_available — доступность к аренде (например, временно недоступна).
+
 class Item(Base, TimestampMixin):
-    """Модель предмета/вещи для аренды"""
+    """Модель предмета/вещи для аренды
+
+    - Денежные поля: Decimal через Numeric(12,2)
+    - Время: timezone-aware (UTC стратегия обеспечивается на уровне base.py + домена)
+    - Статус: Enum ItemStatus (модерация/публикация)
+    """
     __tablename__ = 'items'
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
@@ -47,7 +55,7 @@ class Item(Base, TimestampMixin):
 
     # место
     location: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    coordinates: Mapped[Optional[Dict]] = mapped_column(JSON, nullable=True)  # [dict[str, Any]],   {"lat": ..., "lng": ...}
+    coordinates: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)  # [dict[str, Any]],   {"lat": ..., "lng": ...}
 
     # статусы/флаги
     is_available: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
@@ -81,25 +89,26 @@ class Item(Base, TimestampMixin):
     owner: Mapped["User"] = relationship("User", back_populates="items", foreign_keys=[user_id])
     # category: Mapped["Category"] = relationship("Category", foreign_keys=[category_id])
     # subcategory: Mapped[Optional["Category"]] = relationship("Category", foreign_keys=[subcategory_id])
-    rentals: Mapped[List["Rental"]] = relationship("Rental", back_populates="item")  # , cascade="all, delete-orphan
-    item_photos: Mapped[List["Photo"]] = relationship(
+    rentals: Mapped[list["Rental"]] = relationship("Rental", back_populates="item")  # , cascade="all, delete-orphan
+    item_photos: Mapped[list["Photo"]] = relationship(
         "Photo",
         back_populates="item",
         cascade="all, delete-orphan",  # удалил вещь → удалили её фото
         single_parent=True,
+        # passive_deletes=True
     )
 
     #photos = relationship("Photo", back_populates="item", cascade="all, delete-orphan")
 
     __table_args__ = (
         # валидации на уровне БД
-        CheckConstraint("price >= 0", name="ck_item_price_nonneg"),
-        CheckConstraint("(deposit IS NULL) OR (deposit >= 0)", name="ck_item_deposit_nonneg"),
-        CheckConstraint("min_rental_period >= 1", name="ck_item_min_period"),
+        CheckConstraint("price >= 0", name="ck_items_price_non_neg"),
+        CheckConstraint("(deposit IS NULL) OR (deposit >= 0)", name="ck_items_deposit_non_neg"),
+        CheckConstraint("min_rental_period >= 1", name="ck_items_min_period"),
         CheckConstraint("(max_rental_period IS NULL) OR (max_rental_period >= min_rental_period)",
-                        name="ck_item_max_ge_min"),
-        CheckConstraint("views_count >= 0", name="ck_item_views_nonneg"),
-        CheckConstraint("orders_count >= 0", name="ck_item_orders_nonneg"),
+                        name="ck_items_max_ge_min"),
+        CheckConstraint("views_count >= 0", name="ck_items_views_non_neg"),
+        CheckConstraint("orders_count >= 0", name="ck_items_orders_non_neg"),
 
         # полезные индексы
         Index("ix_items_subcategory_id", "subcategory_id"),
@@ -107,3 +116,13 @@ class Item(Base, TimestampMixin):
         Index("ix_items_category_available", "category_id", "is_available"),
         Index("ix_items_owner_available", "user_id", "is_available"),
     )
+
+
+""" Дополнительные будущие поля:
+item_type — тип товара.
+private_data — скрытые данные товара.
+is_new — новый ли товар.
+
+Связи:
+
+"""

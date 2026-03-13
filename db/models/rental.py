@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from decimal import Decimal
 from datetime import datetime
-from typing import Optional, List, TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING
 from sqlalchemy import Integer, DateTime, Boolean, ForeignKey, Numeric, Enum as SAEnum, CheckConstraint, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -15,7 +15,13 @@ if TYPE_CHECKING:
     from db.models.user import User
 
 class Rental(Base, TimestampMixin):
-    """Модель аренды (сделки)"""
+    """Модель аренды (сделки)
+
+    Важные принципы:
+    - Время: timezone-aware
+    - Деньги: Decimal/Numeric(12,2).
+    - Сущности (item/user) нельзя удалить при наличии истории аренды (ondelete=RESTRICT).
+    """
     __tablename__ = "rentals"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
@@ -65,11 +71,13 @@ class Rental(Base, TimestampMixin):
     item: Mapped["Item"] = relationship("Item", back_populates="rentals")
     renter: Mapped["User"] = relationship("User", foreign_keys=[renter_id], back_populates="rentals_as_renter")
     owner: Mapped["User"] = relationship("User", foreign_keys=[owner_id],  back_populates="rentals_as_owner")
-    reviews: Mapped[List["Review"]] = relationship(
+    reviews: Mapped[list["Review"]] = relationship(
         "Review",
         back_populates="rental",
         cascade="all, delete-orphan", # удалил сделку → удалились все отзывы
+        #single_parent=True,
         #lazy="selectin",
+        #passive_deletes=True,
     )
 
     __table_args__ = (
@@ -79,10 +87,10 @@ class Rental(Base, TimestampMixin):
         CheckConstraint("end_date > start_date", name="ck_rentals_end_after_start"),
 
         # запрет отрицательной стоимости (логическая ошибка)
-        CheckConstraint("total_price >= 0", name="ck_rentals_total_price_nonneg"),
+        CheckConstraint("total_price >= 0", name="ck_rentals_total_price_non_neg"),
 
         # депозит тоже не может быть отрицательным
-        CheckConstraint("(deposit_amount IS NULL) OR (deposit_amount >= 0)", name="ck_rentals_deposit_nonneg"),
+        CheckConstraint("(deposit_amount IS NULL) OR (deposit_amount >= 0)", name="ck_rentals_deposit_non_neg"),
 
         Index("ix_rentals_item_id", "item_id"),
         Index("ix_rentals_renter_id", "renter_id"),

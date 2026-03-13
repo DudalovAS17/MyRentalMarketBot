@@ -37,9 +37,6 @@ BACK_TO_MENU_CB = "back_to_main_menu" # главное меню show_main_menu()
 async def show_categories(event: Union[Message, CallbackQuery], category_service: CategoryService) -> None: #state: FSMContext,
     """Показывает список категорий для выбора. Сценарий поиска («🔍 Арендовать»)"""
 
-    logger.info(f"Вызвана функция show_categories")
-
-    # Если это callback (редко для этого экрана, но пусть будет корректно)
     if isinstance(event, CallbackQuery):
         await event.answer()
 
@@ -237,18 +234,7 @@ async def show_item_details_in_subcategory(
     #subcategory_name = data.get("selected_subcategory_name") or "—"
 
     # Формируем детальную информацию
-    item_details = (
-        f"📦 <b>{item.title}</b>\n\n"
-        f"📝 <b>Описание:</b>\n{item.description}\n\n"
-        f"🏷️ <b>Категория:</b> {category_name} > {subcategory_name}\n"
-        f"💰 <b>Цена:</b> {format_price(item.price)} ₽/день\n"
-        f"🕒 <b>Минимальный срок аренды:</b> {item.min_rental_period} {format_days(item.min_rental_period)}\n"
-        f"🔐 <b>Залог:</b> {f'{format_price(item.deposit)} ₽' if item.deposit else 'Без залога'}\n"
-        f"📍 <b>Местоположение:</b> {item.location}\n"
-        f"👤 <b>Владелец:</b> {item.user_id}\n"
-        #f"⭐ <b>Рейтинг:</b> ... ({item.views_count} отзывов)\n"
-        f"✅ <b>Доступность:</b> {'Доступно для аренды' if item.is_available else 'Временно недоступно'}\n\n"
-    )
+    item_details = _item_details_text(item, category_name, subcategory_name)
 
     # Проверяем занятость (если есть активная/открытая аренда)
     try:
@@ -260,7 +246,13 @@ async def show_item_details_in_subcategory(
 
     # Клавиатура
     selected_subcategory_id = data.get("selected_subcategory_id")
-    busy_until = open_rental.end_date.strftime("%d.%m.%Y") if open_rental.end_date else None
+
+    busy_until = (
+        open_rental.end_date.strftime("%d.%m.%Y")
+        if open_rental and open_rental.end_date
+        else None
+    )
+
     keyboard = build_item_details_kb(
         item_id=item.id,
         is_busy=is_busy,
@@ -350,3 +342,22 @@ async def show_all_photos(callback: CallbackQuery, photo_service: PhotoService) 
     await send_reply(callback, "📸 <b>Все фото объявления</b>", markup=back_keyboard)
     #await callback.message.answer("______________________________________________________"
     # data сейчас: id (category|subcategory|item), name (category|subcategory)
+
+
+def _item_details_text(
+        item,
+        category_name: str,
+        subcategory_name: str
+) -> str:
+    return (
+        f"📦 <b>{item.title}</b>\n\n"
+        f"📝 <b>Описание:</b>\n{item.description}\n\n"
+        f"🏷️ <b>Категория:</b> {category_name} > {subcategory_name}\n"
+        f"💰 <b>Цена:</b> {format_price(item.price)} ₽/день\n"
+        f"🕒 <b>Минимальный срок аренды:</b> {item.min_rental_period} {format_days(item.min_rental_period)}\n"
+        f"🔐 <b>Залог:</b> {f'{format_price(item.deposit)} ₽' if item.deposit else 'Без залога'}\n"
+        f"📍 <b>Местоположение:</b> {item.location}\n"
+        #f"👤 <b>Владелец:</b> {item.user_id}\n"
+        #f"⭐ <b>Рейтинг:</b> ... ({item.views_count} отзывов)\n"
+        f"✅ <b>Доступность:</b> {'Доступно для аренды' if item.is_available else 'Временно недоступно'}\n\n"
+    )
