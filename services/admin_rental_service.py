@@ -7,7 +7,7 @@ from services.admin_service import AdminActionService
 from schemas.rental import RentalUpdate, RentalOut, RentalAdminDetailsOut
 from schemas.item import ItemOut
 from schemas.user import UserOut
-from utils.admin_status import AdminActionType, AdminEntityType
+from status.admin_status import AdminActionType, AdminEntityType
 from utils.errors import NotFoundError, ConflictError
 
 logger = logging.getLogger(__name__)

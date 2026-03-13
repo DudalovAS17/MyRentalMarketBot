@@ -8,7 +8,7 @@ from sqlalchemy import Integer, String, Text, ForeignKey, Numeric, Enum as SAEnu
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from db.models.base import Base, TimestampMixin
-from utils.item_status import ItemStatus
+from status.item_status import ItemStatus
 
 if TYPE_CHECKING:
     from db.models.user import User

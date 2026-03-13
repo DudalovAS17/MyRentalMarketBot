@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 import enum
-from typing import Any, Optional, Union
-
 
 class RentalActorRole(enum.Enum):
     OWNER = "owner"

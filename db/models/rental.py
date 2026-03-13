@@ -7,7 +7,7 @@ from sqlalchemy import Integer, DateTime, Boolean, ForeignKey, Numeric, Enum as 
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from db.models.base import Base, TimestampMixin
-from utils.rental_status import RentalStatus
+from status.rental_status import RentalStatus
 
 if TYPE_CHECKING:
     from db.models.item import Item

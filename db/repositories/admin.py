@@ -1,16 +1,11 @@
 from __future__ import annotations
 
-from typing import Callable, Optional
-from sqlalchemy.ext.asyncio import AsyncSession
+from typing import Optional
 
 from db.models.admin import AdminAction
-from schemas.admin import AdminActionOut
+from db.repositories.base import BaseRepository
 
-
-class AdminActionRepository:
-    def __init__(self, session_factory: Callable[[], AsyncSession]) -> None:
-        self._sf = session_factory
-
+class AdminActionRepository(BaseRepository):
     async def create(
         self,
         *,
@@ -19,9 +14,9 @@ class AdminActionRepository:
         entity_type: str,
         entity_id: str,
         note: Optional[str] = None,
-        payload: Optional[dict] = None, # Optional[dict[str, Any]]
+        payload: Optional[dict] = None,
     ) -> AdminAction:
-        async with self._sf() as s:
+        async with self._session() as s:
             obj = AdminAction(
                 admin_id=admin_id,
                 action_type=action_type,
@@ -30,11 +25,4 @@ class AdminActionRepository:
                 note=note,
                 payload=payload,
             )
-            s.add(obj)
-            try:
-                await s.commit()
-            except Exception:
-                await s.rollback()
-                raise
-            await s.refresh(obj)
-            return obj
+            return await self._add_commit_refresh(s, obj)

@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 
 from db.repositories.user import UserRepository
 from schemas.user import UserCreate, UserUpdate, UserOut, UserAdminUpdate
-from utils.user_status import can_transition, AccountStatus
+from status.user_status import can_transition, AccountStatus
 from utils.errors import NotFoundError, ServiceError, ConflictError, ForbiddenError
 
 logger = logging.getLogger(__name__)

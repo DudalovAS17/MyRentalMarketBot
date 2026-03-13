@@ -6,7 +6,7 @@ from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
-from config import DATABASE_URL
+from config import settings
 from db.models.base import Base
 
 # ВАЖНО: импортируем ВСЕ модели, чтобы Alembic увидел их в metadata
@@ -26,7 +26,7 @@ target_metadata = Base.metadata
 def run_migrations_offline() -> None:
     """Запуск миграций в offline-режиме (без подключения к БД)."""
     context.configure(
-        url=DATABASE_URL,
+        url=settings.database_url,
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
@@ -57,7 +57,7 @@ async def run_migrations_online() -> None:
     # alembic_cfg = {"sqlalchemy.url": DATABASE_URL}
 
     alembic_cfg = config.get_section(config.config_ini_section) or {}
-    alembic_cfg["sqlalchemy.url"] = DATABASE_URL
+    alembic_cfg["sqlalchemy.url"] = settings.database_url
 
     connectable = async_engine_from_config(
         alembic_cfg,

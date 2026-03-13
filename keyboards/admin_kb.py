@@ -1,5 +1,5 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from utils.item_status import ItemStatus
+from status.item_status import ItemStatus
 
 def get_admin_menu_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(

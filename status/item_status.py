@@ -1,4 +1,3 @@
-"""Item moderation statuses and transition rules."""
 import enum
 
 """ Что определяет видимость объявления:

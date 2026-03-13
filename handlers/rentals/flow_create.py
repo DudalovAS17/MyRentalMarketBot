@@ -18,7 +18,7 @@ from utils.domain_exceptions import ItemNotAvailable
 from utils.errors import ServiceError, ValidationError
 from schemas.rental import RentalCreate, RentalCreateDraft
 from keyboards.rental_kb import get_open_rental_keyboard, build_rent_end_date_keyboard, build_rent_confirmation_keyboard
-from helpers.formatters.notification import format_new_rental_request
+from utils.notification import format_new_rental_request
 
 logger = logging.getLogger(__name__)
 

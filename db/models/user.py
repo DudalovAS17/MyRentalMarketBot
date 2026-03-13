@@ -6,7 +6,7 @@ from sqlalchemy import Integer, String, Float, Boolean, CheckConstraint, Enum as
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from db.models.base import Base, TimestampMixin
-from utils.user_status import AccountStatus
+from status.user_status import AccountStatus
 
 if TYPE_CHECKING:
     from db.models.item import Item

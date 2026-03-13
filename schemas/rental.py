@@ -1,12 +1,12 @@
 from pydantic import BaseModel, Field, AwareDatetime, ConfigDict
-from typing import Optional, Literal
+from typing import Optional
 from datetime import datetime
 from decimal import Decimal
 
 from schemas.item import ItemOut
 from schemas.user import UserOut
 from db.models.rental import RentalStatus
-from utils.rental_status import RentalActorRole
+from status.rental_status import RentalActorRole
 
 class RentalCreate(BaseModel):
     """Схема для создания сделки аренды"""

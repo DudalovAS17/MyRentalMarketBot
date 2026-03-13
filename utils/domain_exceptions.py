@@ -2,7 +2,7 @@ from datetime import datetime
 from dataclasses import dataclass
 from typing import Optional
 
-from utils.rental_status import RentalStatus
+from status.rental_status import RentalStatus
 
 """ ! Доменные ошибки ! """
 

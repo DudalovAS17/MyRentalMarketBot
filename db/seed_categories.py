@@ -14,7 +14,7 @@ load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL")
 print("SEED DATABASE_URL =", DATABASE_URL)
 
-DATA_PATH = Path("categories.json")
+DATA_PATH = Path("../categories.json")
 
 UPSERT_SQL = """
 INSERT INTO categories (id, name, emoji, parent_id, created_at, updated_at)

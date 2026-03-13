@@ -98,6 +98,8 @@ class Settings(BaseSettings):
             f"@{self.db_host}:{self.db_port}/{self.db_name}"
         )
 
+    # --- Redis ---
+    #redis_url: str = Field(default="redis://localhost:6379/0", alias="REDIS_URL")
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:

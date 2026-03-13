@@ -1,8 +1,8 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from services.rental_service import RentalStatus
-from utils.rental_status import RentalActorRole
+from status.rental_status import RentalActorRole
 from schemas.rental import RentalDetailsOut
-from helpers.formatters.ui_defaults import ui_str, ui_money
+from utils.ui_defaults import ui_str, ui_money
 
 STATUS_LABELS = {
     RentalStatus.REQUESTED: "Запрос отправлен",

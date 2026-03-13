@@ -9,7 +9,7 @@ from handlers.rental_ui import build_rental_details_ui
 
 from services.rental_service import RentalService
 from utils.functions import send_or_edit
-from utils.rental_status import RentalActorRole
+from status.rental_status import RentalActorRole
 from utils.errors import ServiceError
 
 logger = logging.getLogger(__name__)

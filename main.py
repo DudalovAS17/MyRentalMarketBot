@@ -7,8 +7,8 @@ import logging
 from aiogram.client.default import DefaultBotProperties
 from aiogram import Bot, Dispatcher
 from aiogram.enums import ParseMode
-from aiogram.fsm.storage.memory import MemoryStorage  # или RedisStorage
-# from aiogram.fsm.storage.redis import RedisStorage
+from aiogram.fsm.storage.memory import MemoryStorage
+#from aiogram.fsm.storage.redis import RedisStorage
 
 from config import settings
 from db.database import get_session_factory
@@ -36,6 +36,7 @@ async def build_app() -> tuple[Bot, Dispatcher]:
         default=DefaultBotProperties(parse_mode=ParseMode.HTML),
     )
     dp = Dispatcher(storage=MemoryStorage())
+    #dp = Dispatcher(storage=RedisStorage.from_url(settings.redis_url))
 
     # Подключаем роутеры
     register_routers(dp)

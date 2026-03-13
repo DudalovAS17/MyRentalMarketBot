@@ -9,8 +9,8 @@ from db.repositories.rental import RentalRepository
 from schemas.rental import RentalCreate, RentalUpdate, RentalOut, RentalWithRoleOut, RentalDetailsOut
 from schemas.item import ItemOut
 from schemas.user import UserOut
-from utils.rental_status import is_open_status # is_terminal_status
-from utils.rental_status import RentalStatus, RentalActorRole
+from status.rental_status import is_open_status # is_terminal_status
+from status.rental_status import RentalStatus, RentalActorRole
 from utils.domain_exceptions import ItemNotAvailable
 from utils.errors import NotFoundError, ForbiddenError, ConflictError
 

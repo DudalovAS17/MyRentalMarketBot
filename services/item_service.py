@@ -7,7 +7,7 @@ from db.repositories.rental import RentalRepository
 from schemas.item import ItemCreate, ItemUpdate, ItemOut
 from schemas.photo import PhotoOut
 from utils.errors import ConflictError, NotFoundError
-from utils.item_status import can_transition, ItemStatus
+from status.item_status import can_transition, ItemStatus
 
 logger = logging.getLogger(__name__)
 

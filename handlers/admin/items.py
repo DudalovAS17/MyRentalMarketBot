@@ -10,7 +10,7 @@ from keyboards.admin_kb import (
     get_admin_items_menu_keyboard,
 )
 from utils.functions import send_or_edit, format_price
-from utils.item_status import ItemStatus
+from status.item_status import ItemStatus
 
 
 admin_items_router = Router()

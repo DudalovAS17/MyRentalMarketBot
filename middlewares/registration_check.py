@@ -5,7 +5,7 @@ from aiogram import BaseMiddleware
 from aiogram.types import Message, CallbackQuery
 
 from services.user_service import UserService
-from utils.user_status import AccountStatus
+from status.user_status import AccountStatus
 from utils.functions import deny
 
 logger = logging.getLogger(__name__)

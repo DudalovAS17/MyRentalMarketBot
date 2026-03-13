@@ -6,7 +6,7 @@ from sqlalchemy import Integer,  CheckConstraint, BigInteger, String, Text, Date
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from db.models.base import Base, TimestampMixin
-from utils.support_ticket_status import SupportTicketStatus
+from status.support_ticket_status import SupportTicketStatus
 
 """
 Поддержка — полный дизайн (MVP)
