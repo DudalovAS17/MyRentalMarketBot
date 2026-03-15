@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+from decimal import Decimal
 from datetime import datetime
 from typing import Optional, TYPE_CHECKING
-from sqlalchemy import Integer, String, Float, Boolean, CheckConstraint, Enum as SAEnum, Index, DateTime, Text, ForeignKey, BigInteger
+from sqlalchemy import (Integer, String, CheckConstraint, Enum as SAEnum, Index, DateTime, Numeric,
+                        Text, ForeignKey, BigInteger)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from db.models.base import Base, TimestampMixin
@@ -32,18 +34,15 @@ class User(Base, TimestampMixin):
     phone: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
     email: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
 
-    is_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    # В идеале is_admin должен вычисляться через settings.admin_ids на уровне middleware/сервисов
-    # и не храниться в БД (иначе рассинхрон). Но оставляем как “наследие” до отдельной миграции.
-    # ALTER TABLE users DROP COLUMN IF EXISTS is_admin; - сделай, когда будешь убирать
-
     # рейтинг
-    rating: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    rating: Mapped[Decimal] = mapped_column(Numeric(3, 2), nullable=False, default=Decimal("0.00"))
     rating_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
-    # блокировки/флаги (старый, мы его пока не трогаем, чтобы не ломать проект)
-    is_blocked: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    # новый “правильный” флаг
+    # ________________________ нужно удалить через миграцию ___________________________________
+    #is_blocked: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    #is_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    # ________________________ нужно удалить через миграцию ___________________________________
+
     account_status: Mapped[AccountStatus] = mapped_column(
         SAEnum(AccountStatus, name="account_status"),
         nullable=False,

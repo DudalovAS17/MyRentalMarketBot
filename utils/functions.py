@@ -84,6 +84,11 @@ async def deny(
 
 
 # ---------------------------------------------------------------------------------------------
+"""
+Замечание: abort_rent_flow и render_rent_ui содержат Telegram-логику (bot.edit_message_text). 
+Это допустимо для utils (они — часть UI-слоя), но не должны появляться в services.
+"""
+
 async def abort_rent_flow(
         callback: CallbackQuery,
         state: FSMContext,
@@ -149,9 +154,7 @@ async def render_rent_ui(
     sent = await callback.message.answer(text, reply_markup=keyboard, parse_mode="HTML")
     await state.update_data(rent_ui_message_id=sent.message_id)
     return sent.message_id
-
 # ---------------------------------------------------------------------------------------------
-
 
 # def format_price(price: int | float) -> str:
 #     return f"{price:,.2f}".replace(",", " ").replace(".00", "")

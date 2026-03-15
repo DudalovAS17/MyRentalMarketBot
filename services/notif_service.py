@@ -7,6 +7,7 @@ from aiogram.types import InlineKeyboardMarkup
 
 logger = logging.getLogger(__name__)
 
+# СЫРОЙ СЕРВИС - БУДУ ПИСАТЬ ЗАНОВО.
 
 class NotificationService:
     """Минимальный сервис отправки уведомлений через bot.send_message."""

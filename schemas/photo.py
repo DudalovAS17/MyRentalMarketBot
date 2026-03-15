@@ -1,5 +1,5 @@
-from pydantic import BaseModel, Field, AwareDatetime, ConfigDict
 from typing import Optional
+from pydantic import BaseModel, Field, AwareDatetime, ConfigDict
 
 
 class PhotoCreate(BaseModel):
@@ -33,4 +33,3 @@ class PhotoOut(BaseModel):
     updated_at: AwareDatetime
 
     model_config = ConfigDict(from_attributes=True)
-

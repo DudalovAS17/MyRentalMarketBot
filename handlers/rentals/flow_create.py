@@ -353,6 +353,7 @@ async def process_end_date(callback: CallbackQuery, state: FSMContext, item_serv
     # Переходим в состояние подтверждения аренды
     await state.set_state(RentStates.confirmation)
 
+
 @rental_router.callback_query(RentStates.confirmation, F.data == CONFIRM_RENT_CB)
 async def confirm_rent(
     callback: CallbackQuery,
@@ -530,6 +531,7 @@ async def confirm_rent(
     await render_rent_ui(callback, state, text, keyboard, rent_ui_message_id)
 
     await state.clear()
+
 
 # не обдумывал, пусть пока так
 @rental_router.callback_query(F.data == CANCEL_RENT_FLOW_CB)

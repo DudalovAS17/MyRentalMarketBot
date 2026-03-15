@@ -1,22 +1,9 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from services.rental_service import RentalStatus
-from status.rental_status import RentalActorRole
+from status.rental_status import RentalActorRole, STATUS_LABELS
 from schemas.rental import RentalDetailsOut
 from utils.ui_defaults import ui_str, ui_money
 
-STATUS_LABELS = {
-    RentalStatus.REQUESTED: "Запрос отправлен",
-    RentalStatus.CONFIRMED: "Подтверждена (ожидает передачи)",
-    RentalStatus.ACTIVE: "Активна (вещь передана)",
-    RentalStatus.COMPLETED: "Завершена",
-    RentalStatus.CANCELLED_BY_OWNER: "Отменена владельцем",
-    RentalStatus.CANCELLED_BY_RENTER: "Отменена арендатором",
-    RentalStatus.REJECTED_BY_OWNER: "Отклонена владельцем",
-    RentalStatus.REJECTED_BY_RENTER: "Отклонена арендатором",
-    RentalStatus.DISPUTED: "⚠️ <b>Спор открыт</b>. Дальнейшие действия по сделке заблокированы до решения",
-    RentalStatus.CANCELLED_CONFIRMED_BY_OWNER: "Отменена владельцем (до передачи)",
-    RentalStatus.CANCELLED_CONFIRMED_BY_RENTER: "Отменена арендатором (до получения)",
-}
 
 def format_rental_status(status: RentalStatus) -> str:
     return status.value.replace("_", " ").replace("-", " ").capitalize()
@@ -179,6 +166,8 @@ def _build_owner_actions(status: RentalStatus, rental_id: int, owner_ok: bool, r
         #         rows.append([InlineKeyboardButton(text="⭐ Посмотреть отзыв", callback_data=f"review_view:{rental_id}")])
         InlineKeyboardButton(text="⭐ Оставить отзыв", callback_data=f"rental_action:review:{rental_id}")
         # можно ли открыть спор после COMPLETED? Пока нет!
+        # ?
+        #rows.append([InlineKeyboardButton(text="⭐ Оставить отзыв", callback_data=f"rental_action:review:{rental_id}")])
 
     return rows
 
@@ -214,5 +203,8 @@ def _build_renter_actions(status: RentalStatus, rental_id: int, owner_ok: bool, 
         #         rows.append([InlineKeyboardButton(text="⭐ Посмотреть отзыв", callback_data=f"review_view:{rental_id}")])
         InlineKeyboardButton(text="⭐ Оставить отзыв", callback_data=f"rental_action:review:{rental_id}")
         # можно ли открыть спор после COMPLETED? Пока нет!
+
+        # ?
+        # rows.append([InlineKeyboardButton(text="⭐ Оставить отзыв", callback_data=f"rental_action:review:{rental_id}")])
 
     return rows

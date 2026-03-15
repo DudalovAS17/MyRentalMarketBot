@@ -1,12 +1,11 @@
-from pydantic import BaseModel, Field, AwareDatetime, ConfigDict
 from typing import Optional
+from pydantic import BaseModel, Field, AwareDatetime, ConfigDict
 
 class CategoryCreate(BaseModel):
     """Схема для создания категории/подкатегории"""
     name: str = Field(..., min_length=1, max_length=128)
     emoji: Optional[str] = Field(None, max_length=32)
     parent_id: Optional[int] = None
-
 
 class CategoryUpdate(BaseModel):
     """Схема для обновления категории/подкатегории"""

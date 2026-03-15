@@ -94,12 +94,6 @@ class RegistrationCheckMiddleware(BaseMiddleware):
             return None
         # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────
 
-        # 🚫 Проверка блокировки
-        if getattr(user, "is_blocked", False):
-            logger.warning(f"[RegistrationCheck] Заблокированный пользователь {tg_user_id} попытался выполнить действие")
-            await deny(event, MSG_BLOCKED)
-            return None
-
         # 🚫 Проверка подтверждения телефона (без телефона — не даём пользоваться ботом)
         if not getattr(user, "phone", None):
             logger.info(f"[RegistrationCheck] Пользователь {tg_user_id} не завершил регистрацию (нет телефона)")

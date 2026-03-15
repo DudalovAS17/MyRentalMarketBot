@@ -1,12 +1,11 @@
-from pydantic import BaseModel, Field, AwareDatetime, ConfigDict
 from typing import Optional
 from datetime import datetime
 from decimal import Decimal
+from pydantic import BaseModel, Field, AwareDatetime, ConfigDict
 
 from schemas.item import ItemOut
 from schemas.user import UserOut
-from db.models.rental import RentalStatus
-from status.rental_status import RentalActorRole
+from status.rental_status import RentalActorRole, RentalStatus
 
 class RentalCreate(BaseModel):
     """Схема для создания сделки аренды"""
@@ -44,13 +43,14 @@ class RentalOut(BaseModel):
     renter_receive_confirmed: bool
     created_at: AwareDatetime # Optional[datetime] = None # [AwareDatetime]
     updated_at: AwareDatetime # Optional[datetime] = None # [AwareDatetime]
-    # AwareDatetime - datetime, у которого ОБЯЗАТЕЛЬНО есть tzinfo (т.е. timezone-aware)
+    # AwareDatetime - datetime, у которого ОБЯЗАТЕЛЬНО есть tz_info (т.е. timezone-aware)
 
     model_config = ConfigDict(from_attributes=True)
 
 
 class RentalWithRoleOut(RentalOut):
     user_role: RentalActorRole
+
 
 class RentalDetailsOut(BaseModel):
     id: int
@@ -61,6 +61,7 @@ class RentalDetailsOut(BaseModel):
     user_role: RentalActorRole
 
     model_config = ConfigDict(from_attributes=True)
+
 
 class RentalAdminDetailsOut(BaseModel):
     rental: RentalOut
@@ -82,11 +83,11 @@ class RentalCreateDraft(BaseModel):
     renter_id: Optional[int] = None
     owner_id: Optional[int] = None
 
-    start_date: Optional[str] = None # "DD.MM.YYYY"
-    end_date: Optional[str] = None # "DD.MM.YYYY"
+    #start_date: Optional[str] = None # "DD.MM.YYYY"
+    #end_date: Optional[str] = None # "DD.MM.YYYY"
 
-    #start_date: Optional[datetime] = None
-    #end_date: Optional[datetime] = None
+    start_date: Optional[datetime] = None
+    end_date: Optional[datetime] = None
 
     total_price: Optional[Decimal] = Field(default=None, ge=0)
     deposit_amount: Optional[Decimal] = Field(default=None, ge=0)

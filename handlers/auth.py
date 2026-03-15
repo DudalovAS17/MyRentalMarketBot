@@ -30,16 +30,13 @@ async def start_registration(
     telegram_id = tg_user.id
 
     user_data = UserCreate(
-        telegram_id=str(telegram_id),
+        telegram_id=telegram_id,
         username=tg_user.username,
         first_name=tg_user.first_name,
         last_name=tg_user.last_name,
         full_name=f"{tg_user.first_name or ''} {tg_user.last_name or ''}".strip(),
         phone=None,
-        email=None,
-        rating=5.0,
-        rating_count=0,
-        is_blocked=False,
+        email=None
     )
 
     try:

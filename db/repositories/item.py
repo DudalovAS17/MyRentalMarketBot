@@ -19,8 +19,7 @@ class ItemRepository(BaseRepository):
         async with self._session() as s:
             stmt = select(Item)
             if available_only:
-                stmt = stmt.where(Item.is_available.is_(True))
-                stmt = stmt.where(Item.status == ItemStatus.ACTIVE) # NEW (Admin logic)
+                stmt = self._apply_available_active_filter(stmt)
 
             if limit is not None:
                 stmt = stmt.limit(limit).offset(offset)

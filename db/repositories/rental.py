@@ -15,6 +15,7 @@ from status.rental_status import RentalStatus, RentalActorRole
 class RentalRepository(BaseRepository):
     """Репозиторий для работы с арендами (сделками)"""
     # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+    _OPEN_RENTAL_LOOKUP_LIMIT = 10
 
     async def list_all(self) -> list[Rental]:
         """Вернуть все сделки"""
@@ -136,6 +137,7 @@ class RentalRepository(BaseRepository):
             return await self._delete_commit(s, obj)
 
     # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+    # ниже две функции, которые можно объединить в одну
 
     async def try_update_status(self, *,
         rental_id: int, # какую сделку мы хотим изменить
@@ -234,7 +236,7 @@ class RentalRepository(BaseRepository):
                 .where(Rental.item_id == item_id)
                 #.order_by(desc(Rental.id))
                 .order_by(Rental.created_at.desc()) # , Rental.id.desc()
-                .limit(10) # Магический, но пока оставим
+                .limit(self._OPEN_RENTAL_LOOKUP_LIMIT)
             )
             return await self._list(s, stmt) # сервис выберет первую open
 

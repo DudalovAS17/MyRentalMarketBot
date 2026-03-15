@@ -21,3 +21,17 @@ class ValidationError(ServiceError):
 
 # DomainError
 # ValidationError (не путать с Pydantic)
+
+
+
+
+"""Рекомендованное правило для проекта
+
+1) ServiceError (ожидаемая ошибка)
+пользователю: коротко
+лог: logger.warning(...) (обычно без exc_info=True)
+
+2) Любая “неожиданная” ошибка (Exception)
+не ловим в хендлере
+глобальный error middleware логирует stacktrace и показывает общий текст пользователю
+"""

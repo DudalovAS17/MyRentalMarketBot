@@ -1,5 +1,5 @@
 import logging
-from typing import Optional, List
+from typing import Optional, FrozenSet
 from datetime import datetime, timezone
 
 from db.repositories.user import UserRepository
@@ -12,8 +12,12 @@ logger = logging.getLogger(__name__)
 class UserService:
     """Сервис для работы с пользователями"""
 
-    def __init__(self, repo: UserRepository) -> None:
+    def __init__(self, repo: UserRepository, admin_ids: FrozenSet[int]) -> None:
         self.repo = repo
+        self._admin_ids = admin_ids
+
+    def _is_admin(self, tg_user_id: int) -> bool:
+        return tg_user_id in self._admin_ids
 
     async def get_by_id(self, user_id: int, *, strict: bool = False) -> Optional[UserOut]:
         """Найти пользователя по ID"""
@@ -35,7 +39,7 @@ class UserService:
 
         return UserOut.model_validate(user)
 
-    async def list_all(self) -> List[UserOut]:
+    async def list_all(self) -> list[UserOut]:
         """Получить всех пользователей"""
         users = await self.repo.list_all()
         return [UserOut.model_validate(o) for o in users]
@@ -73,11 +77,10 @@ class UserService:
         return True
 
     # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-
     async def register_or_update_user(self, user_data: UserCreate) -> UserOut:
         """Регистрация: создаёт пользователя или обновляет, если уже есть"""
         existing = await self.repo.get_by_telegram_id(user_data.telegram_id)
-        payload = user_data.model_dump(exclude_unset=True)
+        payload = user_data.model_dump(exclude_unset=True) # exclude_unset=True вынести?
 
         if existing: # если найден → обновляем
             logger.info("Пользователь с telegram_id=%s уже существует → обновляем", user_data.telegram_id)
@@ -98,7 +101,7 @@ class UserService:
     # ──────────────────────────────────────────── NEW (Admin-User logic) ────────────────────────────────────────
     async def ban_user(self, *, user_id: int, admin_user_id: int, reason: str, strict: bool = False) -> Optional[UserOut]:
         """Заблокировать пользователя с записью причины"""
-        if user_id == admin_user_id:
+        if user_id == admin_user_id: # это БД или тг id?
             raise ConflictError("Нельзя забанить самого себя")
 
         user = await self.repo.get_by_id(user_id)
@@ -107,7 +110,7 @@ class UserService:
                 raise NotFoundError(f"Пользователь не найден: id={user_id}")
             return None
 
-        if user.is_admin:
+        if self._is_admin(user.telegram_id): # избавились от user.is_admin
             raise ForbiddenError("Нельзя забанить администратора")
 
         current_status = user.account_status

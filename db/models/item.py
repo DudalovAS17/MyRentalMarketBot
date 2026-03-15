@@ -58,21 +58,19 @@ class Item(Base, TimestampMixin):
     coordinates: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)  # [dict[str, Any]],   {"lat": ..., "lng": ...}
 
     # статусы/флаги
-    is_available: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    is_available: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True) # нужно будет удалять эту логику
     is_featured: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
-    #status: Mapped[str] = mapped_column(String(20), nullable=False, default="PENDING")
     status: Mapped[ItemStatus] = mapped_column(
-        SAEnum(ItemStatus, name="item_status"),
+        SAEnum(ItemStatus, name="item_status"), # String(20)
         nullable=False,
         default=ItemStatus.PENDING
     )
 
     # аудит админов (когда, кто, зачем)
     moderated_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
-    #moderated_by_admin_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     moderated_by_admin_id: Mapped[Optional[int]] = mapped_column(
-        ForeignKey("users.id", ondelete="SET NULL"),
+        ForeignKey("users.id", ondelete="SET NULL"), # Integer
         nullable=True
     )
     moderation_reason: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
@@ -122,7 +120,4 @@ class Item(Base, TimestampMixin):
 item_type — тип товара.
 private_data — скрытые данные товара.
 is_new — новый ли товар.
-
-Связи:
-
 """

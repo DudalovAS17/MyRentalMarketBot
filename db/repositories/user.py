@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Optional, Union
+from typing import Optional
 from sqlalchemy import select, exists, update
 
 from db.models.user import User
@@ -52,9 +52,7 @@ class UserRepository(BaseRepository):
         async with self._session() as s:
             return await self._add_commit_refresh(s, obj)
 
-    UpdateSchema = Union[UserUpdate, UserAdminUpdate]
-
-    async def update(self, user_id: int, update_data: UpdateSchema) -> Optional[User]:
+    async def update(self, user_id: int, update_data: UserUpdate | UserAdminUpdate) -> Optional[User]:
         """Обновить данные пользователя (только переданные поля)"""
         async with self._session() as s:
             obj: Optional[User] = await s.get(User, user_id)
@@ -67,7 +65,7 @@ class UserRepository(BaseRepository):
 
             return await self._commit_refresh(s, obj)
 
-    async def delete(self, user_id: int) -> int:
+    async def delete(self, user_id: int) -> bool:
         """Удалить пользователя по id. Возвращает True — если удалён, False — если не найден"""
         async with self._session() as s:
             obj = await s.get(User, user_id)

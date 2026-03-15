@@ -8,7 +8,7 @@ from aiogram.fsm.context import FSMContext
 
 from services.support_service import SupportService, TicketAlreadyOpen
 from states.support_ticket import SupportStates
-from schemas.support import SupportTicketCreate
+from schemas.support import SupportTicketCreate, SupportTicketCreateInternal
 from keyboards.admin_kb import get_admin_support_ticket_notification_keyboard
 from utils.functions import send_or_edit
 
@@ -108,14 +108,14 @@ async def receive_support_text(
         #  return
 
     try:
-        ticket = await support_service.create_ticket(
-            SupportTicketCreate(
+        internal = SupportTicketCreateInternal( # SupportTicketCreate- без user_id
                 user_id=user.id,
                 telegram_id=int(user.telegram_id),
                 username=user.username, # getattr(user, "username", None)
                 text=text,
             )
-        )
+        ticket = await support_service.create_ticket(ticket_data=internal)
+
     except TicketAlreadyOpen as exc:
         await state.clear()
         return await send_or_edit(

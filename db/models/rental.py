@@ -28,21 +28,22 @@ class Rental(Base, TimestampMixin):
 
     # связи с вещью и пользователями
     item_id: Mapped[int] = mapped_column(
-        ForeignKey("items.id", ondelete="RESTRICT"),  # не даём удалить вещь с историей аренды
+        ForeignKey("items.id", ondelete="RESTRICT"),
         nullable=False
     )
 
     # Арендатор
     renter_id: Mapped[int] = mapped_column(
-        ForeignKey("users.id", ondelete="RESTRICT"),  # не даём удалить арендатора с историями
+        ForeignKey("users.id", ondelete="RESTRICT"),
         nullable=False
     )
 
     # Владелец
     owner_id: Mapped[int] = mapped_column(
-        ForeignKey("users.id", ondelete="RESTRICT"),  # не даём удалить владельца с историями
+        ForeignKey("users.id", ondelete="RESTRICT"),
         nullable=False
     )
+    # "RESTRICT" - не даём удалить вещь с историей аренды / арендатора с историями / владельца с историями
 
     # сроки аренды
     start_date: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
@@ -66,6 +67,16 @@ class Rental(Base, TimestampMixin):
     renter_receive_confirmed: Mapped[bool] = mapped_column(
         Boolean, default=False, nullable=False
     )
+
+    # Для аналитики («среднее время от REQUESTED до COMPLETED», «сколько сделок отменяется») нужны timestamp-ы переходов.
+    # cancelled_at: Mapped[Optional[datetime]] = mapped_column(
+    #     DateTime(timezone=True),
+    #     nullable=True,
+    # )
+    # completed_at: Mapped[Optional[datetime]] = mapped_column(
+    #     DateTime(timezone=True),
+    #     nullable=True,
+    # )
 
     # ORM-связи
     item: Mapped["Item"] = relationship("Item", back_populates="rentals")

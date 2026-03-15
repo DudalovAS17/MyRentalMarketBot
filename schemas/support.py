@@ -1,7 +1,7 @@
-from pydantic import BaseModel, AwareDatetime, ConfigDict
 from typing import Optional
+from pydantic import BaseModel, AwareDatetime, ConfigDict
 
-from db.models.support_ticket import SupportTicketStatus
+from status.support_ticket_status import SupportTicketStatus
 
 class SupportTicketCreate(BaseModel):
     """Создание тикета поддержки пользователем."""

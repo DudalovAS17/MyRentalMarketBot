@@ -1,5 +1,5 @@
+from typing import Optional
 from pydantic import BaseModel, AwareDatetime, ConfigDict
-from typing import Optional#, Any
 
 class AdminActionCreate(BaseModel):
     """Схема для записи audit-действия админа (создание)"""

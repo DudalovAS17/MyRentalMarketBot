@@ -1,7 +1,7 @@
-from pydantic import BaseModel, Field, AwareDatetime, ConfigDict
 from typing import Optional
+from pydantic import BaseModel, AwareDatetime, ConfigDict
 
-from db.models.user import AccountStatus
+from status.user_status import AccountStatus
 
 class UserCreate(BaseModel):
     """Схема для создания пользователя"""

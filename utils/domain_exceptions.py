@@ -10,7 +10,7 @@ class DomainError(Exception):
     """Базовый класс доменных ошибок"""
 
 """ ItemNotAvailable — это доменный сигнал “вещь занята” с полезными данными.
-Роль — структурированно сообщить, ПОЧЕМУ операция невозможна (не описывает сущность БД и не DTO).
+Роль — структурировано сообщить, ПОЧЕМУ операция невозможна (не описывает сущность БД и не DTO).
 ItemNotAvailable — это НЕ ошибка исполнения, а ожидаемая бизнес-ситуация. 
 
 @dataclass
@@ -36,5 +36,5 @@ class ItemNotAvailable(DomainError): # Exception - чтобы корректно
 
 
 @dataclass
-class TicketAlreadyOpen(Exception):
+class TicketAlreadyOpen(DomainError):
     ticket_id: int

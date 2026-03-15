@@ -1,8 +1,9 @@
-from pydantic import BaseModel, Field, AwareDatetime, ConfigDict
+from pydantic import BaseModel, Field, AwareDatetime, ConfigDict, field_validator
 from typing import Optional, Dict, Any
 from decimal import Decimal
 
-from db.models.item import ItemStatus
+
+from status.item_status import ItemStatus
 
 class ItemCreate(BaseModel):
     """Схема для создания объявления"""
@@ -25,6 +26,15 @@ class ItemCreate(BaseModel):
     # status: ItemStatus = ItemStatus.PENDING
 
     #photos: Optional[List[str]] = None  # ?
+
+    # у нас в Модели coordinates = JSON (слишком широко), поэтому делаем этот валидатор
+    @field_validator("coordinates")
+    @classmethod
+    def validate_coordinates(cls, v):
+        if v is not None:
+            if "lat" not in v or "lng" not in v:
+                raise ValueError("coordinates must have 'lat' and 'lng'")
+        return v
 
 class ItemUpdate(BaseModel):
     """Схема для обновления объявления (только изменяемые поля)"""
@@ -71,7 +81,7 @@ class ItemOut(BaseModel):
     deposit: Optional[Decimal] = None
     location: Optional[str] = None
     coordinates: Optional[Dict[str, Any]] = None
-    min_rental_period: int = None
+    min_rental_period: int #= None ?
     max_rental_period: Optional[int] = None
     is_available: bool = True # default установлен моделью
     status: ItemStatus
@@ -87,12 +97,12 @@ class ItemOut(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 class ItemAdminOut(ItemOut): # все поля из ItemOut тут тоже будут - унаследовали
     is_featured: Optional[bool] = None
     moderated_at: Optional[AwareDatetime] = None
     moderated_by_admin_id: Optional[int] = None
     moderation_reason: Optional[str] = None
-
 
 
 class ItemCreateDraft(BaseModel):

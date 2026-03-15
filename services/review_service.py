@@ -1,5 +1,5 @@
 import logging
-from typing import List, Optional
+from typing import Optional
 
 from db.models.rental import RentalStatus
 from db.repositories.review import ReviewRepository
@@ -33,21 +33,22 @@ class ReviewService:
 
         return ReviewOut.model_validate(review)
 
-    async def list_reviews_by_rental(self, rental_id: int) -> List[ReviewOut]:
+    async def list_reviews_by_rental(self, rental_id: int) -> list[ReviewOut]:
         """Возвращает все отзывы, связанные с конкретной сделкой"""
         reviews = await self.review_repo.list_by_rental_id(rental_id)
         return [ReviewOut.model_validate(r) for r in reviews]
 
-    async def list_reviews_about_user(self, user_id: int) -> List[ReviewOut]:
+    async def list_reviews_about_user(self, user_id: int) -> list[ReviewOut]:
         """Отзывы о пользователе"""
         reviews = await self.review_repo.list_by_reviewee_id(user_id)
         return [ReviewOut.model_validate(r) for r in reviews]
 
-    async def list_reviews_by_user(self, user_id: int) -> List[ReviewOut]:
+    async def list_reviews_by_user(self, user_id: int) -> list[ReviewOut]:
         """Отзывы, оставленные пользователем"""
         reviews = await self.review_repo.list_by_reviewer_id(user_id)
         return [ReviewOut.model_validate(r) for r in reviews]
 
+    # -------------------------------------------------------------------------------------------------------
     async def create_review(self, actor_id: int, data: ReviewCreate, *, strict: bool = True,) -> ReviewOut:
         """
         Создать отзыв:
@@ -125,6 +126,7 @@ class ReviewService:
         await self.user_repo.update_rating(user_id=user_id, rating=avg_rating, rating_count=count)
 
         logger.info(
-            "Рейтинг пользователя {} обновлён: {} ({} отзывов)"
-            ,user_id, avg_rating, count
+            "Рейтинг пользователя %s обновлён: %s (%s отзывов)",
+            user_id, avg_rating, count
         )
+    # -------------------------------------------------------------------------------------------------------

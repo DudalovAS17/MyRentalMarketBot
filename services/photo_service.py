@@ -1,5 +1,5 @@
 import logging
-from typing import List, Optional, Literal
+from typing import Optional, Literal
 
 from db.repositories.photo import PhotoRepository
 from schemas.photo import PhotoOut
@@ -13,7 +13,7 @@ class PhotoService:
     def __init__(self, photo_repo: PhotoRepository):
         self.photo_repo = photo_repo
 
-    async def get_photos(self, item_id: int) -> List[PhotoOut]:
+    async def get_photos(self, item_id: int) -> list[PhotoOut]:
         """Возвращает все фото объявления в правильном порядке."""
         photos = await self.photo_repo.list_by_item_id(item_id)
         return [PhotoOut.model_validate(p) for p in photos]
@@ -28,8 +28,7 @@ class PhotoService:
 
         return PhotoOut.model_validate(photo)
 
-    # ────────────────────────────────────────────────────────────────────────────────────────────────────────
-
+    # -------------------------------------------------------------------------------------------------------
     async def add_photo(self, *, item_id: int, telegram_file_id: str, order: Optional[int] = None) -> PhotoOut:
         """Добавляет фото к объявлению (если order не указан → ставим в конец)"""
 
@@ -96,9 +95,7 @@ class PhotoService:
         logger.info("The photo id=%s is deleted from the item item_id=%s", photo_id, photo.item_id)
         return True
 
-    # ────────────────────────────────────────────────────────────────────────────────────────────────────────
-
-    # ───────────────────────────────────── Admin-logic ────────────────────────────────────────────────────
+    # --------------------------------------- Admin-logic --------------------------------------------------
     async def move_photo(self, photo_id: int, direction: Literal["up", "down"], strict: bool = False) -> bool:
         """Перемещает фото вверх или вниз (direction: 'up' | 'down')"""
 

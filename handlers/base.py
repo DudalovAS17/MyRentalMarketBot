@@ -3,17 +3,14 @@ import logging
 from typing import Optional
 
 from aiogram import Router, F
-from aiogram.types import Message, CallbackQuery #, InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 from aiogram.filters import CommandStart
 from aiogram.exceptions import TelegramAPIError
 
-# from utils.functions import send_or_edit
 from services.category_service import CategoryService
 from services.item_service import ItemService
 from services.user_service import UserService
-
-from sqlalchemy.exc import SQLAlchemyError
 
 from handlers.category import show_categories
 from handlers.item.show import show_my_items
@@ -22,105 +19,9 @@ from handlers.item.flow_create import start_create_item_from_menu
 from handlers.search import start_search
 
 from keyboards.main_kb import get_main_menu_keyboard
-from utils.functions import send_reply
+from utils.functions import send_reply #, send_or_edit
+from texts.base import COMMAND_SUGGESTIONS, LEGAL_TEXT, HELP_TEXT
 
-# ================= texts =================
-# Словарь с соответствиями неправильных команд правильным
-COMMAND_SUGGESTIONS = {
-    # Команды для сделок
-    "/мои сделки": "/rentals",
-    "/сделки": "/rentals",
-    "/аренды": "/rentals",
-    "/rentals": "/rentals",
-    "/rental": "/rentals",
-
-    # Команды для поиска
-    "/найти": "/search",
-    "/поиск": "/search",
-    "/искать": "/search",
-    "/find": "/search",
-
-    # Команды для профиля
-    "/профиль": "/profile",
-    "/личный кабинет": "/profile",
-    "/аккаунт": "/profile",
-    "/account": "/profile",
-
-    # Команды для помощи
-    "/помощь": "/help",
-    "/справка": "/help",
-    "/инфо": "/help",
-    "/инструкция": "/help",
-
-    # Команды для объявлений
-    "/объявления": "/items",
-    "/мои объявления": "/items",
-    "/мои вещи": "/items",
-    "/мои товары": "/items",
-    "/items": "/items",
-
-    # Команды для старта
-    "/старт": "/start",
-    "/начать": "/start",
-    "/перезапуск": "/start"
-}
-
-# Юридическая информация при команде /legal
-LEGAL_TEXT = (
-    "📝 <b>Юридическая информация</b>\n\n"
-    "Пользуясь ботом 'Аренда.рф', вы соглашаетесь с нашими условиями пользования и политикой конфиденциальности.\n\n"
-
-    "📃 <b>Публичная оферта:</b>\n"
-    "Содержит основные правила платформы, условия аренды, права и обязанности сторон.\n\n"
-
-    "✍️ <b>Пользовательское соглашение:</b>\n"
-    "Описывает условия использования бота и ответственность сторон.\n\n"
-
-    "🔒 <b>Политика конфиденциальности:</b>\n"
-    "Регулирует сбор, хранение и использование ваших персональных данных в соответствии с ФЗ-152.\n\n"
-
-    "📄 <b>Договор аренды:</b>\n"
-    "Формируется автоматически при заключении сделки и содержит все необходимые условия аренды.\n\n"
-
-    "💼 Полные тексты документов будут предоставлены по запросу."
-)
-
-# Помощь при команде /help
-HELP_TEXT = (
-    "🔍 <b>Как пользоваться ботом</b>\n\n"
-    "<b>Основные команды:</b>\n"
-    "✅ /start - Запуск бота и показ главного меню\n"
-    "🔍 /search - Поиск вещей для аренды\n"
-    "📦 /items - Управление моими объявлениями\n"
-    "🤝 /rentals - Просмотр моих сделок\n"
-    "👤 /profile - Просмотр личного профиля\n"
-    "📜 /legal - Юридическая информация\n"
-    "❓ /help - Вывод этой справки\n"
-    "❌ /cancel - Отмена текущей операции\n\n"
-
-    "<b>Как арендовать вещь:</b>\n"
-    "1️⃣ Нажмите '🔍 Арендовать' в главном меню или используйте команду /search\n"
-    "2️⃣ Выберите категорию или воспользуйтесь поиском по городу\n"
-    "3️⃣ Просмотрите доступные объявления\n"
-    "4️⃣ Выберите подходящее объявление\n"
-    "5️⃣ Нажмите кнопку 'Арендовать' и следуйте инструкциям\n\n"
-
-    "<b>Как сдать вещь в аренду:</b>\n"
-    "1️⃣ Нажмите '📦 Сдать в аренду' в главном меню\n"
-    "2️⃣ Введите информацию о вещи (название, описание, фото)\n"
-    "3️⃣ Укажите стоимость аренды и сумму залога\n"
-    "4️⃣ Укажите ваше местоположение 📍\n"
-    "5️⃣ Опубликуйте объявление 🚀\n\n"
-
-    "<b>Управление сделками:</b>\n"
-    "В разделе '📋 Мои сделки' вы можете:\n"
-    "- 📋 Просматривать активные и завершенные сделки\n"
-    "- ✅ Подтверждать передачу и возврат вещей\n"
-    "- ⭐ Оставлять отзывы после завершения аренды\n\n"
-
-    "📱 По всем вопросам обращайтесь в раздел '📞 Поддержка'"
-)
-# ============================================
 
 logger = logging.getLogger(__name__)
 base_router = Router()
@@ -172,9 +73,10 @@ async def start(message: Message, state: FSMContext, user_service: UserService):
         # 5️⃣ Ведём в главное меню
         return await show_main_menu(message, user) # , user_service
 
-    except SQLAlchemyError as e:
-        logger.error(f"[Start] Ошибка БД при проверке пользователя {telegram_id}: {e}")
-        return await message.answer("⚠️ Ошибка базы данных. Попробуйте позже.")
+    #except SQLAlchemyError as e:
+    #    logger.error(f"[Start] Ошибка БД при проверке пользователя {telegram_id}: {e}")
+    #    return await message.answer("⚠️ Ошибка базы данных. Попробуйте позже.")
+    # тех. ошибка - ее ловит GlobalErrorMiddleware
     except TelegramAPIError as e:
         logger.error(f"[Start] Ошибка Telegram API: {e}")
         return await message.answer("⚠️ Ошибка при связи с Telegram. Повторите позже.")
@@ -356,7 +258,7 @@ async def noop(callback):
 async def text_message_handler(
     message: Message,
     state: FSMContext,
-    user_service: UserService,
+    #user_service: UserService,
     category_service: CategoryService,
     item_service: ItemService,
     user
