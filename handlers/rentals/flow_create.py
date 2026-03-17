@@ -20,42 +20,11 @@ from schemas.rental import RentalCreate, RentalCreateDraft
 from keyboards.rental_kb import get_open_rental_keyboard, build_rent_end_date_keyboard, build_rent_confirmation_keyboard
 from utils.notification import format_new_rental_request
 
+from utils.callbacks import (ITEM_DETAILS, RENT_ITEM_CB, START_DATE_CB, END_DATE_CB, CONFIRM_RENT_CB,
+                             BACK_TO_MENU_CB, MY_RENTALS_CB, CANCEL_RENT_FLOW_CB, IGNORE_CB)
+
 logger = logging.getLogger(__name__)
 
-
-IGNORE_CB = "ignore"
-
-ITEM_DETAILS = "item_details:"
-RENT_ITEM_CB = "rent_item:"
-START_DATE_CB = "start_date:"
-END_DATE_CB = "end_date:"
-CONFIRM_RENT_CB = "confirm_rent"
-
-BACK_TO_MENU_CB = "back_to_main_menu" # "back_to_menu" # "menu:main"
-MY_RENTALS_CB = "rental_list" # back_to_rentals
-CANCEL_RENT_FLOW_CB = "cancel_rent_flow" # new
-
-"""
-Recoverable ошибка → просто показываем сообщение и не чистим FSM (пользователь может попробовать снова).
-
-Fatal ошибка (битый callback, item не найден/недоступен/сломанные данные) → завершаем rent-flow через 
-единый helper: обновить rent-UI (если он уже есть) / иначе ответить обычным сообщением + state.clear().
-
-
-    Recoverable:
-      - ServiceError при чтении деталей → показываем сообщение, не ломаем ничего.
-    Fatal:
-      - битый rental_id в callback → показываем ошибку + кнопка назад
-      - сделка не найдена/нет доступа → показываем “не найдено” + кнопка назад
-"""
-
-def _format_item_not_available_message(exc: ItemNotAvailable) -> str:
-    end_str = exc.end_date if exc.end_date else ""
-    status = exc.status or "—"
-    rental_id = exc.rental_id or "—"
-    if end_str:
-        return f"⛔ Эта вещь уже в аренде до {end_str}. Сделка #{rental_id} статус {status}."
-    return f"⛔ Эта вещь уже в аренде. Сделка #{rental_id} статус {status}."
 
 @rental_router.callback_query(F.data.startswith(RENT_ITEM_CB))
 #@rental_router.callback_query(F.data.startswith("back_to_start_date:"))
@@ -567,6 +536,13 @@ async def ignore_callback(callback: CallbackQuery) -> None:
 
 # -----------------------------------------------------------------------
 
+def _format_item_not_available_message(exc: ItemNotAvailable) -> str:
+    end_str = exc.end_date if exc.end_date else ""
+    status = exc.status or "—"
+    rental_id = exc.rental_id or "—"
+    if end_str:
+        return f"⛔ Эта вещь уже в аренде до {end_str}. Сделка #{rental_id} статус {status}."
+    return f"⛔ Эта вещь уже в аренде. Сделка #{rental_id} статус {status}."
 
 START_DATE_DAYS_AHEAD = 5
 def _build_start_date_keyboard(item_id: int, days_ahead: int = START_DATE_DAYS_AHEAD) -> InlineKeyboardMarkup:
@@ -659,3 +635,18 @@ def _build_success_text(
         f"ℹ️ Статус: <b>Ожидает подтверждения владельцем</b>\n\n"
         f"Вы получите уведомление, когда владелец ответит на ваш запрос."
     )
+
+
+"""
+Recoverable ошибка → просто показываем сообщение и не чистим FSM (пользователь может попробовать снова).
+
+Fatal ошибка (битый callback, item не найден/недоступен/сломанные данные) → завершаем rent-flow через 
+единый helper: обновить rent-UI (если он уже есть) / иначе ответить обычным сообщением + state.clear().
+
+
+    Recoverable:
+      - ServiceError при чтении деталей → показываем сообщение, не ломаем ничего.
+    Fatal:
+      - битый rental_id в callback → показываем ошибку + кнопка назад
+      - сделка не найдена/нет доступа → показываем “не найдено” + кнопка назад
+"""

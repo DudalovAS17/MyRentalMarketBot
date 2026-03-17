@@ -17,8 +17,9 @@ class UserCreate(BaseModel):
     # устанавливаются автоматически сервисом/БД
     #rating: float = Field(0.0, ge=0, le=5) # float = 0.0
     #rating_count: int = Field(0, ge=0) # int = 0
-    #is_blocked: bool = False
     #account_status: AccountStatus = AccountStatus.ACTIVE
+
+    # is_blocked: bool = False # убрали
 
 
 class UserUpdate(BaseModel):
@@ -35,8 +36,8 @@ class UserUpdate(BaseModel):
 class UserAdminUpdate(BaseModel):
     """Схема для админского обновления пользователя"""
 
-    is_admin: Optional[bool] = None
-    is_blocked: Optional[bool] = None # в будущем уберем
+    #is_admin: Optional[bool] = None # убрали
+    #is_blocked: Optional[bool] = None # убрали
     account_status: Optional[AccountStatus] = None
 
     # аудит бана
@@ -60,8 +61,8 @@ class UserOut(BaseModel):
     # В Out дефолты не вредят, но чаще делают просто типы (без = False)
     rating: float # = Field(0.0, ge=0, le=5)
     rating_count: int # = Field(0, ge=0) # = 0
-    is_blocked: bool # = False # уберем в будущем
-    is_admin: bool # = False
+    #is_blocked: bool # = False # убрали
+    #is_admin: bool # = False # убрали
     account_status: AccountStatus # = AccountStatus.ACTIVE
 
     banned_at: Optional[AwareDatetime] = None

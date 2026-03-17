@@ -6,6 +6,7 @@ from db.repositories.user import UserRepository
 from schemas.user import UserCreate, UserUpdate, UserOut, UserAdminUpdate
 from status.user_status import can_transition, AccountStatus
 from utils.errors import NotFoundError, ServiceError, ConflictError, ForbiddenError
+from services.use_case.user import StartAction, StartEntryResult
 
 logger = logging.getLogger(__name__)
 
@@ -125,7 +126,7 @@ class UserService:
             banned_at=datetime.now(timezone.utc),
             banned_by_admin_id=admin_user_id,
             ban_reason=reason,
-            is_blocked=True # Уберем в будущем, т.к. дублирует account_status
+            #is_blocked=True # Убрали
         )
 
         updated = await self.repo.update(user_id, update_data)
@@ -156,7 +157,7 @@ class UserService:
             #banned_at=datetime.now(timezone.utc),
             #banned_by_admin_id=None,
             #ban_reason=None,
-            is_blocked=False # Уберем в будущем, т.к. дублирует account_status
+            #is_blocked=False # Убрали
         )
 
         updated = await self.repo.update(user_id, update_data)
@@ -166,8 +167,8 @@ class UserService:
             return None
 
         return UserOut.model_validate(updated)
-    # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 
+    # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────
     async def check_user_exists(self, telegram_id: int) -> bool:
         """Проверяет, существует ли пользователь с данным Telegram ID"""
         return await self.repo.exists_by_telegram_id(telegram_id)
@@ -185,3 +186,16 @@ class UserService:
             return None
 
         return user.account_status == AccountStatus.BANNED
+
+    # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+    async def resolve_start_entry(self, telegram_id: int) -> StartEntryResult:
+        """ “Что делать, когда пользователь пришёл в /start?” """
+        user = await self.get_by_telegram_id(telegram_id)
+
+        if not user:
+            return StartEntryResult(action=StartAction.REGISTER)
+
+        if user.account_status != AccountStatus.ACTIVE:
+            return StartEntryResult(action=StartAction.ACCESS_BLOCKED, user=user)
+
+        return StartEntryResult(action=StartAction.MAIN_MENU, user=user)

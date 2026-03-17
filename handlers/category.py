@@ -1,5 +1,4 @@
 import logging
-from typing import Union
 from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton, InputMediaPhoto
 from aiogram.fsm.context import FSMContext
@@ -9,61 +8,21 @@ from services.item_service import ItemService
 from services.category_service import CategoryService
 from services.photo_service import PhotoService
 from services.rental_service import RentalService
+from handlers.entries.category_entry import show_categories
 
 from keyboards.category_kb import build_category_keyboard, build_items_keyboard, build_item_details_kb
 from utils.functions import format_price, send_or_edit, send_reply, format_days
 from utils.errors import ServiceError
 
+from utils.callbacks import (CAT_CB_PREFIX, SUBCAT_CB_PREFIX, ITEM_DETAILS_CB, SHOW_ALL_PHOTOS_CB, BACK_TO_CAT, # обработаны тут
+                             ALL_CATEGORY_CB, SEARCH_CITY_CB, SEARCH_FILTERS_CB, # будут обработаны в хендлере Search
+                             BACK_TO_MENU_CB) # где?
+
 logger = logging.getLogger(__name__)
 category_router = Router()
 
-# Константы callback-данных:
-# обработаны тут
-CAT_CB_PREFIX = "cat:"
-SUBCAT_CB_PREFIX = "subcat:"
-ITEM_DETAILS_CB = "show_item_details:"
-SHOW_ALL_PHOTOS_CB = "show_all_photos:"
-BACK_TO_CAT = "back_to_categories" # show_categories()
-
-# будут обработаны в хендлере Search
-ALL_CATEGORY_CB = "all_cat"
-SEARCH_CITY_CB = "search_by_city"
-SEARCH_FILTERS_CB = "search_filters"
-# где?
-BACK_TO_MENU_CB = "back_to_main_menu" # главное меню show_main_menu()
-
-
-# Функцию можно дергать как - reply-menu кнопку / callback “назад” / админка
-async def show_categories(event: Union[Message, CallbackQuery], category_service: CategoryService) -> None: #state: FSMContext,
-    """Показывает список категорий для выбора. Сценарий поиска («🔍 Арендовать»)"""
-
-    if isinstance(event, CallbackQuery):
-        await event.answer()
-
-    # ⚙️ Получаем категории
-    try:
-        categories = await category_service.list_main_categories()
-    except ServiceError: # Бизнес-проблема: даём понятный UX-ответ
-        await send_reply(event, "⚠️ Не удалось загрузить категории. Попробуйте позже.") # UX-ответ без stacktrace пользователю
-        return
-
-    categories = categories or []
-
-    # 🧱 Формируем клавиатуру
-    keyboard = build_category_keyboard(
-        categories,
-        prefix=CAT_CB_PREFIX,
-        extra_buttons=[
-            [InlineKeyboardButton(text="🏙️ Поиск по городу", callback_data=SEARCH_CITY_CB)],
-            [InlineKeyboardButton(text="⚙️ Фильтры", callback_data=SEARCH_FILTERS_CB)],
-            [InlineKeyboardButton(text="🔙 Назад в меню", callback_data=BACK_TO_MENU_CB)]
-        ]
-    )
-
-    message_text = "🔍 <b>Арендовать</b>\n\nВыберите категорию:"
-
-    await send_reply(event, message_text, markup=keyboard)
-
+# 🧱 ⚙️
+# UX-ответ без stacktrace пользователю
 
 @category_router.callback_query(F.data == BACK_TO_CAT)
 async def back_to_categories(callback: CallbackQuery, category_service: CategoryService) -> None:
@@ -83,36 +42,14 @@ async def show_subcategories(callback: CallbackQuery, state: FSMContext, categor
         await send_or_edit(callback,"⚠️ Не удалось распознать категорию.")
         return
 
-    try:
-        category = await category_service.get_category(category_id)
-    except ServiceError:
-        await send_or_edit(callback, "⚠️ Не удалось загрузить категорию. Попробуйте позже.")
-        return
-
-    if not category:
-        await callback.answer("⚠️ Категория не найдена", show_alert=True)
-        return # await show_categories(callback, category_service)
+    category = await _resolve_category(callback, category_service, category_id)
 
     # UX-контекст: сохраняем выбор категории, сбрасываем подкатегорию
-    await state.update_data(
-        selected_category_id=category.id,
-        selected_category_name=category.name,
-        selected_subcategory_id=None,
-        selected_subcategory_name=None,
-    )
+    await _store_selected_category(state, category)
 
-    try:
-        subcategories = await category_service.list_subcategories(category_id)
-    except ServiceError:
-        await send_or_edit(callback, "⚠️ Не удалось загрузить подкатегории. Попробуйте позже.")
-        return
+    subcategories = _load_subcategories_or_notify(callback, category_service, category_id, category.name)
 
     subcategories = subcategories or []
-
-    if not subcategories:
-        text = f"⚠️ В категории <b>{category.name}</b> пока нет подкатегорий."
-        await send_or_edit(callback, text)
-        return
 
     keyboard = build_category_keyboard(
         subcategories,
@@ -361,3 +298,55 @@ def _item_details_text(
         #f"⭐ <b>Рейтинг:</b> ... ({item.views_count} отзывов)\n"
         f"✅ <b>Доступность:</b> {'Доступно для аренды' if item.is_available else 'Временно недоступно'}\n\n"
     )
+
+# ─────────────────────────────────────────────────helpers──────────────────────────────────────────────────────────────
+
+async def _resolve_category(callback: CallbackQuery, category_service: CategoryService, category_id: int | None):
+
+    if category_id is None:
+        await send_or_edit(callback, "⚠️ Не удалось распознать категорию.")
+        return None
+
+    try:
+        category = await category_service.get_category(category_id)
+    except ServiceError:
+        await send_or_edit(callback, "⚠️ Не удалось загрузить категорию. Попробуйте позже.")
+        return None
+
+    if not category:
+        await callback.answer("⚠️ Категория не найдена", show_alert=True)
+        return None # await show_categories(callback, category_service)
+
+    return category
+
+async def _store_selected_category(state: FSMContext, category) -> None:
+    await state.update_data(
+        selected_category_id=category.id,
+        selected_category_name=category.name,
+        selected_subcategory_id=None,
+        selected_subcategory_name=None,
+    )
+
+
+async def _load_subcategories_or_notify(
+    callback: CallbackQuery,
+    category_service: CategoryService,
+    category_id: int | None,
+    category_name: str
+):
+    if category_id is None:
+        await send_or_edit(callback, "⚠️ Не удалось распознать категорию.")
+        return None
+
+    try:
+        subcategories = await category_service.list_subcategories(category_id)
+    except ServiceError:
+        await send_or_edit(callback, "⚠️ Не удалось загрузить подкатегории. Попробуйте позже.")
+        return None
+
+    if not subcategories:
+        text = f"⚠️ В категории <b>{category_name}</b> пока нет подкатегорий."
+        await send_or_edit(callback, text)
+        return None
+
+    return subcategories

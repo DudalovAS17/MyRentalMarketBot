@@ -62,3 +62,66 @@ class GlobalErrorMiddleware(BaseMiddleware):
             # Прерываем цепочку: хендлер не должен продолжаться
             # ВАЖНО: НЕ пробрасываем исключение дальше — иначе будет дубль и падение.
             return None
+
+
+"""
+1) SQLAlchemyError - Ловим тут!
+
+except SQLAlchemyError as e:
+    logger.error(" [Start] Ошибка БД при регистрации %s: %s", telegram_id, e)
+    await message.answer(
+        "❌ Произошла ошибка при подключении к базе данных. Попробуйте позже."
+    )
+    return
+
+Это уже:
+    ошибки БД,
+    инфраструктура,
+    технический сбой,
+    не бизнес-логика.
+
+2) IntegrityError - НЕ ловим тут!
+
+except IntegrityError:
+    await message.answer("⚠️ Вы уже зарегистрированы. Используйте /start для входа в меню.")
+    return
+    
+Обычно это значит:
+    нарушение unique constraint;
+    у вас уже есть пользователь с таким telegram_id
+
+Это ожидаемый сценарий гонки/повторного входа:
+    юзер уже существует;
+    повторно вызвали регистрацию;
+    БД защитила от дубля.
+    
+3) Exception - Ловим тут!
+
+except Exception as e:
+    logger.exception("Неожиданная ошибка при регистрации %s", telegram_id)
+    # logger.error(f"Ошибка при регистрации пользователя {telegram_id}: {e}", exc_info=True)
+    await message.answer("⚠️ Произошла внутренняя ошибка. Попробуйте позже.")
+    return
+
+Что это значит
+Это catch-all:
+    любые неожиданные ошибки,
+    программные баги,
+    неожиданные падения.
+    
+4) RuntimeError - Ловим тут!
+
+5) TelegramAPIError - ?
+
+except TelegramAPIError as e:
+    logger.error(f"[Start] Ошибка Telegram API: {e}")
+    return await message.answer("⚠️ Ошибка при связи с Telegram. Повторите позже.")
+
+Это ошибки при обращении к Telegram API, например:
+    сообщение нельзя отправить;
+    сообщение нельзя отредактировать;
+    чат недоступен;
+    объект сообщения уже удалён;
+    
+    
+"""

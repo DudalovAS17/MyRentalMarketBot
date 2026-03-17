@@ -351,3 +351,6 @@ async def rental_dispute(callback: CallbackQuery, rental_service: RentalService,
         fail_text="Не удалось открыть спор (статус изменился или нет прав)",
         # log_name="open_dispute",
     )
+
+
+# ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────

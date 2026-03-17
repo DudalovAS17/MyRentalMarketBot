@@ -71,3 +71,5 @@ BACK_TO_MENU_CB = "back_to_main_menu" # "back_to_menu" # "menu:main"
 MY_RENTALS_CB = "rental_list" # back_to_rentals
 RENTAL_DETAILS_CB = "rental_details:"
 CANCEL_RENT_FLOW_CB = "cancel_rent_flow" # new
+
+IGNORE_CB = "ignore"

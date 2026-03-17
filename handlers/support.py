@@ -3,9 +3,10 @@ from datetime import datetime
 
 from aiogram import Router, F
 from aiogram.filters import Command
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import Message, CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.fsm.context import FSMContext
 
+from handlers.entries.base_entry import show_main_menu
 from services.support_service import SupportService, TicketAlreadyOpen
 from states.support_ticket import SupportStates
 from schemas.support import SupportTicketCreate, SupportTicketCreateInternal
@@ -33,6 +34,27 @@ def _render_admin_ticket_message(ticket, user) -> str: # (ticket_id: int, user, 
         f"🆔 <b>Telegram ID:</b> <code>{user.telegram_id if user else '—'}</code>\n"
         f"📅 <b>Создан:</b> {created}\n"
         f"📝 <b>Текст:</b>\n{ticket.text}"
+    )
+
+def build_support_request_text() -> str:
+    return (
+        "📞 <b>Поддержка</b>\n\n"
+        "Опишите вашу проблему или вопрос как можно подробнее.\n"
+        "Мы постараемся помочь как можно скорее."
+    )
+
+def build_support_cancel_keyboard() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="❌ Отмена", callback_data="cancel_support")] # "support:cancel"
+        ]
+    )
+
+def build_support_confirmation_text() -> str:
+    return (
+        "✅ <b>Спасибо за ваше обращение!</b>\n\n"
+        "Ваше сообщение получено и будет рассмотрено нашей службой поддержки в ближайшее время.\n\n"
+        "Мы свяжемся с вами, если потребуется дополнительная информация."
     )
 
 
@@ -69,12 +91,12 @@ async def _start_support_flow(
         )
         return
 
+    # Устанавливаем состояние FSM для поддержки
     await state.set_state(SupportStates.waiting_text)
     await send_or_edit(
         event,
-        "🆘 <b>Поддержка</b>\n\n"
-        "Опишите вашу проблему или вопрос одним сообщением. Мы постараемся помочь как можно скорее.",
-        markup=None,
+        build_support_request_text(),
+        markup=build_support_cancel_keyboard(), # None
     )
 
 
@@ -100,18 +122,19 @@ async def receive_support_text(
     user,
     admin_ids: list[int],
 ):
-    """Создание тикета и отправка уведомления админам."""
+    """Обрабатывает сообщение пользователя для службы поддержки.
+    Создание тикета и отправка уведомления админам."""
+
     text = (message.text or "").strip()
     if not text:
         return await send_or_edit(message, "Пожалуйста, отправьте текст обращения.")
-        # await message.answer("❌ Текст не может быть пустым. Опишите проблему одним сообщением.")
-        #  return
+        # "❌ Текст не может быть пустым. Опишите проблему одним сообщением."
 
     try:
         internal = SupportTicketCreateInternal( # SupportTicketCreate- без user_id
                 user_id=user.id,
                 telegram_id=int(user.telegram_id),
-                username=user.username, # getattr(user, "username", None)
+                username=user.username,
                 text=text,
             )
         ticket = await support_service.create_ticket(ticket_data=internal)
@@ -124,16 +147,27 @@ async def receive_support_text(
             "Дождитесь ответа поддержки.",
         )
 
+    # Завершаем сценарий поддержки
     await state.clear()
-    await send_or_edit(
-        message,
-        f"✅ Обращение принято! Номер тикета: #{ticket.id}. Мы свяжемся с вами как можно скорее."
-    )
-    # await message.answer("✅ Обращение принято. Мы ответим здесь.")
 
+    # Отправляем подтверждение пользователю
+    await send_or_edit(message, build_support_confirmation_text())
+
+    #logger.info(f"Получено сообщение в поддержку от {user.full_name} ({user.id} @{user.username})")
+
+    # отправляем сообщение поддержки админу
     notification_text = _render_admin_ticket_message(ticket, user) # (ticket.id, user, text)
     return await _notify_admins(message.bot, admin_ids, notification_text, ticket.id)
 
+    # Возвращаем пользователя в главное меню
+    # return await show_main_menu(message, user)
 
 
+@support_router.callback_query(F.data == "cancel_support") # "support:cancel"
+async def cancel_support(callback: CallbackQuery, state: FSMContext, user) -> None:
+    await callback.answer()
+    await state.clear()
+    await callback.message.answer("❌ Обращение в поддержку отменено.")
 
+    # Возвращаем пользователя в главное меню
+    await show_main_menu(callback, user)

@@ -1,43 +1,5 @@
+from typing import Optional
 
-# Словарь с соответствиями неправильных команд правильным
-COMMAND_SUGGESTIONS = {
-    # Команды для сделок
-    "/мои сделки": "/rentals",
-    "/сделки": "/rentals",
-    "/аренды": "/rentals",
-    "/rentals": "/rentals",
-    "/rental": "/rentals",
-
-    # Команды для поиска
-    "/найти": "/search",
-    "/поиск": "/search",
-    "/искать": "/search",
-    "/find": "/search",
-
-    # Команды для профиля
-    "/профиль": "/profile",
-    "/личный кабинет": "/profile",
-    "/аккаунт": "/profile",
-    "/account": "/profile",
-
-    # Команды для помощи
-    "/помощь": "/help",
-    "/справка": "/help",
-    "/инфо": "/help",
-    "/инструкция": "/help",
-
-    # Команды для объявлений
-    "/объявления": "/items",
-    "/мои объявления": "/items",
-    "/мои вещи": "/items",
-    "/мои товары": "/items",
-    "/items": "/items",
-
-    # Команды для старта
-    "/старт": "/start",
-    "/начать": "/start",
-    "/перезапуск": "/start"
-}
 
 # Юридическая информация при команде /legal
 LEGAL_TEXT = (
@@ -94,3 +56,119 @@ HELP_TEXT = (
 
     "📱 По всем вопросам обращайтесь в раздел '📞 Поддержка'"
 )
+
+# ─────────────────────────────────────────────────unknown_command──────────────────────────────────────────────────────
+# Словарь с соответствиями неправильных команд правильным
+COMMAND_SUGGESTIONS = {
+    # Команды для сделок
+    "/мои сделки": "/rentals",
+    "/сделки": "/rentals",
+    "/аренды": "/rentals",
+    "/rentals": "/rentals",
+    "/rental": "/rentals",
+
+    # Команды для поиска
+    "/найти": "/search",
+    "/поиск": "/search",
+    "/искать": "/search",
+    "/find": "/search",
+
+    # Команды для профиля
+    "/профиль": "/profile",
+    "/личный кабинет": "/profile",
+    "/аккаунт": "/profile",
+    "/account": "/profile",
+
+    # Команды для помощи
+    "/помощь": "/help",
+    "/справка": "/help",
+    "/инфо": "/help",
+    "/инструкция": "/help",
+
+    # Команды для объявлений
+    "/объявления": "/items",
+    "/мои объявления": "/items",
+    "/мои вещи": "/items",
+    "/мои товары": "/items",
+    "/items": "/items",
+
+    # Команды для старта
+    "/старт": "/start",
+    "/начать": "/start",
+    "/перезапуск": "/start"
+}
+
+UNKNOWN_COMMAND_BASE_TEXT = (
+    "⚠️ Я не понимаю эту команду.\n"
+    "Используйте /help для просмотра доступных команд."
+)
+
+MAIN_COMMANDS_TEXT = (
+    "\n\n🔹 Основные команды:\n"
+    "/start — Главное меню\n"
+    "/search — Поиск вещей\n"
+    "/rentals — Мои сделки\n"
+    "/items — Мои объявления\n"
+    "/profile — Профиль\n"
+    "/help — Справка"
+)
+
+SEMANTIC_COMMAND_HINTS: tuple[tuple[tuple[str, ...], str], ...] = (
+    (("профиль", "аккаунт"), "Используйте команду /profile для просмотра вашего профиля."),
+    (("поиск", "найти", "искать"), "Используйте команду /search для поиска вещей в аренду."),
+    (("сдать", "разместить"), "Выберите '📦 Сдать в аренду' в главном меню для размещения объявления."),
+    (("объявление", "вещь", "товары"), "Используйте команду /items для просмотра ваших объявлений"),
+    (("сделк", "аренд"), "Используйте команду /rentals для просмотра ваших сделок."),
+    (("помощь", "справка", "инструкция"), "Используйте команду /help для получения справки."),
+)
+
+def _get_command_suggestion(command: Optional[str]) -> str:
+    # Получаем правильную команду или None
+    command_lower = _normalize_command(command)
+    if command_lower in COMMAND_SUGGESTIONS:
+        correct_command = COMMAND_SUGGESTIONS[command_lower]
+        return f"Используйте команду {correct_command}"
+
+    # Попытка найти похожую команду
+    for wrong, correct in COMMAND_SUGGESTIONS.items():
+        wrong_text = _strip_command_prefix(wrong)
+        command_text = _strip_command_prefix(command_lower)
+
+        if wrong_text in command_text or command_text in wrong_text:
+            return f"Возможно, вы имели в виду команду {correct}"
+
+    # Если подсказка не найдена, предлагаем общие команды
+    for keywords, suggestion in SEMANTIC_COMMAND_HINTS:
+        if any(keyword in command_lower for keyword in keywords):
+            return suggestion
+
+    return ""
+
+def _normalize_command(command: Optional[str]) -> str:
+    """ Получаем правильную команду или ""
+    " /Start " → "/start"
+    "/PROFILE" → "/profile"
+    None → ""
+    """
+    if not command:
+        return ""
+
+    normalized = command.strip().lower()
+    if not normalized:
+        return ""
+
+    return normalized
+
+def _strip_command_prefix(command: str) -> str:
+    """Убирает начальный / у команды"""
+    return command[1:] if command.startswith("/") else command
+
+def build_unknown_command_text(command: Optional[str]) -> str:
+    suggestion = _get_command_suggestion(command)
+
+    if not suggestion:
+        return UNKNOWN_COMMAND_BASE_TEXT + MAIN_COMMANDS_TEXT
+
+    return f"{UNKNOWN_COMMAND_BASE_TEXT}\n\n💡 {suggestion}{MAIN_COMMANDS_TEXT}"
+
+# ──────────────────────────────────────────────────────────────────────────────────────────────────────────────
