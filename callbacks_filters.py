@@ -2,6 +2,38 @@ from aiogram.filters import BaseFilter
 from aiogram.types import Message, CallbackQuery
 
 from config import settings
+from status.user_status import AccountStatus
+from services.user_service import UserService
+
+"""
+Тогда в самих category handlers не нужно каждый раз писать:
+    проверить, есть ли user;
+    проверить, active ли он;
+    думать, что отвечать незарегистрированному.
+Это убирается на роутинг-уровень.
+"""
+class UserAccessFilter(BaseFilter):
+    """
+    нет пользователя → не пускаем;
+    есть пользователь, но account_status != ACTIVE → не пускаем;
+    есть пользователь и ACTIVE → пускаем.
+    """
+    async def __call__(self, event: Message | CallbackQuery, user) -> bool:
+        if user is None:
+            if isinstance(event, CallbackQuery):
+                await event.answer("Сначала завершите регистрацию через /start.", show_alert=True)
+            else:
+                await event.answer("Сначала завершите регистрацию через /start.")
+            return False
+
+        if user.account_status != AccountStatus.ACTIVE:
+            if isinstance(event, CallbackQuery):
+                await event.answer("⛔ Доступ к этому разделу ограничен.", show_alert=True)
+            else:
+                await event.answer("⛔ Доступ к этому разделу ограничен.")
+            return False
+
+        return True
 
 
 class AdminIdFilter(BaseFilter):

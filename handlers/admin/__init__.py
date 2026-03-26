@@ -5,7 +5,7 @@ from .deals import admin_deals_router # админ по сделкам (твой
 from .support import admin_support_router # тикеты поддержки
 from .items import admin_items_router # модерация объявлений
 from .users import admin_users_router # пользователи / бан / ограничения
-#     disputes.py          # жалобы/споры (если отдельно от deals)
+#     disputes.py # жалобы/споры (если отдельно от deals)
 
 
 admin_router = Router()

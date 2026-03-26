@@ -5,6 +5,8 @@ from typing import Callable
 from aiogram import Bot
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from config import settings
+
 from db.repositories.user import UserRepository
 from db.repositories.category import CategoryRepository
 from db.repositories.item import ItemRepository
@@ -55,10 +57,10 @@ def build_services(
     support_repo = SupportTicketRepository(session_factory)
 
     # services (domain layer)
-    user_service = UserService(user_repo)
-    item_service = ItemService(item_repo, photo_repo, rental_repo)
+    user_service = UserService(user_repo, frozenset(settings.admin_ids))
+    rental_service = RentalService(rental_repo)  # , item_service, user_service, notification_service
+    item_service = ItemService(item_repo, photo_repo, rental_service)
     notification_service = NotificationService(bot)
-    rental_service = RentalService(rental_repo) # , item_service, user_service, notification_service
     category_service = CategoryService(category_repo)
     photo_service = PhotoService(photo_repo)
     review_service = ReviewService(review_repo, rental_repo, user_repo)

@@ -5,7 +5,7 @@
 
 Правильный проф-подход:
     сериализация → в Pydantic (RentalOut)
-    форматирование/JSON → в helpers/formatters
+    форматирование/JSON → в item_helpers/formatters
 
 Что сделать быстро:
     to_dict()

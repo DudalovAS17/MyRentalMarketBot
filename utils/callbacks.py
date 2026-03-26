@@ -53,6 +53,15 @@ SHOW_ITEM_CB = "show_item:"
 MY_ITEMS_PREFIX = "my_items"
 
 
+CREATE_ITEM_MODE = "create_item"
+
+PUBLISH_ITEM_CB = "publish_item:"
+EDIT_ITEM_CB = "edit_item:"
+CANCEL_ITEM_CB = "cancel_item:"
+
+MAX_PHOTOS = 5
+
+
 # RENTAL HANDLER
 RENTAL_CB = "rental"
 RETURN_CB = "return"

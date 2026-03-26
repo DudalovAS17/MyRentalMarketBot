@@ -69,7 +69,7 @@ async def main():
     except (KeyboardInterrupt, asyncio.CancelledError):
         logger.info("Бот остановлен пользователем 🛑")
     except Exception:
-        logger.error(f"Ошибка при запуске бота")
+        logger.exception("Ошибка при запуске бота")
         raise
     finally:
         # 1) закрываем bot session
