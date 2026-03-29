@@ -82,3 +82,5 @@ RENTAL_DETAILS_CB = "rental_details:"
 CANCEL_RENT_FLOW_CB = "cancel_rent_flow" # new
 
 IGNORE_CB = "ignore"
+
+START_DATE_DAYS_AHEAD = 5

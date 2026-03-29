@@ -76,34 +76,44 @@ Audit Log - каждое админ-действие логируем:
     created_at
 """
 
+
+DEALS_PAGE_PREFIX = "admin:deals:page:"
+DEALS_VIEW_PREFIX = "admin:deals:view:"
+DEALS_CANCEL_PREFIX = "admin:deals:cancel:"
+DEALS_RESOLVE_PREFIX = "admin:deals:resolve:"
+DEALS_RESOLVE_TARGET_PREFIX = "admin:deals:resolve_target:"
+
 async def _show_deals_list(
         event: Message | CallbackQuery,
         admin_rental_service: AdminRentalService,
         state: FSMContext,
         page: int
-):
+) -> None:
+
     rows, has_next = await admin_rental_service.list_recent_rentals(page=page)
-    await state.update_data(admin_deals_page=page)
+    #await state.update_data(admin_deals_page=page)
 
     lines = [f"📄 <b>Сделки (последние), стр. {page}</b>\n"]
 
     if not rows:
-        lines.append("Пока нет сделок.")
-        text = "\n".join(lines)
-        kb = get_admin_deals_list_keyboard([], page=page, has_next=False)
-        await send_or_edit(event, text, kb)
+        #lines.append("Пока нет сделок.")
+        await send_or_edit(
+            event,
+            "Пока нет сделок. \n".join(lines),
+            get_admin_deals_list_keyboard([], page=page, has_next=False)
+        )
         return
 
     for row in rows:
-        r = row["rental"]
-        item = row["item"]
-        item_title = getattr(item, "title", None) or getattr(item, "name", None) or f"item_id={r.item_id}"
-        status_val = getattr(r.status, "value", str(r.status))
-        lines.append(f"• <b>#{r.id}</b> — {status_val} — {item_title}")
+        r = row.rental
+        item = row.item
+        lines.append(f"• <b>#{r.id}</b> — {r.status} — {item.title} - item_id={r.item_id}")
 
-    text = "\n".join(lines)
-    kb = get_admin_deals_list_keyboard(rows, page=page, has_next=has_next)
-    await send_or_edit(event, text, kb)
+    await send_or_edit(
+        event,
+        "\n".join(lines),
+        get_admin_deals_list_keyboard(rows, page=page, has_next=has_next)
+    )
 
 @admin_deals_router.callback_query(F.data == "admin:deals")
 async def admin_deals_list(

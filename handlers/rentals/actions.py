@@ -10,9 +10,6 @@ from utils.errors import ServiceError
 
 logger = logging.getLogger(__name__)
 
-
-
-
 def _parse_rental_id(callback: CallbackQuery) -> int | None:
     """Ожидаем формат callback_data: rental_action:<action>:<rental_id>
 

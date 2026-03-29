@@ -388,7 +388,9 @@ class RentalService:
     # Тут для доменной проверки лучше работать с моделью БД Rental (без Pydantic-валидации RentalOut)
     # (это быстрее и проще, и меньше шансов на “почему end_date не того типа”)
     async def ensure_item_available(self, item_id: int) -> None:
-        """Доменная гарантия: item нельзя арендовать, если есть открытая аренда"""
+        """Доменная гарантия: item нельзя арендовать, если есть открытая аренда.
+        Гарантирует или бросает исключение.
+        """
         open_rental = await self._get_open_rental_for_item(item_id)
         if not open_rental:
             return

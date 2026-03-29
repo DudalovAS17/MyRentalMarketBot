@@ -12,17 +12,15 @@ from handlers.category.category_helpers.texts import (item_details_text, not_cat
                                                       serv_err_photo, not_photos) # serv_err_items
 
 from handlers.category.category_helpers.validate import busy_until_text, build_photo_media
-
+from handlers.entries.category_entry import show_categories
 from services.item_service import ItemService
 from services.category_service import CategoryService
 from services.photo_service import PhotoService
 from services.rental_service import RentalService
-from handlers.entries.category_entry import show_categories
 
 from keyboards.category_kb import build_items_keyboard, build_item_details_kb
 from utils.functions import send_or_edit, send_reply
 from utils.errors import ServiceError
-
 from utils.callbacks import (CAT_CB_PREFIX, SUBCAT_CB_PREFIX, ITEM_DETAILS_CB, SHOW_ALL_PHOTOS_CB, BACK_TO_CAT)
 from utils.validators import parse_callback
 

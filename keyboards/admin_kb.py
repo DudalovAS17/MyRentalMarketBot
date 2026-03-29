@@ -1,5 +1,6 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from status.item_status import ItemStatus
+from schemas.rental import RentalAdminDetailsOut
 
 def get_admin_menu_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
@@ -31,11 +32,11 @@ def get_back_to_admin_menu_keyboard() -> InlineKeyboardMarkup:
 
 
 # ============================================ ADMIN DEALS ================================================
-def get_admin_deals_list_keyboard(rentals_rows: list[dict], page: int, has_next: bool) -> InlineKeyboardMarkup:
+def get_admin_deals_list_keyboard(rentals_rows: list[RentalAdminDetailsOut], page: int, has_next: bool) -> InlineKeyboardMarkup:
     kb = []
 
     for row in rentals_rows:
-        r = row["rental"]
+        r = row.rental
         kb.append(
             [InlineKeyboardButton(text=f"🔎 Открыть #{r.id}", callback_data=f"admin:deals:view:{r.id}")]
         )

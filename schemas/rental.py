@@ -83,11 +83,11 @@ class RentalCreateDraft(BaseModel):
     renter_id: Optional[int] = None
     owner_id: Optional[int] = None
 
-    #start_date: Optional[str] = None # "DD.MM.YYYY"
-    #end_date: Optional[str] = None # "DD.MM.YYYY"
+    start_date: Optional[str] = None # "DD.MM.YYYY"
+    end_date: Optional[str] = None # "DD.MM.YYYY"
 
-    start_date: Optional[datetime] = None
-    end_date: Optional[datetime] = None
+    #start_date: Optional[datetime] = None
+    #end_date: Optional[datetime] = None
 
     total_price: Optional[Decimal] = Field(default=None, ge=0)
     deposit_amount: Optional[Decimal] = Field(default=None, ge=0)
