@@ -4,12 +4,11 @@ from aiogram.types import CallbackQuery, Message, InlineKeyboardMarkup, InlineKe
 
 from .router import rental_router
 
-from db.models.rental import RentalStatus
 from handlers.rental_ui import build_rental_details_ui
 
 from services.rental_service import RentalService
 from utils.functions import send_or_edit
-from status.rental_status import RentalActorRole
+from status.rental_status import RentalActorRole, RentalStatus
 from utils.errors import ServiceError
 
 logger = logging.getLogger(__name__)
