@@ -15,13 +15,7 @@ if TYPE_CHECKING:
     from db.models.user import User
 
 class Rental(Base, TimestampMixin):
-    """Модель аренды (сделки)
-
-    Важные принципы:
-    - Время: timezone-aware
-    - Деньги: Decimal/Numeric(12,2).
-    - Сущности (item/user) нельзя удалить при наличии истории аренды (ondelete=RESTRICT).
-    """
+    """Модель аренды (сделки)"""
     __tablename__ = "rentals"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
@@ -43,13 +37,12 @@ class Rental(Base, TimestampMixin):
         ForeignKey("users.id", ondelete="RESTRICT"),
         nullable=False
     )
-    # "RESTRICT" - не даём удалить вещь с историей аренды / арендатора с историями / владельца с историями
 
     # сроки аренды
     start_date: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     end_date: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
-    # деньги (Decimal/Numeric — без проблем округления)
+    # деньги
     total_price: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
     deposit_amount: Mapped[Optional[Decimal]] = mapped_column(Numeric(12, 2), nullable=True)
 
@@ -69,31 +62,26 @@ class Rental(Base, TimestampMixin):
     )
 
     # Для аналитики («среднее время от REQUESTED до COMPLETED», «сколько сделок отменяется») нужны timestamp-ы переходов.
-    # cancelled_at: Mapped[Optional[datetime]] = mapped_column(
-    #     DateTime(timezone=True),
-    #     nullable=True,
-    # )
-    # completed_at: Mapped[Optional[datetime]] = mapped_column(
-    #     DateTime(timezone=True),
-    #     nullable=True,
-    # )
+    # cancelled_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    # completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
 
-    # ORM-связи
+    # ------- Отношения | связи --------
+
+    # какая вещь арендуется
     item: Mapped["Item"] = relationship("Item", back_populates="rentals")
+
+    # кто арендатор | кто владелец
     renter: Mapped["User"] = relationship("User", foreign_keys=[renter_id], back_populates="rentals_as_renter")
     owner: Mapped["User"] = relationship("User", foreign_keys=[owner_id],  back_populates="rentals_as_owner")
+
+    # какие отзывы относятся к этой сделке
     reviews: Mapped[list["Review"]] = relationship(
         "Review",
         back_populates="rental",
-        cascade="all, delete-orphan", # удалил сделку → удалились все отзывы
-        #single_parent=True,
-        #lazy="selectin",
-        #passive_deletes=True,
+        cascade="all, delete-orphan",
     )
 
     __table_args__ = (
-        # Валидации на уровне БД (защита от некорректных данных ещё до того, как они попадут в таблицу)
-
         # нельзя создать аренду, которая заканчивается раньше, чем начинается
         CheckConstraint("end_date > start_date", name="ck_rentals_end_after_start"),
 

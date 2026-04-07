@@ -9,7 +9,7 @@ class AdminActionRepository(BaseRepository):
     async def create(
         self,
         *,
-        admin_id: int,
+        admin_tg_id: int,
         action_type: str,
         entity_type: str,
         entity_id: str,
@@ -18,7 +18,7 @@ class AdminActionRepository(BaseRepository):
     ) -> AdminAction:
         async with self._session() as s:
             obj = AdminAction(
-                admin_id=admin_id,
+                admin_tg_id=admin_tg_id,
                 action_type=action_type,
                 entity_type=entity_type,
                 entity_id=entity_id,

@@ -38,10 +38,10 @@ class User(Base, TimestampMixin):
     rating: Mapped[Decimal] = mapped_column(Numeric(3, 2), nullable=False, default=Decimal("0.00"))
     rating_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
-    # ________________________ нужно удалить через миграцию ___________________________________
+    # ________________________ удалено ______________________________________________
     #is_blocked: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     #is_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    # ________________________ нужно удалить через миграцию ___________________________________
+    # ________________________ удалено ______________________________________________
 
     account_status: Mapped[AccountStatus] = mapped_column(
         SAEnum(AccountStatus, name="account_status"),
@@ -51,18 +51,19 @@ class User(Base, TimestampMixin):
 
     # аудит админов (когда, кто, зачем)
     banned_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
-    banned_by_admin_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True) # было Integer
+    banned_by_admin_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     ban_reason: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
-    # Отношения|связи
+    # ------- Отношения | связи --------
+
     items: Mapped[list["Item"]] = relationship(
         "Item",
         back_populates="owner",
         foreign_keys="Item.user_id",
-        cascade="all, delete-orphan",   # удалили юзера → удалились его вещи (если в Item FK ondelete=CASCADE — идеально)
+        cascade="all, delete-orphan",
         single_parent=True,
         passive_deletes=True,
-    ) #cascade="all, delete-orphan" → гарантирует удаление зависимостей (например, всех объявлений пользователя)
+    )
 
     rentals_as_owner: Mapped[list["Rental"]] = relationship(
         "Rental", foreign_keys="Rental.owner_id", back_populates="owner"
@@ -72,9 +73,7 @@ class User(Base, TimestampMixin):
         "Rental", foreign_keys="Rental.renter_id", back_populates="renter"
     )
 
-    support_tickets: Mapped[list["SupportTicket"]] = relationship(
-        "SupportTicket", back_populates="user"
-    )
+    support_tickets: Mapped[list["SupportTicket"]] = relationship("SupportTicket", back_populates="user")
 
     #reviews_given: Mapped[list["Review"]] = relationship(
     #    "Review", foreign_keys="Review.reviewer_id", back_populates="reviewer"
@@ -84,17 +83,16 @@ class User(Base, TimestampMixin):
     #)
 
     __table_args__ = (
-        # валидация на уровне БД (последняя линия обороны)
         CheckConstraint("rating >= 0 AND rating <= 5", name="ck_users_rating_range"),
         CheckConstraint("rating_count >= 0", name="ck_users_rating_count_non_neg"),
 
-        # полезные индексы
         Index("ix_users_account_status", "account_status"),
         Index("ix_users_username", "username"),
     )
 
 
 """ Дополнительные будущие поля:
+
 top_up_amount — сколько всего денег пользователь пополнил.
 consume_records — сколько всего денег пользователь потратил.
 can_receive_messages — можно ли пользователю отправлять сообщения. (Полезно, когда пользователь заблокировал бота, удалил чат или отправка начала падать) 

@@ -10,32 +10,36 @@ if TYPE_CHECKING:
     from db.models.user import User
     from db.models.rental import Rental
 
+
 class Review(Base, TimestampMixin):
     """Модель для хранения отзывов о сделках аренды"""
     __tablename__ = 'reviews'
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
 
-    # Связь со сделкой
+    # Связь со сделкой (Review у тебя привязан не просто к пользователю, а именно к факту сделки)
     rental_id: Mapped[int] = mapped_column(ForeignKey("rentals.id", ondelete="CASCADE"), nullable=False)
 
     # Кто оставил отзыв
     reviewer_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"), nullable=False)
-    # Удаление юзера → удалились отзывы. Не подходит. История сделок/репутации должна сохраняться. Поэтому "RESTRICT", а не "CASCADE"
 
     # Кому оставлен отзыв
     reviewee_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"),  nullable=False)
 
-    # Оценка
-    rating: Mapped[int] = mapped_column(Integer, nullable=False) # Оценка от 1 до 5
+    # Оценка (от 1 до 5)
+    rating: Mapped[int] = mapped_column(Integer, nullable=False)
 
-    # Текст отзыва
-    comment: Mapped[str | None] = mapped_column(Text, nullable=True) # Текстовый комментарий
+    # Текст отзыва (Текстовый комментарий)
+    comment: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    # Отношения
+
+    # ------- Отношения | связи --------
+
+    # отзыв знает, к какой аренде он относится
     rental: Mapped["Rental"] = relationship("Rental", back_populates="reviews")
-    reviewer: Mapped["User"] = relationship("User", foreign_keys=[reviewer_id]) # , lazy="joined"
-    reviewee: Mapped["User"] = relationship("User", foreign_keys=[reviewee_id]) # , lazy="joined"
+
+    reviewer: Mapped["User"] = relationship("User", foreign_keys=[reviewer_id])
+    reviewee: Mapped["User"] = relationship("User", foreign_keys=[reviewee_id])
 
     __table_args__ = (
         Index("ix_reviews_rental_id", "rental_id"),

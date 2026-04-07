@@ -1,8 +1,7 @@
-# Базовый класс для всех моделей SQLAlchemy
 from __future__ import annotations
+
 from datetime import datetime
 from typing import Final
-
 from sqlalchemy import MetaData, DateTime, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
@@ -15,9 +14,11 @@ NAMING_CONVENTION: Final[dict[str, str]] = {
     "pk": "pk_%(table_name)s",
 }
 
+
 class Base(DeclarativeBase):
     """Базовый класс для всех SQLAlchemy моделей"""
     metadata = MetaData(naming_convention=NAMING_CONVENTION)
+
 
 class TimestampMixin:
     """Автоматические created_at / updated_at (ставит БД) в UTC (timezone-aware)
@@ -28,29 +29,11 @@ class TimestampMixin:
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
-        #default=lambda: datetime.now(timezone.utc),
         nullable=False
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
         onupdate=func.now(),
-        #default=lambda: datetime.now(timezone.utc),
-        #onupdate=lambda: datetime.now(timezone.utc),
         nullable=False
     )
-
-    """ nullable=False
-    Запрещает хранить NULL в колонке на уровне БД. У каждой записи ВСЕГДА есть время создания и обновления.
-    
-    Тогда 
-    1) Если поле nullable=False, 
-    if rental.created_at is not None:  # ❌ лишний шум
-    2) Optional[datetime] + nullable=False — плохо, т.к. Optional говорит: “может быть None”, 
-    но nullable=False говорит: “никогда не None”
-    """
-
-
-# class ReprMixin
-# class DictMixin
-

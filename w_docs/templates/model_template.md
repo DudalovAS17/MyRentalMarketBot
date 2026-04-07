@@ -1,17 +1,5 @@
 # Template: ORM Model
 
-## Правила:
-- Только ORM-описание таблиц и связей
-- Никакой бизнес-логики/Telegram/FSM
-- Идентификаторы: db_user_id vs telegram_user_id
-    * db_user_id: FK на users.id (внутренний ID БД)
-    * telegram_user_id: внешний ID Telegram
-
-
-Правильный проф-подход:
-- сериализация → в Pydantic (RentalOut)
-- форматирование/JSON → в helpers/formatters
-
 ```
 from __future__ import annotations
 
@@ -48,29 +36,3 @@ class Example(Base, TimestampMixin, ReprMixin, DictMixin):
         Index("ix_examples_telegram_user_id", "telegram_user_id"),
     )
 ```
----
-
-### **ForeignKey("users.id", ondelete="RESTRICT")**
-
-❌ Запрещает удалить строку из users, если на неё есть ссылки в этой таблице
-
-- RESTRICT = «не трогай, если есть история»   (История / финансы / сделки)
-- CASCADE = 🔥 удаляет всё связанное	(временные данные)
-- SET NULL	= ставит NULL	мягкие связи (мягкие связи)
-- NO ACTION	= зависит от БД	редко
-
----
-
-### **Два разных механизма создания индексов**
-- mapped_column(..., index=True)
-- __table_args__ = (Index("ix_xxx_field", "field"))
-
-Если оставить оба:
-* SQLAlchemy создаст ДВА индекса
-* один с автогенерированным именем
-* второй с явным именем
-
-👉 Это непрофессионально и ведёт к мусору в БД.
-
-*Решение - не используем index=True*
-*Вместо него - __table_args__ = Index()*

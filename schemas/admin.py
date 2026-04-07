@@ -4,7 +4,7 @@ from pydantic import BaseModel, AwareDatetime, ConfigDict
 class AdminActionCreate(BaseModel):
     """Схема для записи audit-действия админа (создание)"""
 
-    admin_id: int # tg_id, не user_id
+    admin_tg_id: int # tg_id, не user_id
     action_type: str
     entity_type: str
     entity_id: str
@@ -15,7 +15,7 @@ class AdminActionCreate(BaseModel):
 class AdminActionOut(BaseModel):
     """Схема для возврата audit-записи наружу."""
     id: int
-    admin_id: int
+    admin_tg_id: int
     action_type: str
     entity_type: str
     entity_id: str

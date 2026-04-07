@@ -6,6 +6,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from db.models.base import Base , TimestampMixin
 
+
 class Category(Base, TimestampMixin):
     """ Единая таблица для категорий и подкатегорий. Подкатегория — это Category с parent_id = id родителя"""
     __tablename__ = "categories"
@@ -17,30 +18,25 @@ class Category(Base, TimestampMixin):
     parent_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("categories.id", ondelete="CASCADE"),
         nullable=True,
-        #index=True,  # быстрее выборки по parent_id
     )
 
-    # Отношения
+    # ------- Отношения | связи - -------
+
     parent: Mapped[Optional["Category"]] = relationship(
         "Category",
-        remote_side="Category.id", # [id]
+        remote_side="Category.id",
         back_populates="subcategories",
     )
     subcategories: Mapped[list["Category"]] = relationship(
         "Category",
         back_populates="parent",
         cascade="all, delete-orphan",
-        single_parent=True, # важно для delete-orphan в self-referential
-        passive_deletes=True, # уважаем ondelete на стороне БД
+        single_parent=True,
+        passive_deletes=True,
     )
 
     __table_args__ = (
-        # в рамках одного родителя имя уникально
         UniqueConstraint("parent_id", "name", name="uq_categories_parent_id_name"),
-
-        # защита от «сам себе родитель»
         CheckConstraint("parent_id IS NULL OR parent_id <> id", name="ck_categories_no_self_parent"),
-
-        # для быстрого получения категорий по parent_id
         Index("ix_categories_parent_id", "parent_id"),
     )
