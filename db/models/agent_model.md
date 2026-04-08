@@ -1,4 +1,4 @@
-# AGENT: db/models
+# AGENT: Models
 
 ## Scope
 
