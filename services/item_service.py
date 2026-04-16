@@ -36,7 +36,7 @@ class ItemService:
         offset: int = 0,
     ) -> list[ItemOut]:
         """Список объявлений (по умолчанию только доступные)"""
-        items = await self.item_repo.list_all(available_only=available_only, limit=limit, offset=offset)
+        items = await self.item_repo.list_all(active_only=available_only, limit=limit, offset=offset)
         return [ItemOut.model_validate(i) for i in items]
 
     async def get_item_by_id(self, item_id: int, *, strict: bool = False) -> Optional[ItemOut]:
@@ -50,17 +50,17 @@ class ItemService:
 
     async def list_by_user(self, user_id: int, *, available_only: bool = False) -> list[ItemOut]:
         """Все объявления пользователя"""
-        items = await self.item_repo.list_by_user_id(user_id, available_only=available_only)
+        items = await self.item_repo.list_by_user_id(user_id, active_only=available_only)
         return [ItemOut.model_validate(i) for i in items]
 
     async def list_by_category(self, category_id: int, *, available_only: bool = True) -> list[ItemOut]:
         """Все объявления по категории"""
-        items = await self.item_repo.list_by_category(category_id, available_only=available_only)
+        items = await self.item_repo.list_by_category(category_id, active_only=available_only)
         return [ItemOut.model_validate(i) for i in items]
 
     async def list_by_subcategory(self, subcategory_id: int, *, available_only: bool = True) -> list[ItemOut]:
         """Все объявления по подкатегории"""
-        items = await self.item_repo.list_by_subcategory(subcategory_id, available_only=available_only)
+        items = await self.item_repo.list_by_subcategory(subcategory_id, active_only=available_only)
         return [ItemOut.model_validate(i) for i in items]
 
     async def search(
@@ -72,7 +72,7 @@ class ItemService:
             offset: int = 0
     ) -> list[ItemOut]:
         """Поиск объявлений по названию/описанию"""
-        items = await self.item_repo.search(query, available_only=available_only, limit=limit, offset=offset)
+        items = await self.item_repo.search(query, active_only=available_only, limit=limit, offset=offset)
         return [ItemOut.model_validate(i) for i in items]
 
     # ───────────────────────────────────── NEW (Admin-Item logic) 🔧 ────────────────────────────────────────
@@ -126,12 +126,8 @@ class ItemService:
                 return None
 
         # Обновляем статус
-        updated = await self.item_repo.set_status(
-            item_id=item_id,
-            new_status=new_status,
-            admin_id=admin_id,
-            reason=reason,
-        )
+        updated = await self.item_repo.set_status(item_id=item_id, new_status=new_status, admin_user_id=admin_id,
+                                                  reason=reason)
 
         if not updated:  # теоретически item мог исчезнуть между get_by_id и set_status
             if strict:
