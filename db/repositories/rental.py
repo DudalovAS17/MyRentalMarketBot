@@ -247,7 +247,7 @@ class RentalRepository(BaseRepository):
         """Техническая проверка: есть ли у item открытые сделки."""
         open_statuses = [st for st in RentalStatus if is_open_status(st)] # Считаем "open" статусы сделок
 
-        async with self._sf() as s:
+        async with self._session() as s:
             stmt = select(
                 exists().where(
                     and_(

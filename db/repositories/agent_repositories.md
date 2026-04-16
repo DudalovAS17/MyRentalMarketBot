@@ -68,7 +68,6 @@ Repository **не является**:
 ### Repository layer must not contain
 
 Запрещено:
-
 - Telegram/FSM/UI зависимости
 - тексты сообщений
 - клавиатуры
@@ -87,7 +86,6 @@ Repository **не является**:
 Repositories принадлежат только persistence-слою.
 
 Правило:
-
 - handlers не работают с repo напрямую
 - handlers не работают с ORM
 - services могут вызывать repo
@@ -97,7 +95,6 @@ Repositories принадлежат только persistence-слою.
 Наружу из service layer идут DTO/Pydantic, а не ORM.
 
 Следовательно:
-
 - repo может возвращать ORM (или примитивы bool, int, None) в service
 - repo не должен проектироваться так, как будто его методы будут вызываться из handlers/UI напрямую
 
@@ -108,14 +105,12 @@ Repositories принадлежат только persistence-слою.
 ### 4.1 Input contract (Контракт)
 
 Repository может принимать:
-
 - простые типы (`int`, `str`, `bool`, `datetime`, `Decimal`)
 - domain-neutral query arguments
 - Create/Update DTO (например, `ItemCreate`, `ItemUpdate`)
 - в отдельных случаях `dict`, если это уже часть фактического repo API
 
 Repository не должен принимать:
-
 - `Message`, `CallbackQuery`, `FSMContext`
 - Telegram-объекты
 - UI-объекты
@@ -124,7 +119,6 @@ Repository не должен принимать:
 ### 4.2 Output contract
 
 Repository возвращает только:
-
 - ORM-объект;
 - `Optional[ORM]`
 - `list[ORM]`
@@ -137,8 +131,16 @@ Repository возвращает только:
   - `avg`
   - tuple/scalar result, если это действительно aggregate/query-result
 
-Repository **никогда не возвращает**:
+```
+- get_by_id(...) -> Optional[ORM]
+- get_by_* (...) -> Optional[ORM]
+- list_* (...) -> list[ORM]
+- create(CreateDTO) -> ORM
+- update(id, UpdateDTO) -> Optional[ORM]
+- delete(id) -> bool
+```
 
+Repository **никогда не возвращает**:
 - DTO/Pydantic
 - Telegram-ready payload
 - format-ready strings
@@ -149,8 +151,6 @@ Repository **никогда не возвращает**:
 ## 5) API conventions
 
 ### 5.1 Canonical naming
-
-Канонический минимум:
 
 - `get_by_id`
 - `get_by_*`
@@ -197,28 +197,42 @@ Repository **никогда не возвращает**:
 
 ## 6) Transaction rules
 
+> Если репозиторий что-то меняет в базе, он обязан сам корректно завершить запись.
+
+То есть repo не должен делать так:
+- изменил данные;
+- не зафиксировал их;
+- оставил непонятно кому разбираться дальше.
+
+Очень просто: repo сам отвечает за корректную запись в БД.
+
 ### 6.1 MVP transaction law
 
 Проект не использует Unit of Work.
 
-Поэтому каждый write-метод репозитория обязан:
+Если метод репозитория:
+- создаёт запись,
+- обновляет запись,
+- удаляет запись,
 
-- делать `commit()`;
-- при ошибке `commit()` делать `rollback()`;
-- пробрасывать исключение выше.
+то он должен сам довести операцию до конца.
+
+Поэтому каждый write-метод репозитория обязан:
+- если всё прошло нормально → сохранить изменения через `commit()`
+- если при сохранении `commit()` произошла ошибка → откатить изменения через `rollback()`
+- пробрасывать исключение/ошибку выше
 
 Это жёсткое правило слоя.
 
-### 6.2 Allowed write patterns
+### 6.2 Allowed write patterns (Разрешённые write-паттерны)
 
-Разрешённые канонические write-паттерны:
+```Как repo может менять данные```
 
 #### A. load → mutate → commit → refresh
 
-Используется для обычных create/update/delete операций.
+Используется для обычных `create/update/delete` операций.
 
 Примерно так:
-
 - загрузили ORM;
 - изменили поля;
 - `commit`;
@@ -227,17 +241,17 @@ Repository **никогда не возвращает**:
 
 #### B. direct UPDATE ... WHERE ... → commit
 
-Используется для:
+> обнови запись, но только если выполняются вот эти условия
 
-- атомарных status/flag updates;
-- конкурентных переходов;
-- stale-button protection;
-- точечных update-операций без необходимости загружать целый ORM-объект.
+Используется для:
+- атомарных status/flag updates
+- конкурентных переходов
+- stale-button protection
+- точечных update-операций без необходимости загружать целый ORM-объект
 
 Возврат обычно:
-
-- `bool` по `rowcount > 0`;
-- либо ORM/scalar, если это реально нужно и сделано консистентно.
+- `bool` по `rowcount > 0`
+- либо ORM/scalar, если это реально нужно и сделано консистентно
 
 ### 6.3 Refresh rule
 
@@ -246,10 +260,9 @@ Repository **никогда не возвращает**:
 ### 6.4 No hidden transaction magic
 
 Нельзя:
-
-- скрывать write без `commit`;
-- полагаться на то, что кто-то “снаружи потом закоммитит”;
-- делать частично завершённые write-методы.
+- скрывать write без `commit`
+- полагаться на то, что кто-то “снаружи потом закоммитит”
+- делать частично завершённые write-методы
 
 ---
 
@@ -258,23 +271,20 @@ Repository **никогда не возвращает**:
 Для конкурентных переходов и флагов repo-слой **может и должен** использовать атомарные SQL-операции.
 
 Это особенно уместно для:
-
-- status transitions;
-- confirm flags;
-- activation checks;
-- stale UI actions;
-- race-sensitive mutations.
+- status transitions
+- confirm flags
+- activation checks
+- stale UI actions
+- race-sensitive mutations
 
 Разрешённый подход:
-
 - `UPDATE ... WHERE current_state = ...`
 - `UPDATE ... WHERE participant_id = ...`
 - `UPDATE ... WHERE flag = false`
 
 Возвращать в таких методах предпочтительно:
-
-- `bool` (`успешно / не применилось`);
-- или `int` / `rowcount`, если это уже часть контракта.
+- `bool` (`успешно / не применилось`)
+- или `int` / `rowcount`, если это уже часть контракта
 
 Но важно:
 
@@ -290,26 +300,23 @@ Repository **никогда не возвращает**:
 ### Repo may contain
 
 Допустимо:
-
-- техническая query-semantics;
-- eager loading связей;
-- atomic update semantics;
-- append-only persistence;
-- ordering mutation для дочерних сущностей;
-- aggregate/stat queries.
+- техническая query-semantics
+- eager loading связей
+- atomic update semantics
+- append-only persistence
+- ordering mutation для дочерних сущностей
+- aggregate/stat queries
 
 ### Repo must not contain
 
 Запрещено:
-
-- решать, допустим ли переход по бизнесу;
-- решать, кто имеет право на действие;
-- решать, какой статус “правильный” с продуктовой точки зрения;
-- реализовывать policy-level workflow;
-- интерпретировать бизнес-инварианты шире, чем это нужно для конкретного SQL-условия.
+- решать, допустим ли переход по бизнесу
+- решать, кто имеет право на действие
+- решать, какой статус “правильный” с продуктовой точки зрения
+- реализовывать policy-level workflow
+- интерпретировать бизнес-инварианты шире, чем это нужно для конкретного SQL-условия
 
 Правильное разделение:
-
 - **service**: “можно ли это делать по правилам продукта?”
 - **repo**: “как это сделать в БД корректно и атомарно?”
 
@@ -318,7 +325,6 @@ Repository **никогда не возвращает**:
 ## 9) Eager loading and query shaping
 
 Eager loading в repo разрешён и приветствуется, если:
-
 - сервису для read-case нужен связанный ORM-граф;
 - это избавляет service от SQLAlchemy-логики;
 - это не превращает repo в UI-builder.
@@ -352,11 +358,17 @@ Eager loading в repo разрешён и приветствуется, если
 - `_execute_update_commit`
 
 Новые repo-методы по возможности должны опираться на уже существующий базовый каркас, а не изобретать новый стиль локально.
-
 Но:
-
-- BaseRepository не должен превращаться в второй service-layer;
+- BaseRepository не должен превращаться во второй service-layer;
 - helper’ы должны оставаться persistence-утилитами, а не доменными policy-механизмами.
+
+### Канон:
+- `async with self._session() as s: ...`
+- не: `async with self._sf() as s:`
+
+Новый repository-код должен использовать единый session entry-point через session-helper.
+
+Прямой вызов `self._sf()` вне BaseRepository не считается желательным стилем нового кода и допускается только как переходное историческое исключение.
 
 ---
 
@@ -418,23 +430,39 @@ Repository не должен:
 - принимать timezone/product-display решения.
 
 ## 13) Update conventions
+
+> Этот раздел всего лишь про то, как правильно делать `update()` в репозитории, если на вход приходит Update DTO
+
 ### 13.1 Partial update
+
+Это обновление только тех полей, которые реально передали. Например, есть `UserUpdate`, где можно менять:
+- `full_name`
+- `username`
+- `bio`
+
+Но пользователь прислал только: `bio="hello"`.
+Значит repo должен поменять только `bio`, а остальные поля не трогать.
 
 Если repo принимает Update DTO, partial update должен опираться на:
 ```
-model_dump(exclude_unset=True)
+model_dump(exclude_unset=True) - берёт из DTO только реально переданные поля.
 ```
 
 Это важно, чтобы различать:
 - поле не было передано;
 - поле было передано явно как null.
 
+> Проще: `exclude_unset=True` нужен, чтобы `update` не затирал поля случайно.
+
 ### 13.2 Empty patch
 
-Если patch пустой, repo должен вести себя предсказуемо и консистентно внутри своего контракта.
+> patch - словарь изменений, которые нужно применить
+> Например: {"bio": "hello"}
+
+Если patch пустой {}, repo должен вести себя предсказуемо и консистентно внутри своего контракта.
 
 Допустимы два подхода:
-- вернуть текущий ORM без commit;
+- вернуть текущий ORM без `commit`;
 - либо использовать уже принятый в конкретном repo-base pattern.
 
 Но нельзя делать это хаотично от метода к методу без причины.
@@ -442,7 +470,6 @@ model_dump(exclude_unset=True)
 ### 13.3 No implicit DTO-out
 
 Даже если update принимал DTO, возвращать наружу он должен ORM или primitive, но не DTO.
-
 
 ## 14) Aggregates / existence / append-only repositories
 
@@ -586,5 +613,3 @@ Repository должен быть технически сильным, транз
 Чем меньше repo принимает продуктовых решений, тем лучше.
 
 Repository может быть сложным по SQL, но он не должен становиться “скрытым service-слоем”.
-
-

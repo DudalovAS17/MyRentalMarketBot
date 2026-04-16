@@ -31,7 +31,7 @@ class ItemRepository(BaseRepository):
 
     async def get_by_id(self, item_id: int) -> Optional[Item]:
         """Объявление по ID"""
-        async with self._sf() as s:
+        async with self._session() as s:
             return await s.get(Item, item_id)
 
     async def list_by_user_id(self, user_id: int, *, available_only: bool = False) -> List[Item]:

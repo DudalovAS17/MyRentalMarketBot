@@ -1,22 +1,5 @@
 ## Template: Repository
 
-✅ MVP-стандарт:
-- Только SQLAlchemy/DB
-- Никакой бизнес-логики
-- Возвращает ORM-объекты
-- Может принимать DTO/Pydantic как input (но не возвращает DTO)
-- exclude_unset=True на update
-
-### ПРИНИМАЕТ / ОТДАЕТ
-
-- get_by_id(...) -> Optional[ORM]
-- get_by_* (...) -> Optional[ORM]
-- list_* (...) -> list[ORM]
-- create(CreateDTO) -> ORM
-- update(id, UpdateDTO) -> Optional[ORM]
-- delete(id) -> bool
-
-
 ```
 import logging
 from typing import Callable, Optional, Union

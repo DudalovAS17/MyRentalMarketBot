@@ -75,7 +75,7 @@ class PhotoRepository(BaseRepository):
     async def swap_with_neighbor(self, *, item_id: int, photo_id: int, direction: Literal["up", "down"]
     ) -> bool:
         """True — swap выполнен, False — нельзя выполнить"""
-        async with self._sf() as s:
+        async with self._session() as s:
             # 1) получаем упорядоченный список id+order
             stmt = (
                 select(Photo.id, Photo.order)
@@ -120,7 +120,7 @@ class PhotoRepository(BaseRepository):
 
     # for set_order() - ну "такая себе" функция, сойдет
     async def set_order(self, *, photo_id: int, item_id: int, new_order: int) -> bool:
-        async with self._sf() as s:
+        async with self._session() as s:
             photos = list(
                     (
                         await s.execute(

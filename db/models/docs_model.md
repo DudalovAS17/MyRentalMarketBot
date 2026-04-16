@@ -1,6 +1,3 @@
-
----
-
 ## Base
 
 ### 1. `nullable=False`
