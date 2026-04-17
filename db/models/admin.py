@@ -29,7 +29,7 @@ class AdminAction(Base, TimestampMixin):
     note: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
 
     # Детали (reason/resolution/previous_status/metadata)
-    payload: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
+    payload: Mapped[dict[str, object] | None] = mapped_column(JSON, nullable=True)
 
     __table_args__ = (
         Index("ix_admin_actions_admin_tg_id", "admin_tg_id"),

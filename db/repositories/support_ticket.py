@@ -1,25 +1,23 @@
-from __future__ import annotations
-
 from datetime import datetime, timezone
-from typing import Optional
 from sqlalchemy import select, update
 
 from db.models.support_ticket import SupportTicket
 from db.repositories.base import BaseRepository
+
 from schemas.support import SupportTicketCreateInternal
 from status.support_ticket_status import SupportTicketStatus
 
 
 class SupportTicketRepository(BaseRepository):
     """Репозиторий тикетов поддержки"""
-    # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 
-    async def get_by_id(self, ticket_id: int) -> Optional[SupportTicket]:
-        """Получить тикет по первичному ключу (id)"""
+    # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+    async def get_by_id(self, ticket_id: int) -> SupportTicket | None:
+        """Получить тикет по id"""
         async with self._session() as s:
             return await s.get(SupportTicket, ticket_id)
 
-    async def get_open_by_user_id(self, user_id: int) -> Optional[SupportTicket]:
+    async def get_open_by_user_id(self, user_id: int) -> SupportTicket | None:
         """Получить последний открытый тикет пользователя (если существует)"""
         async with self._session() as s:
             stmt = (
@@ -34,7 +32,7 @@ class SupportTicketRepository(BaseRepository):
             )
             return await self._one_or_none(s, stmt)
 
-    async def list_open(self, *, limit: Optional[int] = None, offset: int = 0) -> list[SupportTicket]:
+    async def list_open(self, *, limit: int | None = None, offset: int = 0) -> list[SupportTicket]:
         """Список открытых тикетов (с пагинацией)"""
         async with self._session() as s:
             stmt = (
@@ -50,7 +48,7 @@ class SupportTicketRepository(BaseRepository):
 
             return await self._list(s, stmt)
 
-    async def close(self, *, ticket_id: int, admin_id: int) -> bool:
+    async def close(self, *, ticket_id: int, admin_tg_id: int) -> bool:
         """Техническое закрытие тикета по id. Возвращает True, если запись обновлена"""
         async with self._session() as s:
             stmt = (
@@ -60,10 +58,10 @@ class SupportTicketRepository(BaseRepository):
                 .values(
                     status=SupportTicketStatus.CLOSED,
                     closed_at=datetime.now(timezone.utc),
-                    closed_by_admin_id=admin_id, # telegram id!
+                    closed_by_admin_tg_id=admin_tg_id,
                 )
             )
-            return await self._execute_update_commit(s, stmt) # похоже на try_update_status в rentals
+            return await self._execute_update_commit(s, stmt)
 
     async def touch_admin_reply(self, *, ticket_id: int) -> bool:
         """Зачем:
@@ -81,9 +79,8 @@ class SupportTicketRepository(BaseRepository):
 
     # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
     async def create(self, ticket_data: SupportTicketCreateInternal) -> SupportTicket:
+        """Создаёт новый тикет поддержки из SupportTicketCreateInternal"""
         payload = ticket_data.model_dump()
         async with self._session() as s:
             obj = SupportTicket(**payload)
             return await self._add_commit_refresh(s, obj)
-
-    # update() и delete() специально не пишем. Тикет нельзя перезаписать и удалить. Пока так.

@@ -1,7 +1,5 @@
-from __future__ import annotations
-
-from typing import Optional
 from sqlalchemy import select, func
+from decimal import Decimal
 
 from db.models.review import Review
 from db.repositories.base import BaseRepository
@@ -9,9 +7,9 @@ from db.repositories.base import BaseRepository
 
 class ReviewRepository(BaseRepository):
     """Репозиторий для работы с отзывами"""
-    # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 
-    async def get_by_id(self, review_id: int) -> Optional[Review]:
+    # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+    async def get_by_id(self, review_id: int) -> Review | None:
         """Получение отзыва по ID"""
         async with self._session() as s:
             return await s.get(Review, review_id)
@@ -72,19 +70,14 @@ class ReviewRepository(BaseRepository):
         async with self._session() as s:
             return await self._add_commit_refresh(s, review)
 
-    # 🔹 Почему нет update() - Мы заранее договорились: отзыв — финальный артефакт
-    # 🔹 delete - тоже убираем, т.к. если пользователь удалит отзыв, то это на рейтинг повлияет задним числом
-
-    # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-
-    # вставил без осознания
-    async def get_stats_for_user(self, *, reviewee_id: int) -> tuple[float, int]:
-        """Вернуть (avg_rating, count) по пользователю. avg_rating=0.0 если отзывов нет."""
+    # ────────────────────────────────── Функция без осознания ─────────────────────────────────────────────────────────
+    async def get_stats_for_user(self, *, reviewee_id: int) -> tuple[Decimal, int]:
+        """Вернуть (avg_rating, count) по пользователю. avg_rating=0.0 если отзывов нет"""
         async with self._session() as s:
             stmt = select(
-                func.coalesce(func.avg(Review.rating), 0.0),
+                func.coalesce(func.avg(Review.rating), Decimal("0.00")),
                 func.count(Review.id),
             ).where(Review.reviewee_id == reviewee_id)
 
             avg_rating, count = (await s.execute(stmt)).one()
-            return float(avg_rating), int(count)
+            return Decimal(avg_rating), int(count)

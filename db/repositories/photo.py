@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from typing import Optional, Literal
 from sqlalchemy import select, update, func, case
 
@@ -8,9 +6,9 @@ from db.repositories.base import BaseRepository
 
 
 class PhotoRepository(BaseRepository):
-    """Репозиторий для работы с фотографиями"""
-    # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+    """Репозиторий для работы с фотографиями объявления"""
 
+    # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
     async def get_by_id(self, photo_id: int) -> Optional[Photo]:
         """Получить фото по ID"""
         async with self._session() as s:
@@ -19,24 +17,22 @@ class PhotoRepository(BaseRepository):
     async def list_by_item_id(self, item_id: int) -> list[Photo]:
         """Все фото для конкретного объявления"""
         async with self._session() as s:
-            #stmt = select(Photo).where(Photo.item_id == item_id).order_by(Photo.order)
             stmt = (
                 select(Photo)
                 .where(Photo.item_id == item_id)
-                .order_by(Photo.order.asc(), Photo.id.asc()) # Зачем сортировать ещё и по id?
+                .order_by(Photo.order.asc(), Photo.id.asc()) # .order_by(Photo.order)
             )
             return await self._list(s, stmt)
 
     async def count_by_item(self, item_id: int) -> int:
         """Сколько фото привязано к объявлению"""
         async with self._session() as s:
-            stmt = select(func.count()).where(Photo.item_id == item_id)
-            #stmt = select(func.count()).select_from(Photo).where(Photo.item_id == item_id)
+            #stmt = select(func.count()).where(Photo.item_id == item_id)
+            stmt = select(func.count()).select_from(Photo).where(Photo.item_id == item_id)
             res = await s.execute(stmt)
             return int(res.scalar() or 0)
 
     # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-
     async def create(self, *, item_id: int, telegram_file_id: str, order: int = 0) -> Photo:
         """Создать фотографию для объявления"""
         async with self._session() as s:
@@ -52,9 +48,8 @@ class PhotoRepository(BaseRepository):
 
             return await self._delete_commit(s, obj)
 
-    async def reorder(self, item_id: int):
-        """Перенумеровать order = 0,.., N после удаления/добавления.
-        Чтобы порядок был всегда плотным."""
+    async def reorder(self, item_id: int) -> int:
+        """Перенумеровать order = 0,.., N после удаления/добавления. Чтобы порядок был всегда плотным"""
         async with self._session() as s:
             stmt = (
                 select(Photo)
@@ -70,11 +65,13 @@ class PhotoRepository(BaseRepository):
             await self._commit_or_rollback(s)
             return len(photos)
 
-    # ────────────────────────────────────────────────────────────────────────────────────────────────────────
-    # for move_photo() - ну "такая себе" функция, сойдет
-    async def swap_with_neighbor(self, *, item_id: int, photo_id: int, direction: Literal["up", "down"]
-    ) -> bool:
-        """True — swap выполнен, False — нельзя выполнить"""
+    # ───────────────────────────────────── Не осмысленные функции ─────────────────────────────────────────────────────
+    async def swap_with_neighbor(self, *, item_id: int, photo_id: int, direction: Literal["up", "down"]) -> bool:
+        """Поменять фотографию местами с соседней в пределах объявления.
+
+        True — swap выполнен,
+        False — нельзя выполнить
+        """
         async with self._session() as s:
             # 1) получаем упорядоченный список id+order
             stmt = (
@@ -118,7 +115,6 @@ class PhotoRepository(BaseRepository):
 
             return True
 
-    # for set_order() - ну "такая себе" функция, сойдет
     async def set_order(self, *, photo_id: int, item_id: int, new_order: int) -> bool:
         async with self._session() as s:
             photos = list(

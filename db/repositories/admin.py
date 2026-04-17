@@ -1,11 +1,10 @@
-from __future__ import annotations
-
-from typing import Optional
-
 from db.models.admin import AdminAction
 from db.repositories.base import BaseRepository
 
+
 class AdminActionRepository(BaseRepository):
+    """Репозиторий журнала действий администратора"""
+
     async def create(
         self,
         *,
@@ -13,9 +12,10 @@ class AdminActionRepository(BaseRepository):
         action_type: str,
         entity_type: str,
         entity_id: str,
-        note: Optional[str] = None,
-        payload: Optional[dict] = None,
+        note: str | None = None,
+        payload: dict[str, object] | None = None,
     ) -> AdminAction:
+        """Создать запись о действии администратора"""
         async with self._session() as s:
             obj = AdminAction(
                 admin_tg_id=admin_tg_id,
