@@ -1,17 +1,17 @@
-from __future__ import annotations
-
 from typing import Optional
 from sqlalchemy import select, exists, update
+from decimal import Decimal
 
 from db.models.user import User
 from db.repositories.base import BaseRepository
+
 from schemas.user import UserCreate, UserUpdate, UserAdminUpdate
 
 
 class UserRepository(BaseRepository):
     """Репозиторий пользователей"""
-    # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 
+    # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
     async def list_all(self, *, limit: Optional[int] = None, offset: int = 0) -> list[User]:
         """Вернуть список пользователей по id по возрастанию"""
         async with self._session() as s:
@@ -26,18 +26,18 @@ class UserRepository(BaseRepository):
             return await self._list(s, stmt)
 
     async def get_by_id(self, user_id: int) -> Optional[User]:
-        """Найти пользователя по id. Возвращает User или None."""
+        """Найти пользователя по id"""
         async with self._session() as s:
             return await s.get(User, user_id)
 
-    async def get_by_telegram_id(self, telegram_id: int | str) -> Optional[User]:
-        """Найти пользователя по Telegram ID. Возвращает User или None."""
+    async def get_by_telegram_id(self, telegram_id: int) -> Optional[User]:
+        """Найти пользователя по Telegram ID"""
         async with self._session() as s:
             stmt = select(User).where(User.telegram_id == telegram_id)
             return await self._one_or_none(s, stmt)
 
     async def exists_by_telegram_id(self, telegram_id: int) -> bool:
-        """Проверить существование пользователя по Telegram ID. Возвращает True или False."""
+        """Проверить существование пользователя по Telegram ID"""
         async with self._session() as s:
             stmt = select(exists().where(User.telegram_id == telegram_id))
             return await self._exists(s, stmt)
@@ -45,9 +45,6 @@ class UserRepository(BaseRepository):
     # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
     async def create(self, user_data: UserCreate) -> User:
         """Создать нового пользователя"""
-
-        # Проверка на дубликат по telegram_id (если пользователь уже существует)
-
         obj = User(**user_data.model_dump())
         async with self._session() as s:
             return await self._add_commit_refresh(s, obj)
@@ -60,13 +57,20 @@ class UserRepository(BaseRepository):
                 return None
 
             data = update_data.model_dump(exclude_unset=True)
+            if not data:
+                return obj
+
             for k, v in data.items():
                 setattr(obj, k, v)
 
             return await self._commit_refresh(s, obj)
 
     async def delete(self, user_id: int) -> bool:
-        """Удалить пользователя по id. Возвращает True — если удалён, False — если не найден"""
+        """Удалить пользователя по id.
+
+        Возвращает True — если удалён.
+        Возвращает False — если не найден.
+        """
         async with self._session() as s:
             obj = await s.get(User, user_id)
             if not obj:
@@ -75,9 +79,7 @@ class UserRepository(BaseRepository):
             return await self._delete_commit(s, obj)
 
     # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-
-    # для сервиса отзывов - Обновить рейтинг пользователя
-    async def update_rating(self, *, user_id: int, rating: float, rating_count: int) -> bool:
+    async def update_rating(self, *, user_id: int, rating: Decimal, rating_count: int) -> bool:
         """Обновить кеш рейтинга пользователя. Возвращает True, если строка обновлена."""
         async with self._session() as s:
             stmt = (

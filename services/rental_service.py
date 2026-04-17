@@ -346,7 +346,7 @@ class RentalService:
             return False
 
         # если арендатор уже подтвердил получение — активируем
-        await self.rental_repo.activate_if_ready(rental_id=rental_id)
+        await self.rental_repo.try_activate_confirmed_rental(rental_id=rental_id)
         return True
 
     async def confirm_receive_by_renter(self, *, rental_id: int, renter_id: int, strict: bool = False) -> bool:
@@ -360,7 +360,7 @@ class RentalService:
             return False
 
         # если владелец уже подтвердил передачу — активируем
-        await self.rental_repo.activate_if_ready(rental_id=rental_id)
+        await self.rental_repo.try_activate_confirmed_rental(rental_id=rental_id)
         return True
     # ---------------------------------------
 

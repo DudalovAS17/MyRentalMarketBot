@@ -1,22 +1,19 @@
-from __future__ import annotations
-
 from typing import Optional
 from sqlalchemy import select, update, or_, exists, and_
 from sqlalchemy.orm import selectinload
 
 from db.models.rental import Rental
 from db.repositories.base import BaseRepository
-from schemas.rental import RentalCreate, RentalUpdate #, RentalOut
-from status.rental_status import is_open_status
-from status.rental_status import RentalStatus, RentalActorRole
 
-"""renter_id, owner_id, user_id - все это db_user_id (не telegram_user_id)"""
+from schemas.rental import RentalCreate, RentalUpdate
+from status.rental_status import RentalStatus, RentalActorRole, is_open_status
+
 
 class RentalRepository(BaseRepository):
     """Репозиторий для работы с арендами (сделками)"""
-    # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-    _OPEN_RENTAL_LOOKUP_LIMIT = 10
 
+    _OPEN_RENTAL_LOOKUP_LIMIT = 10
+    # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
     async def list_all(self) -> list[Rental]:
         """Вернуть все сделки"""
         async with self._session() as s:
@@ -51,7 +48,7 @@ class RentalRepository(BaseRepository):
             stmt = (
                 select(Rental)
                 .where(or_(Rental.renter_id == user_id, Rental.owner_id == user_id))
-                .order_by(Rental.created_at.desc()) # добавил
+                .order_by(Rental.created_at.desc())
             )
             return await self._list(s, stmt)
 
@@ -61,13 +58,16 @@ class RentalRepository(BaseRepository):
             stmt = select(Rental).where(Rental.status == status)
             return await self._list(s, stmt)
 
-    # позволяет убрать зависимость сервиса сделок от сервисов объявлений, пользователей и тд.
     async def get_details_by_id(self, rental_id: int) -> Optional[Rental]:
+        """Позволяет убрать зависимость сервиса сделок от сервисов объявлений, пользователей и тд.
+
+        “Подгрузи эти связи заранее, пока сессия живая”
+        """
         async with self._session() as s:
             stmt = (
                 select(Rental)
                 .where(Rental.id == rental_id)
-                .options( # ✅ “Подгрузи эти связи заранее, пока сессия живая”.
+                .options(
                     selectinload(Rental.item),
                     selectinload(Rental.renter),
                     selectinload(Rental.owner),
@@ -75,7 +75,7 @@ class RentalRepository(BaseRepository):
             )
             return await self._one_or_none(s, stmt)
 
-    # ────────────────────────────────────────────для admin-панели──────────────────────────────────────────────────────
+    # ──────────────────────────────────────────── Для admin-панели ────────────────────────────────────────────────────
     async def list_recent(self, *, limit: int, offset: int = 0) -> list[Rental]:
         """Последние сделки (по убыванию created_at)"""
         async with self._session() as s:
@@ -88,8 +88,8 @@ class RentalRepository(BaseRepository):
             )
             return await self._list(s, stmt)
 
-    # для сервиса admin_rental_service
     async def list_recent_with_details_for_admins(self, *, limit: int, offset: int) -> list[Rental]:
+        """Последние сделки для админ-панели с заранее подгруженными связями - для сервиса admin_rental_service"""
         async with self._session() as s:
             stmt = (
                 select(Rental)
@@ -108,11 +108,16 @@ class RentalRepository(BaseRepository):
     async def create(self, rental_data: RentalCreate) -> Rental:
         """Создать новую сделку"""
         async with self._session() as s:
-            obj = Rental(**rental_data.model_dump()) # exclude_unset=True - в Create иногда нужно, иногда нет (спроси GPT)
+            obj = Rental(**rental_data.model_dump())
             return await self._add_commit_refresh(s, obj)
 
     async def update(self, rental_id: int, update_data: RentalUpdate) -> Optional[Rental]:
-        """Обновить сделку. Возвращает Rental — если изменения применены, None — если не найдено или изменений нет"""
+        """Обновить сделку.
+
+        Возвращает Rental — если изменения применены.
+        Возвращает текущий объект без изменений - если `update_data` пустой
+        Возвращает None — если сделка не найдена или изменений нет.
+        """
         async with self._session() as s:
             obj: Optional[Rental] = await s.get(Rental, rental_id)
             if not obj:
@@ -128,7 +133,11 @@ class RentalRepository(BaseRepository):
             return await self._commit_refresh(s, obj)
 
     async def delete(self, rental_id: int) -> bool:
-        """Удалить сделку по id. Возвращает True — удалена, False — не найдена"""
+        """Удалить сделку по id.
+
+        Возвращает True — удалена.
+        Возвращает False — не найдена.
+        """
         async with self._session() as s:
             obj = await s.get(Rental, rental_id)
             if not obj:
@@ -137,8 +146,6 @@ class RentalRepository(BaseRepository):
             return await self._delete_commit(s, obj)
 
     # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-    # ниже две функции, которые можно объединить в одну
-
     async def try_update_status(self, *,
         rental_id: int, # какую сделку мы хотим изменить
         new_status: RentalStatus, # переводим в этот статус
@@ -152,7 +159,7 @@ class RentalRepository(BaseRepository):
         #notify_button_text: Optional[str] = None,
         #notify_button_callback_action: Optional[str] = None
     ) -> bool:
-        """Обновляем статус сделки"""
+        """Атомарно обновить статус сделки, если совпали ожидаемый текущий статус и участник, уже проверенные сервисом."""
 
         match actor_role:
             case RentalActorRole.OWNER:
@@ -164,9 +171,9 @@ class RentalRepository(BaseRepository):
             stmt = (
                 update(Rental)
                 .where(Rental.id == rental_id)
-                .where(actor_col == actor_user_id) # Права проверяются на уровне БД, а не в Python
-                .where(Rental.status == expected_status) # Это защита от: двойных кликов, устаревших кнопок, гонок
-                .values(status=new_status) # Если и только если все WHERE совпали → статус обновляется
+                .where(actor_col == actor_user_id)
+                .where(Rental.status == expected_status)
+                .values(status=new_status)
             )
             return await self._execute_update_commit(s, stmt)
 
@@ -176,7 +183,10 @@ class RentalRepository(BaseRepository):
         expected_status: RentalStatus,
         actor_user_id: int,
     ) -> bool:
-        """ Для DISPUTE (оба участника могут, в try_update_status только 1)"""
+        """Атомарно обновить статус сделки, если текущий пользователь является участником сделки и текущий статус совпадает с ожидаемым.
+
+        Для DISPUTE (оба участника могут, в try_update_status только 1)
+        """
         async with self._session() as s:
             stmt = (
                 update(Rental)
@@ -187,9 +197,12 @@ class RentalRepository(BaseRepository):
             )
             return await self._execute_update_commit(s, stmt)
 
-    # ─────────────────── это не try_update_status: мы обновляем не статус, а булевый флаг ─────────────────────────────
+    # ───────────────────────────────── Тут мы обновляем булевый флаг (не статус) ──────────────────────────────────────
     async def try_set_owner_handover_confirmed(self, *, rental_id: int, owner_id: int) -> bool:
-        """Владелец отмечает: 'передал вещь' (только если CONFIRMED, и он owner, и флаг ещё False)"""
+        """Владелец отмечает: 'передал вещь' (только если CONFIRMED, и он owner, и флаг ещё False)
+
+        Возвращает True - владелец подтвердил передачу
+        """
         async with self._session() as s:
             stmt = (
                 update(Rental)
@@ -197,12 +210,15 @@ class RentalRepository(BaseRepository):
                 .where(Rental.owner_id == owner_id)
                 .where(Rental.status == RentalStatus.CONFIRMED)
                 .where(Rental.owner_handover_confirmed.is_(False))
-                .values(owner_handover_confirmed=True) # обновляет поле на True
+                .values(owner_handover_confirmed=True)
             )
-            return await self._execute_update_commit(s, stmt) # True - владелец подтвердил передачу
+            return await self._execute_update_commit(s, stmt)
 
     async def try_set_renter_confirm_receive(self, *, rental_id: int, renter_id: int) -> bool:
-        """Арендатор отмечает: 'получил вещь' (только если CONFIRMED, и он renter, и флаг ещё False)"""
+        """Арендатор отмечает: 'получил вещь' (только если CONFIRMED, и он renter, и флаг ещё False)
+
+        Возвращает True - арендатор подтвердил получение вещи
+        """
         async with self._session() as s:
             stmt = (
                 update(Rental)
@@ -212,22 +228,24 @@ class RentalRepository(BaseRepository):
                 .where(Rental.renter_receive_confirmed.is_(False))
                 .values(renter_receive_confirmed=True)
             )
-            return await self._execute_update_commit(s, stmt) # True - арендатор подтвердил получение вещи
+            return await self._execute_update_commit(s, stmt)
 
-    async def activate_if_ready(self, *, rental_id: int) -> bool:
-        """CONFIRMED -> ACTIVE если обе стороны подтвердили передачу/получение"""
+    async def try_activate_confirmed_rental(self, *, rental_id: int) -> bool:
+        """CONFIRMED -> ACTIVE если обе стороны подтвердили передачу/получение
+
+        Возвращает True - арендатор подтвердил получение (статус перешёл в ACTIVE)
+        """
         async with self._session() as s:
             stmt = (
                 update(Rental)
                 .where(Rental.id == rental_id)
                 .where(Rental.status == RentalStatus.CONFIRMED)
-                .where(Rental.owner_handover_confirmed.is_(True)) # Владелец передал вещь
-                .where(Rental.renter_receive_confirmed.is_(True)) # Арендатор получил вещь
+                .where(Rental.owner_handover_confirmed.is_(True))
+                .where(Rental.renter_receive_confirmed.is_(True))
                 .values(status=RentalStatus.ACTIVE)
             )
-            return await self._execute_update_commit(s, stmt) # True - арендатор подтвердил получение (статус перешёл в ACTIVE)
+            return await self._execute_update_commit(s, stmt)
 
-    # терминал-ть статуса определим позже в сервисе
     async def list_recent_open_by_item_id(self, item_id: int) -> list[Rental]:
         """Возвращает последние сделки по id"""
         async with self._session() as s:
@@ -238,14 +256,12 @@ class RentalRepository(BaseRepository):
                 .order_by(Rental.created_at.desc()) # , Rental.id.desc()
                 .limit(self._OPEN_RENTAL_LOOKUP_LIMIT)
             )
-            return await self._list(s, stmt) # сервис выберет первую open
+            return await self._list(s, stmt)
 
-    # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-
-    # Для сервиса объявлений: moderate_set_status()
+    # ─────────────────────────────── For item-service: moderate_set_status() ──────────────────────────────────────────
     async def has_open_rentals_for_item(self, item_id: int) -> bool:
-        """Техническая проверка: есть ли у item открытые сделки."""
-        open_statuses = [st for st in RentalStatus if is_open_status(st)] # Считаем "open" статусы сделок
+        """Техническая проверка: есть ли у item открытые сделки"""
+        open_statuses = [st for st in RentalStatus if is_open_status(st)]
 
         async with self._session() as s:
             stmt = select(
@@ -256,4 +272,4 @@ class RentalRepository(BaseRepository):
                     )
                 )
             )
-            return bool(await s.scalar(stmt))
+            return bool(await s.scalar(stmt)) # return await self._exists(s, stmt) - лучше
