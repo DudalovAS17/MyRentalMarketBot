@@ -1,75 +1,56 @@
-from __future__ import annotations
-
 import logging
-from typing import Callable, Optional
-
+from typing import Callable
 from sqlalchemy import text
-from sqlalchemy.ext.asyncio import (
-    AsyncSession,
-    create_async_engine,
-    async_sessionmaker,
-    AsyncEngine,
-)
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker, AsyncEngine
 
 from config import settings
 from db.models.base import Base
 
 logger = logging.getLogger(__name__)
 
-async_engine: Optional[AsyncEngine] = None
-AsyncSessionLocal: Optional[async_sessionmaker[AsyncSession]] = None # sessionmaker
+class _DatabaseState:
+    """Внутренний объект для хранения состояния подключения к базе"""
+    def __init__(self) -> None:
+        self.engine: AsyncEngine | None = None
+        self.session_factory: async_sessionmaker[AsyncSession] | None = None
 
+_db_state = _DatabaseState()
 
-def _get_database_url() -> str:
+def get_database_url() -> str:
     return settings.database_url
 
-async def init_db(*, create_tables: bool = False) -> None: # bool = True
-    """ Инициализация подключения к БД и создание таблиц.
+async def init_db(*, create_tables: bool = False) -> None:
+    """Инициализация подключения к БД и создание таблиц"""
 
-    create_tables=True — DEV/MVP режим: создаём таблицы через create_all.
-    В PROD режиме (с Alembic) нужно будет вызывать init_db(create_tables=False).
-    """
-    global async_engine, AsyncSessionLocal
-
-    if async_engine is not None and AsyncSessionLocal is not None:
+    if _db_state.engine is not None and _db_state.session_factory is not None:
         logger.info("init_db(): база уже инициализирована")
         return
 
-    database_url = _get_database_url()
+    database_url = get_database_url()
+    _db_state.engine = create_async_engine(database_url, echo=False, future=True, pool_pre_ping=True)
+    _db_state.session_factory = async_sessionmaker(bind=_db_state.engine, autoflush=False, autocommit=False, expire_on_commit=False)
 
-    async_engine = create_async_engine(
-        database_url,
-        echo=False,
-        future=True,
-        pool_pre_ping=True,  # полезно для Postgres
-    )
-
-    AsyncSessionLocal = async_sessionmaker(
-        bind=async_engine,
-        autoflush=False,
-        autocommit=False,
-        expire_on_commit=False,
-    )
-
-    if create_tables: # у нас теперь False - сюда не попадем. Таблицы не будут создаваться тут
-        # DEV/MVP: создаём таблицы (пока без Alembic)
-        async with async_engine.begin() as conn:
+    if create_tables: # У нас теперь False - сюда не попадем. Таблицы не будут создаваться тут
+        async with _db_state.engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
         logger.info("init_db(): таблицы созданы (create_all)")
 
-
 def get_session_factory() -> Callable[[], AsyncSession]:
-    """Фабрика сессий (для репозиториев)."""
-    if AsyncSessionLocal is None:
+    """Фабрика сессий (для репозиториев)"""
+    if _db_state.session_factory is None:
         raise RuntimeError("База данных не инициализирована. Сначала вызови init_db().")
-    return AsyncSessionLocal
-
+    return _db_state.session_factory
 
 async def check_db_connection() -> bool:
-    """Проверка соединения с БД (SELECT 1)."""
-    database_url = _get_database_url()
+    """Одноразово проверить доступность БД через SELECT 1.
+
+    Используется перед основной инициализацией подключения к базе
+    """
+
+    database_url = get_database_url()
+    async_test_engine = create_async_engine(database_url, future=True, pool_pre_ping=True)
+
     try:
-        async_test_engine = create_async_engine(database_url, future=True, pool_pre_ping=True)
         async with async_test_engine.connect() as conn:
             result = await conn.execute(text("SELECT 1"))
             ok = result.scalar() == 1
@@ -78,14 +59,14 @@ async def check_db_connection() -> bool:
     except Exception as e:
         logger.error("check_db_connection(): Ошибка при проверке подключения к базе данных: %s", e, exc_info=True)
         return False
-
+    finally:
+        await async_test_engine.dispose()
 
 async def close_db() -> None:
-    """Аккуратное закрытие engine (на shutdown)."""
-    global async_engine, AsyncSessionLocal
+    """Аккуратное закрытие engine (на shutdown)"""
 
-    if async_engine is not None:
-        await async_engine.dispose()
+    if _db_state.engine is not None:
+        await _db_state.engine.dispose()
 
-    async_engine = None
-    AsyncSessionLocal = None
+    _db_state.engine = None
+    _db_state.session_factory = None
