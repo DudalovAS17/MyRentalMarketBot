@@ -4,7 +4,7 @@ from aiogram import Dispatcher
 
 from handlers.admin import admin_router
 from middlewares.admin_check import AdminCheckMiddleware
-from middlewares.error_handler import GlobalErrorMiddleware
+from middlewares.global_error import GlobalErrorMiddleware
 from middlewares.registration_check import RegistrationCheckMiddleware
 from middlewares.services import ServicesMiddleware
 

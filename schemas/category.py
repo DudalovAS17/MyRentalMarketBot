@@ -19,7 +19,7 @@ class CategoryOut(BaseModel):
     name: str
     emoji: Optional[str] = None
     parent_id: Optional[int] = None
-    created_at: AwareDatetime #Optional[datetime] = None
-    updated_at: AwareDatetime # Optional[datetime] = None
+    created_at: AwareDatetime
+    updated_at: AwareDatetime
 
     model_config = ConfigDict(from_attributes=True)

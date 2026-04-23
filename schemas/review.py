@@ -3,18 +3,10 @@ from pydantic import BaseModel, Field, AwareDatetime, ConfigDict
 
 class ReviewCreate(BaseModel):
     """Схема для создания отзыва"""
+
     rental_id: int
-    #reviewer_id: int ❌ - из контекста авторизации или из Telegram-пользователя, но в сервисе
-    #reviewee_id: int ❌ - всегда определяется сделкой
     rating: int = Field(..., ge=1, le=5)
     comment: Optional[str] = None
-
-
-# если будет нужно - вмешательство в отзыв
-# class ReviewUpdate(BaseModel):
-#     """Схема для обновления отзыва"""
-#     rating: Optional[int] = Field(default=None, ge=1, le=5)
-#     comment: Optional[str] = None
 
 
 class ReviewOut(BaseModel):

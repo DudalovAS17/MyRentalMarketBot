@@ -1,4 +1,5 @@
 from typing import Optional
+from decimal import Decimal
 from pydantic import BaseModel, AwareDatetime, ConfigDict
 
 from status.user_status import AccountStatus
@@ -14,13 +15,6 @@ class UserCreate(BaseModel):
     phone: Optional[str] = None
     email: Optional[str] = None
 
-    # устанавливаются автоматически сервисом/БД
-    #rating: float = Field(0.0, ge=0, le=5) # float = 0.0
-    #rating_count: int = Field(0, ge=0) # int = 0
-    #account_status: AccountStatus = AccountStatus.ACTIVE
-
-    # is_blocked: bool = False # убрали
-
 
 class UserUpdate(BaseModel):
     """Схема для обновления пользователя"""
@@ -33,21 +27,9 @@ class UserUpdate(BaseModel):
     email: Optional[str] = None
 
 
-class UserAdminUpdate(BaseModel):
-    """Схема для админского обновления пользователя"""
-
-    #is_admin: Optional[bool] = None # убрали
-    #is_blocked: Optional[bool] = None # убрали
-    account_status: Optional[AccountStatus] = None
-
-    # аудит бана
-    banned_at: Optional[AwareDatetime] = None
-    banned_by_admin_id: Optional[int] = None
-    ban_reason: Optional[str] = None
-
-
 class UserOut(BaseModel):
     """Схема для возврата данных о пользователе наружу"""
+
     id: int
     telegram_id: int
 
@@ -58,12 +40,10 @@ class UserOut(BaseModel):
     phone: Optional[str] = None
     email: Optional[str] = None
 
-    # В Out дефолты не вредят, но чаще делают просто типы (без = False)
-    rating: float # = Field(0.0, ge=0, le=5)
-    rating_count: int # = Field(0, ge=0) # = 0
-    #is_blocked: bool # = False # убрали
-    #is_admin: bool # = False # убрали
-    account_status: AccountStatus # = AccountStatus.ACTIVE
+    rating: Decimal
+    rating_count: int
+
+    account_status: AccountStatus
 
     banned_at: Optional[AwareDatetime] = None
     banned_by_admin_id: Optional[int] = None
@@ -75,7 +55,11 @@ class UserOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-# Если рейтинг считается автоматически из Review — то лучше вообще убрать rating/rating_count из любых
-# Update-схем и менять только сервисом.
-    #rating: Optional[float] = Field(default=None, ge=0, le=5) # default=?
-    #rating_count: Optional[int] = Field(default=None, ge=0)
+class UserAdminUpdate(BaseModel):
+    """Схема для админского обновления пользователя"""
+
+    account_status: Optional[AccountStatus] = None
+
+    banned_at: Optional[AwareDatetime] = None
+    banned_by_admin_id: Optional[int] = None
+    ban_reason: Optional[str] = None

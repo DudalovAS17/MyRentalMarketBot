@@ -2,8 +2,8 @@ from pydantic import BaseModel, Field, AwareDatetime, ConfigDict, field_validato
 from typing import Optional, Dict, Any
 from decimal import Decimal
 
-
 from status.item_status import ItemStatus
+
 
 class ItemCreate(BaseModel):
     """Схема для создания объявления"""
@@ -12,22 +12,13 @@ class ItemCreate(BaseModel):
     subcategory_id: Optional[int] = None
     title: str = Field(..., min_length=3, max_length=255)
     description: Optional[str] = None
-    price: Decimal = Field(..., ge=0) # цена ≥ 0
-    deposit: Optional[Decimal] = Field(None, ge=0) # залог ≥ 0
-    min_rental_period: int = Field(1, ge=1)  # минимум 1 день
+    price: Decimal = Field(..., ge=0)
+    deposit: Optional[Decimal] = Field(None, ge=0)
+    min_rental_period: int = Field(1, ge=1)
     max_rental_period: Optional[int] = None
     location: Optional[str] = None
     coordinates: Optional[Dict[str, Any]] = None
 
-    # is_available: bool = True # объявление создаётся как is_available=True автоматически -> убираем
-
-    # Это админские поля, не пользовательские -> убираем из Create
-    # is_featured: bool = False
-    # status: ItemStatus = ItemStatus.PENDING
-
-    #photos: Optional[List[str]] = None  # ?
-
-    # у нас в Модели coordinates = JSON (слишком широко), поэтому делаем этот валидатор
     @field_validator("coordinates")
     @classmethod
     def validate_coordinates(cls, v):
@@ -35,6 +26,7 @@ class ItemCreate(BaseModel):
             if "lat" not in v or "lng" not in v:
                 raise ValueError("coordinates must have 'lat' and 'lng'")
         return v
+
 
 class ItemUpdate(BaseModel):
     """Схема для обновления объявления (только изменяемые поля)"""
@@ -49,24 +41,7 @@ class ItemUpdate(BaseModel):
     max_rental_period: Optional[int] = None
     location: Optional[str] = None
     coordinates: Optional[Dict[str, Any]] = None
-    is_available: Optional[bool] = None
 
-# Все админские поля вынесем сюда:
-class ItemModerationUpdate(BaseModel):
-    """Для Админов - схема для обновления объявления"""
-    is_featured: Optional[bool] = None # default установлен моделью
-    status: Optional[ItemStatus] = None
-    moderation_reason: Optional[str] = None
-
-    # Ставятся сервисом автоматически - убираем
-    # moderated_by_admin_id: Optional[int] = None
-    # moderated_at: Optional[datetime] = None
-
-""" Если
-class ItemModerationUpdate(ItemUpdate): (все поля из ItemUpdate тут тоже будут - унаследовали)
-
-То админ может менять всё, что может пользователь (title/price/…), но пока сделаем чтобы не мог.
-"""
 
 class ItemOut(BaseModel):
     """Схема для возврата данных об объявлении"""
@@ -81,24 +56,33 @@ class ItemOut(BaseModel):
     deposit: Optional[Decimal] = None
     location: Optional[str] = None
     coordinates: Optional[Dict[str, Any]] = None
-    min_rental_period: int #= None ?
+    min_rental_period: int
     max_rental_period: Optional[int] = None
-    is_available: bool = True # default установлен моделью
     status: ItemStatus
-    views_count: int # default установлен моделью
-    orders_count: int # default установлен моделью
+    views_count: int
+    orders_count: int
 
-    moderated_at: Optional[AwareDatetime] = None # ?
-    moderated_by_admin_id: Optional[int] = None # ?
-    moderation_reason: Optional[str] = None # ?
+    moderated_at: Optional[AwareDatetime] = None
+    moderated_by_admin_id: Optional[int] = None
+    moderation_reason: Optional[str] = None
 
-    created_at: AwareDatetime # Optional[datetime] = None
-    updated_at: AwareDatetime # Optional[datetime] = None
+    created_at: AwareDatetime
+    updated_at: AwareDatetime
 
     model_config = ConfigDict(from_attributes=True)
 
 
-class ItemAdminOut(ItemOut): # все поля из ItemOut тут тоже будут - унаследовали
+class ItemModerationUpdate(BaseModel):
+    """Для Админов - схема для обновления объявления"""
+
+    is_featured: Optional[bool] = None
+    status: Optional[ItemStatus] = None
+    moderation_reason: Optional[str] = None
+
+
+class ItemAdminOut(ItemOut): #
+    """Админская схема для возврата данных об объявлении"""
+
     is_featured: Optional[bool] = None
     moderated_at: Optional[AwareDatetime] = None
     moderated_by_admin_id: Optional[int] = None
@@ -106,11 +90,11 @@ class ItemAdminOut(ItemOut): # все поля из ItemOut тут тоже бу
 
 
 class ItemCreateDraft(BaseModel):
+    """ Черновик для FSM (пошаговое заполнение).
+
+    Поля и названия 1-в-1 совпадают с ItemCreate, но почти всё Optional, чтобы заполнять по шагам.
     """
-    Черновик для FSM (пошаговое заполнение).
-    Поля и названия 1-в-1 совпадают с ItemCreate,
-    но почти всё Optional, чтобы заполнять по шагам.
-    """
+
     model_config = ConfigDict(extra="forbid")  # 🚫 запрет лишних полей
 
     category_id: Optional[int] = None

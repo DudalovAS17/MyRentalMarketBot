@@ -3,34 +3,25 @@ from pydantic import BaseModel, AwareDatetime, ConfigDict
 
 from status.support_ticket_status import SupportTicketStatus
 
+
 class SupportTicketCreate(BaseModel):
-    """Создание тикета поддержки пользователем."""
-    telegram_id: int # Убираем?
-    username: Optional[str] = None # Убираем?
+    """Создание тикета поддержки пользователем"""
+
     text: str
 
 
-# Убираем?
-class SupportTicketUpdate(BaseModel):
-    """Обновление тикета пользователем."""
-    # пользователь может изменить только текст
-    text: Optional[str] = None # Убираем?
-
-
 class SupportTicketOut(BaseModel):
-    """Возврат тикета поддержки наружу (пользователь / админ)."""
+    """Возврат тикета поддержки наружу (пользователь / админ)"""
+
     id: int
 
-    # Связь с пользователем
     user_id: int
     telegram_id: int
     username: Optional[str] = None
 
-    # Содержимое тикета
     text: str
-    status: SupportTicketStatus # OPEN/CLOSED
+    status: SupportTicketStatus
 
-    # Админская часть (может быть None)
     closed_at: Optional[AwareDatetime] = None
     closed_by_admin_tg_id: Optional[int] = None
     admin_last_reply_at: Optional[AwareDatetime] = None
@@ -41,13 +32,9 @@ class SupportTicketOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-# Статус всегда OPEN при создании (status: SupportTicketStatus = SupportTicketStatus.OPEN)
-
-# Смена статуса должна происходить только через доменные методы: close_ticket / reopen_ticket
-# status: Optional[SupportTicketStatus] = None
-
-
 class SupportTicketCreateInternal(BaseModel):
+    """Внутренняя схема для создания тикета поддержки из данных пользователя и текста обращения"""
+
     user_id: int
     telegram_id: int
     username: Optional[str] = None
