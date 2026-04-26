@@ -137,7 +137,7 @@ async def receive_support_text(
                 username=user.username,
                 text=text,
             )
-        ticket = await support_service.create_ticket(ticket_data=internal)
+        ticket = await support_service.create(ticket_data=internal)
 
     except TicketAlreadyOpen as exc:
         await state.clear()

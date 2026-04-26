@@ -66,7 +66,6 @@
 а "создавать" статус нелогично.
 
 > [RentalUpdate]() - Схема для обновления сделки (только изменяемые поля)
-- Убрал `status: Optional[RentalStatus] = None` по той же причины, что и выше
 
 > [RentalOut]() - Схема для возврата сделки наружу
 - Для `created_at`/`updated_at` делаем `AwareDatetime` или `Optional[AwareDatetime] = None`?

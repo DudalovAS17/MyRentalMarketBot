@@ -358,7 +358,7 @@ async def _attach_item_photos_or_warn(
     #    return
 
     try:
-        await photo_service.add_photos(item_id, photos) # valid_photos
+        await photo_service.create_photos(item_id, photos)  # valid_photos
     except ServiceError: # просто предупреждаем пользователя и идём дальше
         if callback.message:
             await callback.message.answer(

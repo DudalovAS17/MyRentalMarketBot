@@ -73,10 +73,10 @@ async def show_subcategories_for_creating_item(callback: CallbackQuery, state: F
     """Показывает подкатегории для FSM-сценария 'Создать объявление'."""
     await callback.answer()
 
-    category = await ch.load_entity_or_notify(callback, category_service.get_category,
-                                            parse_callback(callback.data, CAT_FI_PREFIX),
-                                            invalid_id_text=ch.not_cat_id, load_error_text=ch.serv_err_cat,
-                                            not_found_text=ch.not_cat)
+    category = await ch.load_entity_or_notify(callback, category_service.get_category_by_id,
+                                              parse_callback(callback.data, CAT_FI_PREFIX),
+                                              invalid_id_text=ch.not_cat_id, load_error_text=ch.serv_err_cat,
+                                              not_found_text=ch.not_cat)
 
     not_subcats = f"⚠️ В категории <b>{category.name}</b> пока нет подкатегорий."
     subcategories = await ch.load_entity_or_notify(callback, category_service.list_subcategories, category.id,
@@ -97,10 +97,10 @@ async def start_create_item_from_subcategory(callback: CallbackQuery, state: FSM
     """Переход из подкатегории к вводу названия вещи."""
     await callback.answer()
 
-    subcategory = await ch.load_entity_or_notify(callback, category_service.get_category,
-                                            parse_callback(callback.data, SUBCAT_FI_PREFIX),
-                                            invalid_id_text=ch.not_subcat_id, load_error_text=ch.serv_err_subcat,
-                                            not_found_text=ch.not_subcat)
+    subcategory = await ch.load_entity_or_notify(callback, category_service.get_category_by_id,
+                                                 parse_callback(callback.data, SUBCAT_FI_PREFIX),
+                                                 invalid_id_text=ch.not_subcat_id, load_error_text=ch.serv_err_subcat,
+                                                 not_found_text=ch.not_subcat)
 
     # пробуем достать категорию из state
     data = await state.get_data()
@@ -109,9 +109,9 @@ async def start_create_item_from_subcategory(callback: CallbackQuery, state: FSM
     if not category_id: # пробуем получить категория из подкатегории
         category_id = getattr(subcategory, "parent_id", None)
 
-    category = await ch.load_entity_or_notify(callback, category_service.get_category, category_id,
-                                            invalid_id_text=ch.not_cat_id, load_error_text=ch.serv_err_cat,
-                                            not_found_text=ch.not_cat)
+    category = await ch.load_entity_or_notify(callback, category_service.get_category_by_id, category_id,
+                                              invalid_id_text=ch.not_cat_id, load_error_text=ch.serv_err_cat,
+                                              not_found_text=ch.not_cat)
 
     # Валидируем черновик из FSM (FSM все_равно хранит dict)
     draft = ItemCreateDraft.model_validate(data.get("new_item") or {})

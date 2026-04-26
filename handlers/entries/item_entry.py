@@ -17,7 +17,7 @@ async def show_my_items(event: Message | CallbackQuery, item_service: ItemServic
         await event.answer()
 
     try:
-        items = await item_service.list_by_user(user.id)
+        items = await item_service.list_by_items_user_id(user.id)
     except ServiceError:
         # Ожидаемая бизнес-ошибка: коротко пользователю
         await send_reply(event, "⚠️ Не удалось загрузить ваши объявления. Попробуйте позже.")

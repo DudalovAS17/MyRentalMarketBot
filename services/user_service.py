@@ -3,10 +3,11 @@ from typing import Optional, FrozenSet
 from datetime import datetime, timezone
 
 from db.repositories.user import UserRepository
+from services.use_case.user import StartAction, StartEntryResult, can_use_bot
+
 from schemas.user import UserCreate, UserUpdate, UserOut, UserAdminUpdate
 from status.user_status import can_transition, AccountStatus
 from utils.errors import NotFoundError, ServiceError, ConflictError, ForbiddenError
-from services.use_case.user import StartAction, StartEntryResult
 
 logger = logging.getLogger(__name__)
 
@@ -20,12 +21,13 @@ class UserService:
     def _is_admin(self, tg_user_id: int) -> bool:
         return tg_user_id in self._admin_ids
 
+    # ────────────────────────────────────────── Read methods ──────────────────────────────────────────────────────────
     async def get_by_id(self, user_id: int, *, strict: bool = False) -> Optional[UserOut]:
         """Найти пользователя по ID"""
         user = await self.repo.get_by_id(user_id)
         if not user:
             if strict:
-                raise NotFoundError(f"User not found: id={user_id}")
+                raise NotFoundError(f"Пользователь не найден: id={user_id}")
             return None
 
         return UserOut.model_validate(user)
@@ -35,7 +37,7 @@ class UserService:
         user = await self.repo.get_by_telegram_id(telegram_id)
         if not user:
             if strict:
-                raise NotFoundError(f"User not found: tg_id={telegram_id}")
+                raise NotFoundError(f"Пользователь не найден: tg_id={telegram_id}")
             return None
 
         return UserOut.model_validate(user)
@@ -45,13 +47,13 @@ class UserService:
         users = await self.repo.list_all()
         return [UserOut.model_validate(o) for o in users]
 
-    # ────────────────────────────────────────────────────────────────────────────────────────────────
+    # ─────────────────────────────────────────── write methods ────────────────────────────────────────────────────────
     async def create(self, user_data: UserCreate) -> UserOut:
         """Создать нового пользователя"""
         user = await self.repo.create(user_data)
 
         dto = UserOut.model_validate(user)
-        logger.info("User created id=%s telegram_id=%s", dto.id, dto.telegram_id)
+        logger.info("Пользователь создан: id=%s telegram_id=%s", dto.id, dto.telegram_id)
         return dto
 
     async def update(self, user_id: int, update_data: UserUpdate, *, strict: bool = False) -> Optional[UserOut]:
@@ -63,7 +65,7 @@ class UserService:
             return None
 
         dto = UserOut.model_validate(user)
-        logger.info("User updated id=%s", dto.id)
+        logger.info("Пользователь обновлен: id=%s", dto.id)
         return dto
 
     async def delete(self, user_id: int, *, strict: bool = False) -> bool:
@@ -74,14 +76,14 @@ class UserService:
                 raise NotFoundError(f"Пользователь не найден: id={user_id}")
             return False
 
-        logger.info("User deleted id=%s", user_id)
+        logger.info("Пользователь удален: id=%s", user_id)
         return True
 
-    # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+    # ──────────────────────────────────────────── write-like methods ──────────────────────────────────────────────────
     async def register_or_update_user(self, user_data: UserCreate) -> UserOut:
         """Регистрация: создаёт пользователя или обновляет, если уже есть"""
         existing = await self.repo.get_by_telegram_id(user_data.telegram_id)
-        payload = user_data.model_dump(exclude_unset=True) # exclude_unset=True вынести?
+        payload = user_data.model_dump(exclude_unset=True)
 
         if existing: # если найден → обновляем
             logger.info("Пользователь с telegram_id=%s уже существует → обновляем", user_data.telegram_id)
@@ -95,14 +97,14 @@ class UserService:
         created = await self.repo.create(user_data)
         if not created:
             raise ServiceError(f"Не удалось создать пользователя telegram_id={user_data.telegram_id}")
-        logger.info("Created new user telegram_id=%s id=%s", created.telegram_id, created.id)
+        logger.info("Новый пользователь создан: telegram_id=%s id=%s", created.telegram_id, created.id)
 
         return UserOut.model_validate(created)
 
-    # ──────────────────────────────────────────── NEW (Admin-User logic) ────────────────────────────────────────
+    # ──────────────────────────────────────────── Admin-User logic ────────────────────────────────────────────────────
     async def ban_user(self, *, user_id: int, admin_user_id: int, reason: str, strict: bool = False) -> Optional[UserOut]:
         """Заблокировать пользователя с записью причины"""
-        if user_id == admin_user_id: # это БД или тг id?
+        if user_id == admin_user_id:
             raise ConflictError("Нельзя забанить самого себя")
 
         user = await self.repo.get_by_id(user_id)
@@ -111,22 +113,21 @@ class UserService:
                 raise NotFoundError(f"Пользователь не найден: id={user_id}")
             return None
 
-        if self._is_admin(user.telegram_id): # избавились от user.is_admin
+        if self._is_admin(user.telegram_id):
             raise ForbiddenError("Нельзя забанить администратора")
 
         current_status = user.account_status
         if not can_transition(current_status, AccountStatus.BANNED):
             if strict:
                 # Нельзя забанить пользователя: статус изменился или переход запрещён
-                raise ConflictError(f"Transition {current_status} -> {AccountStatus.BANNED} is not allowed")
+                raise ConflictError(f"Переход {current_status} -> {AccountStatus.BANNED} не разрешен.")
             return None
 
         update_data = UserAdminUpdate(
             account_status=AccountStatus.BANNED,
             banned_at=datetime.now(timezone.utc),
             banned_by_admin_id=admin_user_id,
-            ban_reason=reason,
-            #is_blocked=True # Убрали
+            ban_reason=reason
         )
 
         updated = await self.repo.update(user_id, update_data)
@@ -138,7 +139,7 @@ class UserService:
         return UserOut.model_validate(updated)
 
     async def unban_user(self, user_id: int, strict: bool = False) -> Optional[UserOut]:
-        """Разблокировать пользователя."""
+        """Разблокировать пользователя"""
         user = await self.repo.get_by_id(user_id)
         if not user:
             if strict:
@@ -149,15 +150,14 @@ class UserService:
         if not can_transition(current_status, AccountStatus.ACTIVE):
             if strict:
                 # Нельзя разбанить пользователя: статус изменился или переход запрещён
-                raise ConflictError(f"Transition {current_status} -> {AccountStatus.ACTIVE} is not allowed")
+                raise ConflictError(f"Переход {current_status} -> {AccountStatus.ACTIVE} не разрешен.")
             return None
 
         update_data = UserAdminUpdate(
             account_status=AccountStatus.ACTIVE,
             #banned_at=datetime.now(timezone.utc),
             #banned_by_admin_id=None,
-            #ban_reason=None,
-            #is_blocked=False # Убрали
+            #ban_reason=None
         )
 
         updated = await self.repo.update(user_id, update_data)
@@ -168,13 +168,14 @@ class UserService:
 
         return UserOut.model_validate(updated)
 
-    # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+    # ──────────────────────────────────────── User access ─────────────────────────────────────────────────────────────
     async def check_user_exists(self, telegram_id: int) -> bool:
         """Проверяет, существует ли пользователь с данным Telegram ID"""
         return await self.repo.exists_by_telegram_id(telegram_id)
 
     async def is_user_blocked(self, telegram_id: int, *, strict: bool = False) -> Optional[bool]:
-        """
+        """ Проверяет, заблокирован ли пользователь с данным telegram_id.
+
         True  — пользователь заблокирован (account_status == BANNED)
         False — не заблокирован
         None  — не найден (если strict=False)
@@ -187,15 +188,15 @@ class UserService:
 
         return user.account_status == AccountStatus.BANNED
 
-    # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+    # ───────────────────────────────────────── entry logic ────────────────────────────────────────────────────────────
     async def resolve_start_entry(self, telegram_id: int) -> StartEntryResult:
-        """ “Что делать, когда пользователь пришёл в /start?” """
+        """Определить, что делать, когда пользователь пришёл в /start"""
         user = await self.get_by_telegram_id(telegram_id)
 
         if not user:
             return StartEntryResult(action=StartAction.REGISTER)
 
-        if user.account_status != AccountStatus.ACTIVE:
+        if not can_use_bot(user.account_status): #if user.account_status != AccountStatus.ACTIVE:
             return StartEntryResult(action=StartAction.ACCESS_BLOCKED, user=user)
 
         return StartEntryResult(action=StartAction.MAIN_MENU, user=user)

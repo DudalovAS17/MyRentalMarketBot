@@ -36,8 +36,8 @@ async def load_item(
 
 async def load_item_category_context(category_service: CategoryService, item) -> tuple[str, str]: # item: Any
     try:
-        category = await category_service.get_category(item.category_id) if item.category_id else None
-        subcategory = await category_service.get_category(item.subcategory_id) if item.subcategory_id else None
+        category = await category_service.get_category_by_id(item.category_id) if item.category_id else None
+        subcategory = await category_service.get_category_by_id(item.subcategory_id) if item.subcategory_id else None
     except ServiceError:
         return "-", "-"
 
@@ -117,7 +117,7 @@ async def attach_item_photos_or_warn(
     #    return
 
     try:
-        await photo_service.add_photos(item_id, photos) # valid_photos
+        await photo_service.create_photos(item_id, photos)  # valid_photos
     except ServiceError: # просто предупреждаем пользователя и идём дальше
         if callback.message:
             await callback.message.answer(

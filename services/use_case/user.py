@@ -18,4 +18,5 @@ class StartEntryResult:
 
 
 def can_use_bot(status: AccountStatus) -> bool:
+    """Проверить, может ли пользователь пользоваться ботом"""
     return status == AccountStatus.ACTIVE

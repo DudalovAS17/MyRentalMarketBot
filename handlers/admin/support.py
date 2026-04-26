@@ -97,7 +97,7 @@ async def admin_support_view(callback: CallbackQuery, support_service: SupportSe
     """Показывает карточку тикета поддержки."""
     await callback.answer()
     ticket_id = int(callback.data.split(":")[-1])
-    ticket = await support_service.get_ticket(ticket_id)
+    ticket = await support_service.get_ticket_by_id(ticket_id)
 
     if not ticket:
         await send_or_edit(callback, f"❌ Тикет #{ticket_id} не найден.", None)
@@ -123,7 +123,7 @@ async def admin_support_reply_prompt(
 ):
     await callback.answer()
     ticket_id = int(callback.data.split(":")[-1])
-    ticket = await support_service.get_ticket(ticket_id)
+    ticket = await support_service.get_ticket_by_id(ticket_id)
 
     if not ticket:
         await send_or_edit(callback, f"❌ Тикет #{ticket_id} не найден.", None)
@@ -156,7 +156,7 @@ async def admin_support_reply_send(
         await state.clear()
         return await send_or_edit(message, "⚠️ Не удалось определить тикет. Попробуйте снова.")
 
-    ticket = await support_service.get_ticket(ticket_id)
+    ticket = await support_service.get_ticket_by_id(ticket_id)
     if not ticket:
         await state.clear()
         return await send_or_edit(message, f"❌ Тикет #{ticket_id} не найден.")
@@ -208,7 +208,7 @@ async def admin_support_close(
 ):
     """Закрытие тикета (без причины в MVP)"""
     ticket_id = int(callback.data.split(":")[-1])
-    ticket = await support_service.get_ticket(ticket_id)
+    ticket = await support_service.get_ticket_by_id(ticket_id)
     if not ticket:
         await send_or_edit(callback, f"❌ Тикет #{ticket_id} не найден.", None)
         await callback.answer()
@@ -222,7 +222,7 @@ async def admin_support_close(
         return
 
     # 1️⃣ Закрываем тикет
-    closed = await support_service.close_ticket(ticket_id=ticket_id, admin_id=int(user.telegram_id))
+    closed = await support_service.close_ticket_by_admin(ticket_id=ticket_id, admin_tg_id=)
     if not closed:
         await send_or_edit(callback, f"⚠️ Не удалось закрыть тикет #{ticket_id}.", None)
         await callback.answer()
@@ -248,7 +248,7 @@ async def admin_support_close(
     )
 
     # 4️⃣ Перерисовываем карточку тикета
-    updated_ticket = await support_service.get_ticket(ticket_id) or ticket
+    updated_ticket = await support_service.get_ticket_by_id(ticket_id) or ticket
 
     text = _format_ticket_card(updated_ticket, user)
     status_value = (

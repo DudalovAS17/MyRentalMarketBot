@@ -136,11 +136,8 @@ async def admin_items_approve(callback: CallbackQuery, item_service: ItemService
         await callback.answer("Некорректный ID", show_alert=True)
         return
 
-    updated = await item_service.admin_set_status(
-        item_id=item_id,
-        new_status="ACTIVE",
-        admin_id=callback.from_user.id, # Проверка “админ ли он” уже сделана раньше
-    )
+    updated = await item_service.admin_set_status(item_id=item_id, new_status="ACTIVE",
+                                                  admin_user_id=callback.from_user.id)
     if not updated:
         await callback.answer("Нельзя изменить статус", show_alert=True)
         return
@@ -181,12 +178,8 @@ async def admin_items_reject_apply(message: Message, state: FSMContext, item_ser
         return
 
     await state.clear()
-    updated = await item_service.admin_set_status(
-        item_id=item_id,
-        new_status="REJECTED",
-        admin_id=message.from_user.id,
-        reason=reason,
-    )
+    updated = await item_service.admin_set_status(item_id=item_id, new_status="REJECTED",
+                                                  admin_user_id=message.from_user.id, reason=reason)
     if not updated:
         await message.answer("❌ Нельзя изменить статус.")
         return
@@ -206,11 +199,8 @@ async def admin_items_hide(callback: CallbackQuery, item_service: ItemService) -
         await callback.answer("Некорректный ID", show_alert=True)
         return
 
-    updated = await item_service.admin_set_status(
-        item_id=item_id,
-        new_status="HIDDEN",
-        admin_id=callback.from_user.id,
-    )
+    updated = await item_service.admin_set_status(item_id=item_id, new_status="HIDDEN",
+                                                  admin_user_id=callback.from_user.id)
     if not updated:
         await callback.answer("Нельзя изменить статус", show_alert=True)
         return
@@ -230,11 +220,8 @@ async def admin_items_unhide(callback: CallbackQuery, item_service: ItemService)
         await callback.answer("Некорректный ID", show_alert=True)
         return
 
-    updated = await item_service.admin_set_status(
-        item_id=item_id,
-        new_status="ACTIVE",
-        admin_id=callback.from_user.id,
-    )
+    updated = await item_service.admin_set_status(item_id=item_id, new_status="ACTIVE",
+                                                  admin_user_id=callback.from_user.id)
     if not updated:
         await callback.answer("Нельзя изменить статус", show_alert=True)
         return

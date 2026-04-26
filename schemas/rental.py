@@ -25,7 +25,7 @@ class RentalUpdate(BaseModel):
     end_date: Optional[AwareDatetime] = None
     total_price: Optional[Decimal] = Field(default=None, ge=0)
     deposit_amount: Optional[Decimal] = Field(default=None, ge=0)
-
+    status: Optional[RentalStatus] = None
 
 class RentalOut(BaseModel):
     """Схема для возврата сделки наружу"""

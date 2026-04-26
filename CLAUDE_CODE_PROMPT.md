@@ -132,11 +132,10 @@ raise ItemNotAvailable(
 ИСПРАВИТЬ: убрать `.value` и `.isoformat()` — передавать enum и datetime напрямую.
 
 **8. handlers/support.py — вызов SupportTicketCreate вместо SupportTicketCreateInternal:**
+
 ```python
 # ❌ ТЕКУЩИЙ КОД — SupportTicketCreate НЕ имеет поля user_id
-ticket = await support_service.create_ticket(
-    SupportTicketCreate(user_id=user.id, telegram_id=..., text=text)
-)
+ticket = await support_service.create(ticket_data=)
 ```
 ИСПРАВИТЬ: использовать `SupportTicketCreateInternal(user_id=user.id, ...)`.
 

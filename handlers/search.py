@@ -63,12 +63,7 @@ async def _prompt_search_query(event: Message | CallbackQuery, state: FSMContext
 async def _fetch_search_page(query: str, page: int, item_service: ItemService):
     safe_page = max(page, 1)
     offset = (safe_page - 1) * PAGE_SIZE
-    items = await item_service.search( # Поиск объявлений по тексту
-        query,
-        available_only=True,
-        limit=PAGE_SIZE + 1,
-        offset=offset,
-    )
+    items = await item_service.search_items(query, available_only=True, limit=PAGE_SIZE + 1, offset=offset)
     has_next = len(items) > PAGE_SIZE
     return items[:PAGE_SIZE], has_next, safe_page # items[:PAGE_SIZE] - если пришло 9 → показываем первые 8
 

@@ -1,38 +1,24 @@
 import logging
-from typing import List, Optional
+from typing import Optional
 
 from db.repositories.rental import RentalRepository
-#from services.item_service import ItemService
-#from services.user_service import UserService
-#from services.notif_service import NotificationService
 
 from schemas.rental import RentalCreate, RentalUpdate, RentalOut, RentalWithRoleOut, RentalDetailsOut
 from schemas.item import ItemOut
 from schemas.user import UserOut
-from status.rental_status import is_open_status # is_terminal_status
-from status.rental_status import RentalStatus, RentalActorRole
+from status.rental_status import RentalStatus, RentalActorRole, is_open_status # is_terminal_status
 from utils.domain_exceptions import ItemNotAvailable
 from utils.errors import NotFoundError, ForbiddenError, ConflictError
 
 logger = logging.getLogger(__name__)
 
-
 class RentalService:
-    """Внутренний метод смены статуса.
-    Применяет строгие проверки ролей, доступа и текущего состояния сделки"""
+    """Сервис для работы со сделками аренды и их статусами"""
 
-    def __init__(
-        self,
-        rental_repo: RentalRepository,
-        #item_service: ItemService,
-        #user_service: UserService,
-        #notification_service: Optional[NotificationService] = None,
-    ):
+    def __init__(self, rental_repo: RentalRepository):
         self.rental_repo = rental_repo
-        #self.item_service = item_service
-        #self.user_service = user_service
-        #self.notification_service = notification_service
 
+    # ────────────────────────────────────────── Read methods ──────────────────────────────────────────────────────────
     async def get_by_id(self, rental_id: int, *, strict: bool = False) -> Optional[RentalOut]:
         """Возвращает сделку по ID"""
         rental = await self.rental_repo.get_by_id(rental_id)
@@ -44,7 +30,7 @@ class RentalService:
         return RentalOut.model_validate(rental)
 
     async def list_rentals_by_user(self, user_id: int) -> list[RentalOut]:
-        """Вернуть ВСЕ сделки, где пользователь арендатор или владелец."""
+        """Вернуть ВСЕ сделки, где пользователь арендатор или владелец"""
         rentals = await self.rental_repo.list_by_user_id(user_id)
         return [RentalOut.model_validate(r) for r in rentals]
 
@@ -60,13 +46,13 @@ class RentalService:
 
     async def list_user_rentals(self, user_id: int) -> list[RentalWithRoleOut]:
         """ Возвращает все сделки пользователя (как арендатор + как владелец)
-        с указанием роли пользователя в каждой сделке."""
+        с указанием роли пользователя в каждой сделке"""
 
         # Получаем ВСЕ сделки, где он участвует
-        rentals = await self.rental_repo.list_by_user_id(user_id) # Сортировка внутри репо
+        rentals = await self.rental_repo.list_by_user_id(user_id)
 
         # Размечаем каждую сделку ролями
-        result: List[RentalWithRoleOut] = []
+        result: list[RentalWithRoleOut] = []
         for r in rentals:
             user_role = RentalActorRole.RENTER if r.renter_id == user_id else RentalActorRole.OWNER
             dto = RentalOut.model_validate(r, from_attributes=True)
@@ -74,55 +60,12 @@ class RentalService:
 
         return result
 
-    # -------------------------------------------------------------------------------------------------------
-    async def create(self, data: RentalCreate) -> RentalOut:
-        """Создать новую сделку"""
-        rental = await self.rental_repo.create(data)
-
-        dto = RentalOut.model_validate(rental)
-        logger.info("Rental created id=%s", dto.id)
-        return dto
-
-    async def update(self, rental_id: int, data: RentalUpdate, *, strict: bool = False) -> Optional[RentalOut]:
-        """Обновление сделки"""
-        obj = await self.rental_repo.update(rental_id, data)
-        if not obj:
-            if strict:
-                raise NotFoundError(f"Сделка не найдена: id={rental_id}")
-            return None
-
-        dto = RentalOut.model_validate(obj)
-        logger.info("Rental updated id=%s", dto.id)
-        return dto
-
-    async def delete(self, rental_id: int, *, strict: bool = False) -> bool:
-        """Удалить сделку по id"""
-        deleted = await self.rental_repo.delete(rental_id)
-        if not deleted:
-            if strict:
-                raise NotFoundError(f"Сделка не найдена: id={rental_id}")
-            return False
-
-        logger.info("Rental deleted id=%s", rental_id)
-        return True
-
-    # -------------------------------------------------------------------------------------------------------
-
-    async def get_rental_details(
-            self,
-            rental_id: int,
-            current_user_id: int,
-            *,
-            strict: bool = False
-    ) -> Optional[RentalDetailsOut]:
+    async def get_rental_details(self, rental_id: int, current_user_id: int, *, strict: bool = False) -> Optional[RentalDetailsOut]:
         """Возвращает подробную информацию о сделке.
-        Доступ разрешён только арендатору или владельцу сделки."""
 
-        # Убрали, чтобы убрать зависимость от других сервисов. Работаем через get_details_by_id()
-        #rental = await self.rental_repo.get_by_id(rental_id)
+        Доступ разрешён только арендатору или владельцу сделки"""
+
         rental = await self.rental_repo.get_details_by_id(rental_id)
-        # теперь item -> rental.item, owner -> rental.owner и т.д.
-
         if not rental:
             if strict:
                 raise NotFoundError(f"Сделка не найдена: id={rental_id}")
@@ -135,14 +78,7 @@ class RentalService:
                 raise ForbiddenError("Нет доступа к сделке")
             return None
 
-        # Подгружаем товар
-        #item = await self.item_service.get_item_by_id(rental.item_id)
-
-        # Подгружаем участников
-        #renter = await self.user_service.get_by_id(rental.renter_id)
-        #owner = await self.user_service.get_by_id(rental.owner_id)
-
-        # ORM —> DTO
+        # Подгружаем товар / подгружаем участников (ORM —> DTO)
         item_dto = ItemOut.model_validate(rental.item) # if item else None
         renter_dto = UserOut.model_validate(rental.renter) # if renter else None
         owner_dto = UserOut.model_validate(rental.owner) # if owner else None
@@ -164,8 +100,39 @@ class RentalService:
             user_role=role
         )
 
+    # ─────────────────────────────────────────── write methods ────────────────────────────────────────────────────────
+    async def create(self, data: RentalCreate) -> RentalOut:
+        """Создать новую сделку"""
+        rental = await self.rental_repo.create(data)
 
-    # =======================  STATUS MANAGEMENT — ядро бизнес-логики  ====================================
+        dto = RentalOut.model_validate(rental)
+        logger.info("Создана сделка: id=%s", dto.id)
+        return dto
+
+    async def update(self, rental_id: int, data: RentalUpdate, *, strict: bool = False) -> Optional[RentalOut]:
+        """Обновление сделки"""
+        obj = await self.rental_repo.update(rental_id, data)
+        if not obj:
+            if strict:
+                raise NotFoundError(f"Сделка не найдена: id={rental_id}")
+            return None
+
+        dto = RentalOut.model_validate(obj)
+        logger.info("Сделка обновлена: id=%s", dto.id)
+        return dto
+
+    async def delete(self, rental_id: int, *, strict: bool = False) -> bool:
+        """Удалить сделку по id"""
+        deleted = await self.rental_repo.delete(rental_id)
+        if not deleted:
+            if strict:
+                raise NotFoundError(f"Сделка не найдена: id={rental_id}")
+            return False
+
+        logger.info("Сделка удалена: id=%s", rental_id)
+        return True
+
+    # ───────────────────────────────── STATUS MANAGEMENT — ядро бизнес-логики ─────────────────────────────────────────
     async def _transition(self,*, rental_id: int, actor_user_id: int,
                           actor_role: RentalActorRole,
                           expected_status: RentalStatus,
@@ -188,10 +155,10 @@ class RentalService:
 
         if not ok and strict:
             who = "владелец" if actor_role == RentalActorRole.OWNER else "арендатор"
-            diag = f"({expected_status.value} → {new_status.value}): статус изменился или {who} не имеет прав"
-            message = f"{err_msg}. {diag}" if err_msg else f"Нельзя выполнить действие {diag}"
-            # без детализации причины:
-            raise ConflictError(message)
+            diagonal = f"({expected_status.value} → {new_status.value}): статус изменился или {who} не имеет прав"
+            message = f"{err_msg}. {diagonal}" if err_msg else f"Нельзя выполнить действие {diagonal}"
+
+            raise ConflictError(message) # без детализации причины:
 
         return ok
 
@@ -333,14 +300,49 @@ class RentalService:
             raise ConflictError("Нельзя открыть спор: нет прав или статус уже изменился")
         return ok
 
-    # -------------------------------------
+    # ───────────────────────────────────── Admin-Rental logic 🔧 ──────────────────────────────────────────────────────
+    # Внутренний метод — ORM для доменной логики
+    async def _get_open_rental_for_item(self, item_id: int):
+        """Возвращает первую открытую аренду для item_id или None.
+
+        Внутренний метод: возвращает ORM-модель"""
+        rentals = await self.rental_repo.list_recent_open_by_item_id(item_id)
+        for rental in rentals:
+            if is_open_status(rental.status):
+                return rental
+
+        return None
+
+    # Публичный метод — только DTO
+    async def get_open_rental_for_item(self, item_id: int) -> Optional[RentalOut]:
+        """Возвращает первую открытую аренду для item_id в виде DTO или None"""
+        rental = await self._get_open_rental_for_item(item_id)
+        if rental is None:
+            return None
+
+        return RentalOut.model_validate(rental)
+
+    async def ensure_item_available(self, item_id: int) -> None:
+        """Доменная гарантия: item нельзя арендовать, если есть открытая аренда. Гарантирует или бросает исключение"""
+        open_rental = await self._get_open_rental_for_item(item_id)
+        if not open_rental:
+            return
+
+        raise ItemNotAvailable(
+            item_id=item_id,
+            rental_id=open_rental.id,
+            status=open_rental.status,
+            end_date=open_rental.end_date,
+        )
+
+    # ─────────────────────────────── Сценарий передачи / получения вещи ───────────────────────────────────────────────
     async def confirm_handover_by_owner(self, *, rental_id: int, owner_id: int, strict: bool = False) -> bool:
         """Владелец нажал 'Передал вещь' (CONFIRMED)"""
         ok = await self.rental_repo.try_set_owner_handover_confirmed(rental_id=rental_id, owner_id=owner_id)
 
         if not ok:
             if strict:
-                raise ConflictError( # ?
+                raise ConflictError(
                     "Нельзя подтвердить передачу вещи: статус изменился, нет прав, или действие уже подтверждено"
                 )
             return False
@@ -354,7 +356,7 @@ class RentalService:
         ok = await self.rental_repo.try_set_renter_confirm_receive(rental_id=rental_id, renter_id=renter_id)
         if not ok:
             if strict:
-                raise ConflictError( # ?
+                raise ConflictError(
                     "Нельзя подтвердить получение вещи: статус изменился, нет прав, или действие уже подтверждено"
                 )
             return False
@@ -362,48 +364,8 @@ class RentalService:
         # если владелец уже подтвердил передачу — активируем
         await self.rental_repo.try_activate_confirmed_rental(rental_id=rental_id)
         return True
-    # ---------------------------------------
 
-
-    # ============================  ADMIN MANAGEMENT — админка  =====================================
-    # Внутренний метод — ORM для доменной логики
-    async def _get_open_rental_for_item(self, item_id: int):
-        """ Возвращает первую открытую аренду для item_id или None.
-
-        Внутренний метод: возвращает ORM-модель"""
-        rentals = await self.rental_repo.list_recent_open_by_item_id(item_id)
-        for rental in rentals:
-            if is_open_status(rental.status):
-                return rental
-        return None
-
-    # Публичный метод — только DTO
-    async def get_open_rental_for_item(self, item_id: int) -> Optional[RentalOut]:
-        """Возвращает первую открытую аренду для item_id в виде DTO или None."""
-        rental = await self._get_open_rental_for_item(item_id)
-        if rental is None:
-            return None
-        return RentalOut.model_validate(rental)
-
-    # Тут для доменной проверки лучше работать с моделью БД Rental (без Pydantic-валидации RentalOut)
-    # (это быстрее и проще, и меньше шансов на “почему end_date не того типа”)
-    async def ensure_item_available(self, item_id: int) -> None:
-        """Доменная гарантия: item нельзя арендовать, если есть открытая аренда.
-        Гарантирует или бросает исключение.
-        """
-        open_rental = await self._get_open_rental_for_item(item_id)
-        if not open_rental:
-            return
-
-        raise ItemNotAvailable(
-            item_id=item_id,
-            rental_id=open_rental.id,
-            status=open_rental.status,
-            end_date=open_rental.end_date,
-        )
-    # ================================================================================================
-
-
-    # ------ Функция, чтобы убрать зависимость от rental_repo: RentalRepository в сервисе Item ---------
+    # ─────────────────────────────────────────────── Еще ──────────────────────────────────────────────────────────────
     async def has_open_rentals_for_item(self, item_id: int) -> bool:
+        """Проверить, есть ли у item открытые аренды"""
         return await self.rental_repo.has_open_rentals_for_item(item_id)

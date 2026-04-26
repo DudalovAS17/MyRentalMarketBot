@@ -39,8 +39,8 @@ async def show_subcategories(callback: CallbackQuery, state: FSMContext, categor
     """Показывает список подкатегорий выбранной категории"""
     await callback.answer()
 
-    category = await resolve_entity(callback, category_service.get_category, parse_callback(callback.data, CAT_CB_PREFIX),
-                                     invalid_id_text=not_cat_id, load_error_text=serv_err_cat, not_found_text=not_cat)
+    category = await resolve_entity(callback, category_service.get_category_by_id, parse_callback(callback.data, CAT_CB_PREFIX),
+                                    invalid_id_text=not_cat_id, load_error_text=serv_err_cat, not_found_text=not_cat)
 
     # UX-контекст: сохраняем выбор категории, сбрасываем подкатегорию
     await store_selected_category(state, category)
@@ -69,16 +69,16 @@ async def show_items_in_subcategory(
     """Показывает список объявлений в выбранной подкатегории (limit: ограничение по количеству объявлений)"""
     await callback.answer()
 
-    subcategory = await resolve_entity(callback, category_service.get_category,
-                                        parse_callback(callback.data, SUBCAT_CB_PREFIX),
-                                        invalid_id_text=not_subcat_id, load_error_text=serv_err_subcat, not_found_text=not_subcat)
+    subcategory = await resolve_entity(callback, category_service.get_category_by_id,
+                                       parse_callback(callback.data, SUBCAT_CB_PREFIX),
+                                       invalid_id_text=not_subcat_id, load_error_text=serv_err_subcat, not_found_text=not_subcat)
 
     # Сохраняем в контекст выбранную подкатегорию
     await store_selected_subcategory(state, subcategory)
 
     not_items = f"⚠️ В подкатегории <b>{subcategory.name}</b> пока нет объявлений."
-    items = await load_entity_or_notify(callback, item_service.list_by_subcategory, subcategory.id,
-                                                 invalid_id_text=not_subcat_id, load_error_text=serv_err_item, not_found_text=not_items)
+    items = await load_entity_or_notify(callback, item_service.list_items_by_subcategory, subcategory.id,
+                                        invalid_id_text=not_subcat_id, load_error_text=serv_err_item, not_found_text=not_items)
 
     items = items or []
     keyboard = build_items_keyboard(
@@ -144,7 +144,7 @@ async def show_all_photos(callback: CallbackQuery, photo_service: PhotoService) 
     # Логика: "если уже показывали" — пока оставим это.
 
     item_id = parse_callback(callback.data, SHOW_ALL_PHOTOS_CB)
-    photos = await load_entity_or_notify(callback, photo_service.get_photos, item_id,
+    photos = await load_entity_or_notify(callback, photo_service.get_photos_by_item_id, item_id,
                                          invalid_id_text=not_item_id, load_error_text=serv_err_photo, not_found_text=not_photos)
 
     # UX: стараемся убрать прошлый экран. Это не обязательно - но удобно.

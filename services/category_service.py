@@ -13,8 +13,8 @@ class CategoryService:
 
     def __init__(self, repo: CategoryRepository) -> None:
         self.repo = repo
-    # ───────────────────────────────────────────────────────────────────────────────────────────────────────
 
+    # ────────────────────────────────────────── Read methods ──────────────────────────────────────────────────────────
     async def list_main_categories(self) -> list[CategoryOut]:
         """Вернуть все категории без подкатегорий (parent_id = NULL)"""
         cats = await self.repo.list_roots()
@@ -30,26 +30,24 @@ class CategoryService:
         subs = await self.repo.list_subcategories(category_id)
         return [CategoryOut.model_validate(s) for s in subs]
 
-    async def get_category(self, category_id: int, *, strict: bool = False) -> Optional[CategoryOut]:
+    async def get_category_by_id(self, category_id: int, *, strict: bool = False) -> Optional[CategoryOut]:
         """Вернуть категорию по id"""
         cat = await self.repo.get_by_id(category_id)
         if not cat:
             if strict:
-                raise NotFoundError(f"Category not found: id={category_id}")
+                raise NotFoundError(f"Категория не найдена: id={category_id}")
             return None
 
         return CategoryOut.model_validate(cat)
 
-    # ───────────────────────────────────────────────────────────────────────────────────────────────────────
-    # Admin-only writes (логируем как admin action / бизнес-событие)
-
+    # ─────────────────────────────────────────── Admin write methods ──────────────────────────────────────────────────
     async def create(self, name: str, parent_id: Optional[int] = None) -> CategoryOut:
         """Создать категорию или подкатегорию"""
         normalized_name = validate_name(name)
 
         obj = await self.repo.create(name=normalized_name, parent_id=parent_id)
         dto = CategoryOut.model_validate(obj)
-        logger.info("Category created id=%s parent_id=%s", dto.id, parent_id)
+        logger.info("Создана категория: id=%s parent_id=%s", dto.id, parent_id)
         return dto
 
     async def update(
@@ -61,6 +59,7 @@ class CategoryService:
             strict: bool = False
     ) -> Optional[CategoryOut]:
         """Обновить категорию или подкатегорию"""
+
         normalized_name: Optional[str] = None
         if name is not None:
             normalized_name = validate_name(name)
@@ -72,7 +71,7 @@ class CategoryService:
             return None
 
         dto = CategoryOut.model_validate(obj)
-        logger.info("Category updated id=%s", dto.id)
+        logger.info("Категория обновлена: id=%s", dto.id)
         return dto
 
     async def delete(self, category_id: int, *, strict: bool = False) -> bool:
@@ -82,5 +81,6 @@ class CategoryService:
             if strict:
                 raise NotFoundError(f"Категория не найдена: id={category_id}")
             return False
-        logger.info("Category deleted id=%s", category_id)
+
+        logger.info("Категория удалена: id=%s", category_id)
         return True
