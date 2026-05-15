@@ -47,4 +47,3 @@ async def show_item_details(
         ch.item_details_text(item, category_name, subcategory_name),
         markup=build_my_item_details_keyboard(item)
     )
-    # data сейчас: id (item), name (-)

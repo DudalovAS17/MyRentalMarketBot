@@ -1,6 +1,8 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from status.item_status import ItemStatus
+from status.user_status import AccountStatus
 from schemas.rental import RentalAdminDetailsOut
+
 
 def get_admin_menu_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
@@ -31,7 +33,80 @@ def get_back_to_admin_menu_keyboard() -> InlineKeyboardMarkup:
     )
 
 
-# ============================================ ADMIN DEALS ================================================
+# ────────────────────────────────────────────────── ADMIN ITEMS ───────────────────────────────────────────────────────
+def get_admin_items_menu_keyboard() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="🟡 PENDING", callback_data="admin:items:filter:PENDING")],
+            [InlineKeyboardButton(text="✅ ACTIVE", callback_data="admin:items:filter:ACTIVE")],
+            [InlineKeyboardButton(text="🙈 HIDDEN", callback_data="admin:items:filter:HIDDEN")],
+            [InlineKeyboardButton(text="🔙 Назад в админ-меню", callback_data="admin:menu")],
+        ]
+    )
+
+def get_admin_items_list_keyboard(items: list, status: str, page: int, has_next: bool) -> InlineKeyboardMarkup: # status: ItemStatus
+    kb = []
+
+    for item in items:
+        kb.append(
+            [InlineKeyboardButton(text=f"🔎 Открыть #{item.id}", callback_data=f"admin:items:view:{item.id}")]
+        )
+
+    nav = []
+    if page > 1:
+        nav.append(InlineKeyboardButton(text="⬅️ Пред", callback_data=f"admin:items:page:{status}:{page-1}"))
+    if has_next:
+        nav.append(InlineKeyboardButton(text="➡️ След", callback_data=f"admin:items:page:{status}:{page+1}"))
+    if nav:
+        kb.append(nav)
+
+    #kb.append([InlineKeyboardButton(text="🔙 Назад в админ-меню", callback_data="admin:menu")])
+    kb.append([InlineKeyboardButton(text="🔙 Назад", callback_data="admin:items")])
+
+    return InlineKeyboardMarkup(inline_keyboard=kb)
+
+
+def get_admin_item_details_keyboard(item_id: int, status_value: ItemStatus) -> InlineKeyboardMarkup:
+    kb = []
+    kb.append([InlineKeyboardButton(text="🔄 Обновить", callback_data=f"admin:items:view:{item_id}")])
+
+    if status_value == ItemStatus.PENDING:
+        kb.append([InlineKeyboardButton(text="✅ Сделать ACTIVE", callback_data=f"admin:items:approve:{item_id}")])
+        kb.append([InlineKeyboardButton(text="❌ Reject", callback_data=f"admin:items:reject:{item_id}")])
+    if status_value == ItemStatus.ACTIVE:
+        kb.append([InlineKeyboardButton(text="🙈 Hide", callback_data=f"admin:items:hide:{item_id}")])
+    if status_value == ItemStatus.HIDDEN:
+        kb.append([InlineKeyboardButton(text="👁️ Unhide", callback_data=f"admin:items:unhide:{item_id}")])
+
+    kb.append([InlineKeyboardButton(text="🔙 К списку", callback_data="admin:items")])
+
+    return InlineKeyboardMarkup(inline_keyboard=kb)
+
+
+# ────────────────────────────────────────────────── ADMIN USERS ───────────────────────────────────────────────────────
+def get_admin_users_menu_keyboard() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="🔎 Найти по user_id", callback_data="admin:users:find")],
+            [InlineKeyboardButton(text="🔙 Назад в админ-меню", callback_data="admin:menu")],
+        ]
+    )
+
+def get_admin_user_card_keyboard(user_id: int, account_status: AccountStatus) -> InlineKeyboardMarkup:
+    kb = []
+
+    if account_status == AccountStatus.ACTIVE:
+        kb.append([InlineKeyboardButton(text="🚫 Ban", callback_data=f"admin:users:ban:{user_id}")])
+    elif account_status == AccountStatus.BANNED:
+        kb.append([InlineKeyboardButton(text="✅ Unban", callback_data=f"admin:users:unban:{user_id}")])
+
+    kb.append([InlineKeyboardButton(text="🔄 Обновить", callback_data=f"admin:users:view:{user_id}")])
+    kb.append([InlineKeyboardButton(text="🔙 Назад", callback_data="admin:users")])
+
+    return InlineKeyboardMarkup(inline_keyboard=kb)
+
+
+# ────────────────────────────────────────────────── ADMIN DEALS ───────────────────────────────────────────────────────
 def get_admin_deals_list_keyboard(rentals_rows: list[RentalAdminDetailsOut], page: int, has_next: bool) -> InlineKeyboardMarkup:
     kb = []
 
@@ -80,9 +155,9 @@ def get_admin_dispute_target_keyboard(rental_id: int) -> InlineKeyboardMarkup:
             [InlineKeyboardButton(text="🔙 Отмена", callback_data=f"admin:deals:view:{rental_id}")],
         ]
     )
-# ==============================================================================================================
 
-# ============================================ ADMIN SUPPORT =============================================
+
+# ───────────────────────────────────────────────── ADMIN SUPPORT ──────────────────────────────────────────────────────
 def get_admin_support_list_keyboard(tickets_rows: list[dict], page: int, has_next: bool) -> InlineKeyboardMarkup:
     kb = []
 
@@ -136,81 +211,3 @@ def get_admin_support_menu_kb() -> InlineKeyboardMarkup:
             [InlineKeyboardButton(text="🔙 Назад в админ-меню", callback_data="admin:menu")],
         ]
     )
-# ==============================================================================================================
-
-# ============================================ ADMIN USERS ================================================
-def get_admin_users_menu_keyboard() -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [InlineKeyboardButton(text="🔎 Найти по user_id", callback_data="admin:users:find")],
-            [InlineKeyboardButton(text="🔙 Назад в админ-меню", callback_data="admin:menu")],
-        ]
-    )
-
-def get_admin_user_card_keyboard(user_id: int, account_status: ItemStatus) -> InlineKeyboardMarkup:
-    kb = []
-
-    if account_status == "ACTIVE":
-        kb.append([InlineKeyboardButton(text="🚫 Ban", callback_data=f"admin:users:ban:{user_id}")])
-    elif account_status == "BANNED":
-        kb.append([InlineKeyboardButton(text="✅ Unban", callback_data=f"admin:users:unban:{user_id}")])
-
-    kb.append([InlineKeyboardButton(text="🔄 Обновить", callback_data=f"admin:users:view:{user_id}")])
-    kb.append([InlineKeyboardButton(text="🔙 Назад", callback_data="admin:users")])
-
-    return InlineKeyboardMarkup(inline_keyboard=kb)
-# =========================================================================================================
-
-# ============================================ ADMIN ITEMS ================================================
-def get_admin_items_menu_keyboard() -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [InlineKeyboardButton(text="🟡 PENDING", callback_data="admin:items:filter:PENDING")],
-            [InlineKeyboardButton(text="✅ ACTIVE", callback_data="admin:items:filter:ACTIVE")],
-            [InlineKeyboardButton(text="🙈 HIDDEN", callback_data="admin:items:filter:HIDDEN")],
-            [InlineKeyboardButton(text="🔙 Назад в админ-меню", callback_data="admin:menu")],
-        ]
-    )
-
-def get_admin_items_list_keyboard(
-        items: list,
-        status: ItemStatus,
-        page: int,
-        has_next: bool
-) -> InlineKeyboardMarkup:
-    kb = []
-
-    for item in items:
-        kb.append(
-            [InlineKeyboardButton(text=f"🔎 Открыть #{item.id}", callback_data=f"admin:items:view:{item.id}")]
-        )
-
-    nav = []
-    if page > 1:
-        nav.append(InlineKeyboardButton(text="⬅️ Пред", callback_data=f"admin:items:page:{status}:{page-1}"))
-    if has_next:
-        nav.append(InlineKeyboardButton(text="➡️ След", callback_data=f"admin:items:page:{status}:{page+1}"))
-    if nav:
-        kb.append(nav)
-
-    #kb.append([InlineKeyboardButton(text="🔙 Назад в админ-меню", callback_data="admin:menu")])
-    kb.append([InlineKeyboardButton(text="🔙 Назад", callback_data="admin:items")])
-
-    return InlineKeyboardMarkup(inline_keyboard=kb)
-
-def get_admin_item_details_keyboard(item_id: int, status_value: str) -> InlineKeyboardMarkup:
-    kb = []
-    kb.append([InlineKeyboardButton(text="🔄 Обновить", callback_data=f"admin:items:view:{item_id}")])
-
-    if status_value == "PENDING":
-        kb.append([InlineKeyboardButton(text="✅ Сделать ACTIVE", callback_data=f"admin:items:approve:{item_id}")])
-        kb.append([InlineKeyboardButton(text="❌ Reject", callback_data=f"admin:items:reject:{item_id}")])
-    if status_value == "ACTIVE":
-        kb.append([InlineKeyboardButton(text="🙈 Hide", callback_data=f"admin:items:hide:{item_id}")])
-    if status_value == "HIDDEN":
-        kb.append([InlineKeyboardButton(text="👁️ Unhide", callback_data=f"admin:items:unhide:{item_id}")])
-
-    kb.append([InlineKeyboardButton(text="🔙 К списку", callback_data="admin:items")])
-
-    return InlineKeyboardMarkup(inline_keyboard=kb)
-# ==============================================================================================================

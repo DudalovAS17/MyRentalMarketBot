@@ -25,22 +25,27 @@ def get_days_str(days: int) -> str:
 
 # ─────────────────────────────────────────────────flow_create──────────────────────────────────────────────────────────
 def extract_item_text_input(message: Message) -> str:
+    """Извлечь текстовый ввод пользователя"""
     return (message.text or "").strip()
 
 def extract_item_money_input(message: Message) -> str:
+    """Извлечь денежный ввод пользователя и нормализовать десятичный разделитель"""
     return (message.text or "").strip().replace(",", ".") # Преобразуем введённое значение в число
 
 def format_money_value(value: Decimal | int | float | None) -> str:
+    """Сформатировать денежное значение для UI"""
     if value is None:
         return format_price(Decimal("0"))
     return format_price(value)
 
 def format_deposit_value(value: Decimal | int | float | None) -> str:
+    """Сформатировать значение залога для UI"""
     if not value:
         return "Без залога" # Decimal("0")?
     return f"{format_price(value)} ₽"
 
 def format_photos_count(count: int) -> str:
+    """Сформатировать количество фотографий для UI"""
     if count == 0:
         return "нет фото"
     if count == 1:
@@ -49,9 +54,8 @@ def format_photos_count(count: int) -> str:
         return f"{count} фото"
     return f"{count} фото"
 
-
-
 async def render_create_item_step_message(message: Message, text: str, step: int, total_steps: int = 6) -> None:
+    """Отправить сообщение текущего шага создания объявления"""
     await message.answer(
         format_step(text, step, total_steps),
         parse_mode="HTML",

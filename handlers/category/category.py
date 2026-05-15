@@ -1,4 +1,3 @@
-import logging
 from aiogram import Router, F
 from aiogram.types import CallbackQuery
 from aiogram.fsm.context import FSMContext
@@ -11,7 +10,7 @@ from handlers.category.category_helpers.texts import (item_details_text, not_cat
                                                       serv_err_subcat, not_subcat, not_item_id, not_item, serv_err_item,
                                                       serv_err_photo, not_photos) # serv_err_items
 
-from handlers.category.category_helpers.validate import busy_until_text, build_photo_media
+from handlers.category.category_helpers.formatters import busy_until_text, build_photo_media
 from handlers.entries.category_entry import show_categories
 from services.item_service import ItemService
 from services.category_service import CategoryService
@@ -24,13 +23,11 @@ from utils.errors import ServiceError
 from utils.callbacks import (CAT_CB_PREFIX, SUBCAT_CB_PREFIX, ITEM_DETAILS_CB, SHOW_ALL_PHOTOS_CB, BACK_TO_CAT)
 from utils.validators import parse_callback
 
-logger = logging.getLogger(__name__)
 category_router = Router()
 
-# 🧱 ⚙️ ────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 @category_router.callback_query(F.data == BACK_TO_CAT)
 async def back_to_categories(callback: CallbackQuery, category_service: CategoryService) -> None:
-    """Кнопка '🔙 Назад' → возвращаемся к списку категорий."""
+    """Кнопка '🔙 Назад' → возвращаемся к списку категорий"""
     await show_categories(callback, category_service)
 
 
@@ -42,20 +39,18 @@ async def show_subcategories(callback: CallbackQuery, state: FSMContext, categor
     category = await resolve_entity(callback, category_service.get_category_by_id, parse_callback(callback.data, CAT_CB_PREFIX),
                                     invalid_id_text=not_cat_id, load_error_text=serv_err_cat, not_found_text=not_cat)
 
-    # UX-контекст: сохраняем выбор категории, сбрасываем подкатегорию
+    # сохраняем выбор категории, сбрасываем подкатегорию
     await store_selected_category(state, category)
 
     not_subcats = f"⚠️ В категории <b>{category.name}</b> пока нет подкатегорий."
     subcategories = await load_entity_or_notify(callback, category_service.list_subcategories, category.id,
                                                  invalid_id_text=not_cat_id, load_error_text=serv_err_cat, not_found_text=not_subcats)
 
-    subcategories = subcategories or []
     await send_or_edit(
         callback,
         f"🔍 <b>Поиск в категории {category.name}</b>\n\n Выберите подкатегорию:",
         markup=build_subcategories_keyboard(subcategories, category)
     )
-    # data сейчас: id (category), name (category)
 
 
 @category_router.callback_query(F.data.startswith(SUBCAT_CB_PREFIX))
@@ -64,9 +59,8 @@ async def show_items_in_subcategory(
     state: FSMContext,
     item_service: ItemService,
     category_service: CategoryService,
-    #limit: int = 10
 ) -> None:
-    """Показывает список объявлений в выбранной подкатегории (limit: ограничение по количеству объявлений)"""
+    """Показывает список объявлений в выбранной подкатегории"""
     await callback.answer()
 
     subcategory = await resolve_entity(callback, category_service.get_category_by_id,
@@ -80,7 +74,6 @@ async def show_items_in_subcategory(
     items = await load_entity_or_notify(callback, item_service.list_items_by_subcategory, subcategory.id,
                                         invalid_id_text=not_subcat_id, load_error_text=serv_err_item, not_found_text=not_items)
 
-    items = items or []
     keyboard = build_items_keyboard(
         items,
         parent_category_id=subcategory.parent_id,
@@ -89,7 +82,6 @@ async def show_items_in_subcategory(
     )
     message_text = f"📋 Объявления в подкатегории <b>{subcategory.name}</b>\n\n Выберите объявление:"
     await send_or_edit(callback, message_text, markup=keyboard)
-    # data сейчас: id (category|subcategory), name (category|subcategory)
 
 
 @category_router.callback_query(F.data.startswith(ITEM_DETAILS_CB))
@@ -97,7 +89,6 @@ async def show_item_details_in_subcategory(
     callback: CallbackQuery,
     state: FSMContext,
     item_service: ItemService,
-    #photo_service: PhotoService,
     rental_service: RentalService,
 ) -> None:
     """Просмотр всех деталей конкретного объявления"""
@@ -110,8 +101,8 @@ async def show_item_details_in_subcategory(
     await store_selected_item(state, item.id)
 
     data = await state.get_data()
-    category_name = data.get("selected_category_name", "Неизвестно") # data.get() or "—"
-    subcategory_name = data.get("selected_subcategory_name", "Неизвестно") # data.get() or "—"
+    category_name = data.get("selected_category_name", "Неизвестно")
+    subcategory_name = data.get("selected_subcategory_name", "Неизвестно")
     selected_subcategory_id = data.get("selected_subcategory_id")
 
     # Формируем детальную информацию
@@ -130,24 +121,19 @@ async def show_item_details_in_subcategory(
         end_date = busy_until_text(open_rental)
     )
 
-    # Логика "отправляем главное фото" - возможно реализуем позже
-
     await send_or_edit(callback, item_details, markup=keyboard)
-    # data сейчас: id (category|subcategory|item), name (category|subcategory)
 
 
 @category_router.callback_query(F.data.startswith(SHOW_ALL_PHOTOS_CB))
-async def show_all_photos(callback: CallbackQuery, photo_service: PhotoService) -> None: # state: FSMContext,
-    """Показать все фотографии объявления (альбомом)."""
+async def show_all_photos(callback: CallbackQuery, photo_service: PhotoService) -> None:
+    """Показать все фотографии объявления (альбомом)"""
     await callback.answer()
-
-    # Логика: "если уже показывали" — пока оставим это.
 
     item_id = parse_callback(callback.data, SHOW_ALL_PHOTOS_CB)
     photos = await load_entity_or_notify(callback, photo_service.get_photos_by_item_id, item_id,
                                          invalid_id_text=not_item_id, load_error_text=serv_err_photo, not_found_text=not_photos)
 
-    # UX: стараемся убрать прошлый экран. Это не обязательно - но удобно.
+    # UX: убрать прошлый экран
     try:
         await callback.message.delete()
     except TelegramBadRequest:
@@ -155,9 +141,6 @@ async def show_all_photos(callback: CallbackQuery, photo_service: PhotoService) 
 
     # Отправляем альбом (это всегда новое сообщение)
     photos = photos or []
-    #media = []
-    #for p in photos:
-    #    media.append(InputMediaPhoto(media=p.telegram_file_id))
     media = build_photo_media(photos)
     await callback.message.answer_media_group(media)
 
@@ -166,4 +149,3 @@ async def show_all_photos(callback: CallbackQuery, photo_service: PhotoService) 
         "📸 <b>Все фото объявления</b>",
         markup=build_back_to_item_details_keyboard(item_id)
     )
-    # data сейчас: id (category|subcategory|item), name (category|subcategory)

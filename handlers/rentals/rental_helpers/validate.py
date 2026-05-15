@@ -3,57 +3,37 @@ from aiogram.fsm.context import FSMContext
 from datetime import datetime, timezone, time, date
 from decimal import Decimal
 
-from handlers.rentals import create_helpers as ch
+from handlers.rentals.rental_helpers.texts import format_item_not_available_message, date_err_msg
 from services.rental_service import RentalService
+
+from schemas.item import ItemOut
 from utils.functions import send_or_edit, abort_rent_flow
 from utils.domain_exceptions import ItemNotAvailable
 
 
+# ──────────────────────────────────────── PARSE ───────────────────────────────────────────────────────────────────────
 def parse_rent_item_id(data: str | None) -> int | None:
+    """Распарсить item_id из callback data начала аренды"""
     if not data:
         return None
 
     try:
-        return int(data.split(":", 1)[1])
+        raw_value = data.split(":", 1)[1]
+        return int(raw_value)
     except (IndexError, ValueError):
         return None
 
 
-# Проверь, выполняет ли она свою функцию!
-# доменная проверка доступности (защита от старых кнопок/гонок) (ДО запуска выбора дат)
-# тут не должен быть пользователь (кнопки нет), но это защита от: старых сообщений, параллельных кликов, гонок.
-async def ensure_rent_item_available_or_notify(callback: CallbackQuery, rental_service: RentalService, item_id: int) -> bool:
-    """Доменная проверка доступности (страховка от гонок). Гарантирует или бросает исключение"""
-    try:
-        await rental_service.ensure_item_available(item_id)
-    except ItemNotAvailable as exc:
-        # Recoverable: вещь занята, просто показываем сообщение
-        await callback.message.answer(ch.format_item_not_available_message(exc))
-        return True # вещь недоступна, сообщение уже показано
-
-    return False # вещь доступна
-
-
-async def reject_own_item_rent(callback: CallbackQuery, item, user_id: int) -> bool:
-    """Guard: нельзя арендовать своё"""
-    if item.user_id == user_id:
-        # Recoverable: пользователь просто ошибся, FSM не чистим
-        await send_or_edit(callback, "Вы не можете арендовать свою собственную вещь.")
-        return True
-
-    return False
-
-
 async def parse_and_valid_start_date_str(callback: CallbackQuery, state: FSMContext) -> tuple[str, date] | None:
+    """Распарсить и проверить дату начала аренды из callback data"""
     try:
         start_str = callback.data.split(":", 1)[1]  # dd.mm.YYYY (12.03.2025)
         start_date = datetime.strptime(start_str, "%d.%m.%Y").date()  # date(2025, 3, 12)
     except (IndexError, ValueError):
-        # Fatal: битый callback-data → завершаем flow
-        await abort_rent_flow(callback, state, ch.date_err_msg)
+        await abort_rent_flow(callback, state, date_err_msg)
         return None
 
-    validation_error = ch.validate_rent_start_date(start_date)
+    validation_error = validate_rent_start_date(start_date)
     if validation_error:
         await send_or_edit(callback, validation_error)
         return None
@@ -61,15 +41,8 @@ async def parse_and_valid_start_date_str(callback: CallbackQuery, state: FSMCont
     return start_str, start_date
 
 
-def validate_rent_start_date(start_date: date) -> str | None:
-    """защита от tampered callback: нельзя выбрать дату начала в прошлом или сегодня"""
-    today = datetime.now(timezone.utc).date()
-    if start_date <= today:
-        return "❌ Дата начала должна быть не раньше завтрашнего дня."
-    return None
-
-
 async def parse_and_validate_end_date(callback: CallbackQuery, state: FSMContext) -> tuple[str, date, int] | None:
+    """Распарсить дату окончания и длительность аренды из callback data"""
     try:
         payload = callback.data.split(":", 2) # "end_date:DD.MM.YYYY:<days>" (:12.03.2025:3)
         end_str = payload[1] # "15.03.2025"
@@ -80,11 +53,63 @@ async def parse_and_validate_end_date(callback: CallbackQuery, state: FSMContext
         return None
 
     if days < 1:
-        # Fatal: некорректная длительность (кнопка битая) → завершаем flow
         await abort_rent_flow(callback, state, "❌ Некорректная длительность аренды.")
         return None
 
     return end_str, end_date, days
+
+
+def parse_rental_id(data: str | None) -> int | None:
+    """Распарсить rental_id из callback data действия сделки.
+
+    Ожидаем формат жёсткий формат: ["rental_action", "confirm", "<id>"]"""
+    if not data:
+        return None
+
+    try:
+        _, _, raw_rental_id = data.split(":", 2)
+        return int(raw_rental_id)
+    except (IndexError, ValueError):
+        return None
+
+
+async def get_rental_id_or_alert(callback: CallbackQuery) -> int | None:
+    """Получить rental_id из callback data или показать alert"""
+    rental_id = parse_rental_id(callback.data)
+
+    if rental_id is None:
+        await callback.answer("Некорректная кнопка.", show_alert=True)
+        return None
+
+    return rental_id
+
+# ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+async def ensure_rent_item_available_or_notify(callback: CallbackQuery, rental_service: RentalService, item_id: int) -> bool:
+    """Доменная проверка доступности (страховка от гонок). Гарантирует или бросает исключение"""
+    try:
+        await rental_service.ensure_item_available(item_id)
+    except ItemNotAvailable as exc:
+        await callback.message.answer(format_item_not_available_message(exc))
+        return True
+
+    return False
+
+# ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+async def reject_own_item_rent(callback: CallbackQuery, item: ItemOut, user_id: int) -> bool:
+    """Показать ранний UX-guard, если пользователь пытается арендовать свою вещь"""
+    if item.user_id == user_id:
+        await send_or_edit(callback, "Вы не можете арендовать свою собственную вещь.")
+        return True
+
+    return False
+
+# ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+def validate_rent_start_date(start_date: date) -> str | None:
+    """защита от tampered callback: нельзя выбрать дату начала в прошлом или сегодня"""
+    today = datetime.now(timezone.utc).date()
+    if start_date <= today:
+        return "❌ Дата начала должна быть не раньше завтрашнего дня."
+    return None
 
 
 async def validate_rent_dates(
@@ -99,7 +124,6 @@ async def validate_rent_dates(
         start_date = datetime.strptime(start_date_str, "%d.%m.%Y").date()
         end_date = datetime.strptime(end_date_str, "%d.%m.%Y").date()
     except ValueError:
-        # Fatal: даты битые → завершаем flow
         await abort_rent_flow(callback, state,
             "❌ Некорректные даты. Начните заново.",
             rent_ui_message_id=rent_ui_message_id,
@@ -107,13 +131,11 @@ async def validate_rent_dates(
         return None
 
     if end_date <= start_date:
-        # Recoverable: логическая ошибка → остаёмся в confirmation
         await send_or_edit(callback, "❌ Дата окончания должна быть позже даты начала.")
         return None
 
-    tz = datetime.now(timezone.utc).astimezone().tzinfo
-    start_dt = datetime.combine(start_date, time.min).replace(tzinfo=tz)
-    end_dt = datetime.combine(end_date, time.min).replace(tzinfo=tz)
+    start_dt = datetime.combine(start_date, time.min, tzinfo=timezone.utc)
+    end_dt = datetime.combine(end_date, time.min, tzinfo=timezone.utc)
 
     days_count = (end_date - start_date).days
 
@@ -126,9 +148,10 @@ async def validate_rent_period_or_notify(
     start_date_str: str,
     end_date: date,
     days: int,
-    item,
+    item: ItemOut,
     rent_ui_message_id: int | None,
 ) -> int | None: # tuple[date, int] | None
+    """Проверить длительность аренды по ограничениям вещи и показать UX-ошибку"""
     try:
         start_date = datetime.strptime(start_date_str, "%d.%m.%Y").date()
     except ValueError:
@@ -141,34 +164,31 @@ async def validate_rent_period_or_notify(
         return None
 
     if end_date <= start_date:
-        # Recoverable: пользователь выбрал “не туда” → остаёмся в шаге end_date (без clear)
         await send_or_edit(callback, "❌ Дата окончания должна быть позже даты начала.")
         return None
 
     # (опционально) проверим длительность по датам
     actual_days = (end_date - start_date).days
     if actual_days != days:
-        # Recoverable: не фейлим, а синхронизируем на фактическое значение
         days = actual_days
 
     min_days = item.min_rental_period or 1
     max_days = item.max_rental_period or 30
 
     if days < min_days:
-        # Recoverable: коротко → остаёмся на выборе end_date
         await send_or_edit(callback, f"❌ Минимальный срок аренды: {min_days} дн.")
         return None
 
     if days > max_days:
-        # Recoverable: длинно → остаёмся на выборе end_date
         await send_or_edit(callback, f"❌ Максимальный срок аренды: {max_days} дн.")
         return None
 
     return days # start_date
 
+# ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+def calculate_total_rent_price(price_per_day: Decimal | int | float, days: int) -> tuple[Decimal, Decimal]:
+    """Рассчитать цену за день и итоговую стоимость аренды"""
 
-def calculate_total_rent_price(price_per_day: Decimal | int | float, days: int) -> tuple[Decimal, Decimal] | None:
-    # price может быть Decimal — ок. Если вдруг float/int — приведём к Decimal.
     normalized_price = (
         price_per_day
         if isinstance(price_per_day, Decimal)

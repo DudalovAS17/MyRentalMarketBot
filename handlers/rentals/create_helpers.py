@@ -1,5 +1,5 @@
 
-from handlers.rentals.rental_helpers.load import (load_item, get_rent_end_date_context_or_abort, get_rent_confirm_context_or_abort, )
+from handlers.rentals.rental_helpers.load import (load_item_or_abort, get_rent_end_date_context_or_abort, get_rent_confirm_context_or_abort, )
 
 from handlers.rentals.rental_helpers.texts import (not_item_id, not_item_for_rental, not_item, serv_item_err, date_err_msg,
                                                    rental_data_err, not_all_rental_data_err, no_rent_data_err, cancel_rent,

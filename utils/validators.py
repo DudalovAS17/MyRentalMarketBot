@@ -17,3 +17,25 @@ def parse_callback(data: str | None, prefix: str) -> int | None: # _parse_callba
         return int(raw_value)
     except (TypeError, ValueError):
         return None
+
+
+""" parse_callback(data, prefix) как раз умеет:
+- проверить prefix;
+- отрезать prefix;
+- преобразовать остаток в int;
+- вернуть None, если что-то не так.
+
+
+    Это:
+        try:
+            rental_id = int(callback.data.split(":")[1]) # split(":", 1)
+        except (IndexError, ValueError):
+            await callback.answer("Некорректная сделка.", show_alert=True)
+            return
+        
+    реализуется через:    
+        rental_id = parse_callback(callback.data, RENTAL_DETAILS_CB)
+            if rental_id is None:
+                await callback.answer("Некорректная сделка.", show_alert=True)
+                return
+"""

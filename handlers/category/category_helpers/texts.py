@@ -1,3 +1,4 @@
+from schemas.item import ItemOut
 from utils.functions import format_price, format_days
 
 not_cat_id = "⚠️ Не удалось распознать категорию."
@@ -11,17 +12,18 @@ not_subcat = "⚠️ Подкатегория не найдена"
 not_item_id = "⚠️ Не удалось распознать объявление."
 not_item = "⚠️ Объявление не найдено"
 serv_err_item = "⚠️ Не удалось загрузить объявление. Попробуйте позже."
-serv_err_items = "⚠️ Не удалось загрузить объявления. Попробуйте позже." # тут путаница?
+serv_err_items = "⚠️ Не удалось загрузить объявления. Попробуйте позже."
 
 serv_err_photo = "⚠️ Не удалось загрузить фото. Попробуйте позже."
 not_photos = "⚠️ Фото для этого объявления не найдены." # 📭 У этого объявления нет фотографий
 
-def item_details_text(item, category_name: str, subcategory_name: str) -> str: # item: Any
+def item_details_text(item: ItemOut, category_name: str, subcategory_name: str) -> str:
+    """Сформировать текст карточки объявления для category-flow"""
     description = item.description or "Описание не указано"
     location = item.location or "Не указано"
     min_rental_period = item.min_rental_period or 1
     deposit_text = f"{format_price(item.deposit)} ₽" if item.deposit else "Без залога"
-    availability_text = "Доступно для аренды" if item.is_available else "Временно недоступно"
+    #availability_text = "Доступно для аренды" if item.is_available else "Временно недоступно"
 
     return (
         f"📦 <b>{item.title}</b>\n\n"
@@ -33,5 +35,5 @@ def item_details_text(item, category_name: str, subcategory_name: str) -> str: #
         f"📍 <b>Местоположение:</b> {location}\n"
         #f"👤 <b>Владелец:</b> {item.user_id}\n"
         #f"⭐ <b>Рейтинг:</b> ... ({item.views_count} отзывов)\n"
-        f"✅ <b>Доступность:</b> {availability_text}\n\n"
+        #f"✅ <b>Доступность:</b> {availability_text}\n\n"
     )

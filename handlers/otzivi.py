@@ -1,43 +1,3 @@
-import logging
-from aiogram import Router
-from aiogram.types import CallbackQuery
-from aiogram.exceptions import TelegramBadRequest
-
-logger = logging.getLogger(__name__)
-rental_router = Router(name="items")
-
-# Константы для callback_data
-RENTAL_CB = "rental"
-RETURN_CB = "return"
-CONFIRM_CB = "confirm"
-REVIEW_CB = "review"
-DISPUTE_CB = "dispute"
-CANCEL_CB = "cancel"
-BACK_CB = "back"
-ITEM_DETAILS = "item_details:"
-RENT_ITEM_CB = "rent_item:"
-START_DATE_CB = "start_date:"
-END_DATE_CB = "end_date:"
-CONFIRM_RENT_CB = "confirm_rent"
-
-BACK_TO_MENU_CB = "back_to_main_menu" # "back_to_menu" # "menu:main"
-MY_RENTALS_CB = "rental_list" # back_to_rentals
-RENTAL_DETAILS_CB = "rental_details:"
-CANCEL_RENT_FLOW_CB = "cancel_rent_flow" # new
-
-
-# ✅ Обновляем UI: безопасно (иногда это caption/photo)
-# await _safe_edit(callback, "✅ Заявка подтверждена владельцем.")
-async def _safe_edit(callback: CallbackQuery, text: str, reply_markup=None):
-    msg = callback.message
-    try:
-        if msg.text is not None:
-            return await msg.edit_text(text, reply_markup=reply_markup, parse_mode="HTML")
-        # если это фото/медиа с подписью
-        return await msg.edit_caption(caption=text, reply_markup=reply_markup, parse_mode="HTML")
-    except TelegramBadRequest:
-        # fallback: если редактирование невозможно — отправим новым сообщением
-        return await msg.answer(text, reply_markup=reply_markup, parse_mode="HTML")
 
 # =========================================== ОТЗЫВЫ =================================================
 """Базовые инварианты (очень важно)
@@ -46,7 +6,7 @@ async def _safe_edit(callback: CallbackQuery, text: str, reply_markup=None):
 3) Отзыв можно оставить только после завершения аренды
 4) Рецензент и получатель — разные пользователи
 5) Рейтинг строго 1–5
-6) Отзыв нельзя изменить после публикации (можно расширить потом) 
+6) Отзыв нельзя изменить после публикации (можно расширить потом)
 
 
 @rental_router.callback_query(F.data.startswith("rental_action:review:"))
