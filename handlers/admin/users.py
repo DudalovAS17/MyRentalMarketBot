@@ -2,7 +2,6 @@ from aiogram import Router, F
 from aiogram.types import CallbackQuery, Message
 from aiogram.fsm.context import FSMContext
 
-
 from services.user_service import UserService
 from .admin_helpers.file_users import show_user_card, get_admin_user_id_or_alert, parse_admin_user_id, apply_user_action_and_show_card
 
@@ -10,15 +9,7 @@ from keyboards.admin_kb import get_admin_users_menu_keyboard
 from states.admin import AdminStates
 from utils.functions import send_or_edit
 
-
 admin_users_router = Router()
-
-"""
-"Найти по user_id" - "admin:users:find"
-"🚫 Ban" - f"admin:users:ban:{user_id}"
-"✅ Unban" - f"admin:users:unban:{user_id}"
-"🔄 Обновить" - f"admin:users:view:{user_id}"
-"""
 
 # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 @admin_users_router.callback_query(F.data == "admin:users")
