@@ -11,6 +11,6 @@ def parse_admin_item_status(raw_status: str | None) -> ItemStatus:
         return ItemStatus.PENDING
 
 # Как он работает
-# _parse_admin_item_status("PENDING") # ItemStatus.PENDING
-# _parse_admin_item_status("ACTIVE") # ItemStatus.ACTIVE
-# _parse_admin_item_status("BAD_STATUS") # ItemStatus.PENDING
+# parse_admin_item_status("PENDING") # ItemStatus.PENDING
+# parse_admin_item_status("ACTIVE") # ItemStatus.ACTIVE
+# parse_admin_item_status("BAD_STATUS") # ItemStatus.PENDING

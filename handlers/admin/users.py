@@ -20,7 +20,6 @@ async def admin_users_menu(callback: CallbackQuery, state: FSMContext) -> None:
     await state.clear()
     await send_or_edit(callback, "👥 <b>Управление пользователями</b>", get_admin_users_menu_keyboard())
 
-
 @admin_users_router.callback_query(F.data.startswith("admin:users:view:"))
 async def admin_users_view(callback: CallbackQuery, user_service: UserService) -> None:
     """Показать карточку пользователя по callback-кнопке"""
@@ -68,7 +67,6 @@ async def admin_users_ban_prompt(callback: CallbackQuery, state: FSMContext) -> 
     await state.set_state(AdminStates.waiting_user_ban_reason)
     await state.update_data(target_user_id=user_id)
     await send_or_edit(callback, "Введите причину бана одним сообщением:", None)
-
 
 @admin_users_router.message(AdminStates.waiting_user_ban_reason)
 async def admin_users_ban_apply(message: Message, state: FSMContext, user_service: UserService, user) -> None:

@@ -1,6 +1,8 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from status.item_status import ItemStatus
+from status.rental_status import RentalStatus
 from status.user_status import AccountStatus
+from status.support_ticket_status import SupportTicketStatus
 from schemas.rental import RentalAdminDetailsOut
 
 
@@ -130,7 +132,7 @@ def get_admin_deals_list_keyboard(rentals_rows: list[RentalAdminDetailsOut], pag
     return InlineKeyboardMarkup(inline_keyboard=kb)
 
 
-def get_admin_deal_details_keyboard(rental_id: int, status_value: ItemStatus) -> InlineKeyboardMarkup:
+def get_admin_deal_details_keyboard(rental_id: int, status: RentalStatus) -> InlineKeyboardMarkup:
     kb = []
 
     kb.append([InlineKeyboardButton(text="🔄 Обновить", callback_data=f"admin:deals:view:{rental_id}")])
@@ -138,7 +140,7 @@ def get_admin_deal_details_keyboard(rental_id: int, status_value: ItemStatus) ->
     kb.append([InlineKeyboardButton(text="🚫 Отменить сделку", callback_data=f"admin:deals:cancel:{rental_id}")])
 
     # Кнопка “закрыть спор” только если статус disputed
-    if status_value == "disputed":
+    if status == RentalStatus.DISPUTED:
         kb.append([InlineKeyboardButton(text="✅ Закрыть спор", callback_data=f"admin:deals:resolve:{rental_id}")])
 
     kb.append([InlineKeyboardButton(text="🔙 К списку", callback_data="admin:deals")])
@@ -179,11 +181,11 @@ def get_admin_support_list_keyboard(tickets_rows: list[dict], page: int, has_nex
     return InlineKeyboardMarkup(inline_keyboard=kb)
 #get_admin_support_list_kb
 
-def get_admin_support_ticket_keyboard(ticket_id: int, status_value: ItemStatus) -> InlineKeyboardMarkup:
+def get_admin_support_ticket_keyboard(ticket_id: int, status: SupportTicketStatus) -> InlineKeyboardMarkup:
     kb = []
     kb.append([InlineKeyboardButton(text="🔄 Обновить", callback_data=f"admin:support:view:{ticket_id}")])
 
-    if status_value == "open":
+    if status == SupportTicketStatus.OPEN:
         kb.append([InlineKeyboardButton(text="✉️ Ответить", callback_data=f"admin:support:reply:{ticket_id}")])
         kb.append([InlineKeyboardButton(text="✅ Закрыть", callback_data=f"admin:support:close:{ticket_id}")])
 
