@@ -115,7 +115,7 @@ def build_rental_details_ui(details: RentalDetailsOut) -> tuple[str, InlineKeybo
     rows = []
 
     if user_role == RentalActorRole.OWNER:
-        rows.extend(_build_owner_actions(status, rental_id, owner_ok, renter_ok))
+        rows.extend(build_owner_actions(status, rental_id, owner_ok, renter_ok))
     else:
         rows.extend(_build_renter_actions(status, rental_id, owner_ok, renter_ok))
 
@@ -125,7 +125,7 @@ def build_rental_details_ui(details: RentalDetailsOut) -> tuple[str, InlineKeybo
     return text, InlineKeyboardMarkup(inline_keyboard=rows)
 
 
-def _build_owner_actions(status: RentalStatus, rental_id: int, owner_ok: bool, renter_ok: bool) -> list[list[InlineKeyboardButton]]:
+def build_owner_actions(status: RentalStatus, rental_id: int, owner_ok: bool, renter_ok: bool) -> list[list[InlineKeyboardButton]]:
     rows = []
 
     if status == RentalStatus.REQUESTED:
