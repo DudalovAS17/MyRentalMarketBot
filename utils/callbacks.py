@@ -29,6 +29,7 @@ async def parse_int_id_from_callback(
 CAT_CB_PREFIX = "cat:"
 SUBCAT_CB_PREFIX = "subcat:"
 ITEM_DETAILS_CB = "show_item_details:"
+CAROUSEL_NAV_CB = "subcat_items_nav:"
 SHOW_ALL_PHOTOS_CB = "show_all_photos:"
 BACK_TO_CAT = "back_to_categories" # show_categories()
 

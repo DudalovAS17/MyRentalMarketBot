@@ -37,3 +37,18 @@ def item_details_text(item: ItemOut, category_name: str, subcategory_name: str) 
         #f"⭐ <b>Рейтинг:</b> ... ({item.views_count} отзывов)\n"
         #f"✅ <b>Доступность:</b> {availability_text}\n\n"
     )
+
+# карусель
+def subcategory_item_card_text(item: ItemOut, current_index: int, total_items: int) -> str:
+    """Карточка объявления для карусели внутри подкатегории."""
+    location = item.location or "Не указана"
+    min_period = item.min_rental_period or 1
+
+    return (
+        f"📦 <b>{item.title}</b>\n\n"
+        f"💰 Цена: <b>{format_price(item.price)} ₽/день</b>\n"
+        f"📍 Локация: {location}\n"
+        f"🗓 Мин. срок: {min_period} {format_days(min_period)}\n"
+        f"👁 Просмотры: {item.views_count}\n\n"
+        f"{current_index + 1} / {total_items}"
+    )

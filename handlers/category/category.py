@@ -2,13 +2,15 @@ from aiogram import Router, F
 from aiogram.types import CallbackQuery
 from aiogram.fsm.context import FSMContext
 from aiogram.exceptions import TelegramBadRequest
+from typing import cast
 
-from handlers.category.category_helpers.keyboard import build_subcategories_keyboard, build_back_to_item_details_keyboard
+from handlers.category.category_helpers.keyboard import (build_subcategories_keyboard, build_back_to_item_details_keyboard,
+                                                         build_items_carousel_keyboard)
 from handlers.category.category_helpers.load import resolve_entity, load_entity_or_notify
 from handlers.category.category_helpers.store import store_selected_category, store_selected_subcategory, store_selected_item
 from handlers.category.category_helpers.texts import (item_details_text, not_cat_id, serv_err_cat, not_cat, not_subcat_id,
                                                       serv_err_subcat, not_subcat, not_item_id, not_item, serv_err_item,
-                                                      serv_err_photo, not_photos) # serv_err_items
+                                                      serv_err_photo, not_photos,  subcategory_item_card_text) # serv_err_items
 
 from handlers.category.category_helpers.formatters import busy_until_text, build_photo_media
 from handlers.entries.category_entry import show_categories
@@ -17,10 +19,11 @@ from services.category_service import CategoryService
 from services.photo_service import PhotoService
 from services.rental_service import RentalService
 
+from schemas.item import ItemOut
 from keyboards.category_kb import build_items_keyboard, build_item_details_kb
 from utils.functions import send_or_edit, send_reply
 from utils.errors import ServiceError
-from utils.callbacks import (CAT_CB_PREFIX, SUBCAT_CB_PREFIX, ITEM_DETAILS_CB, SHOW_ALL_PHOTOS_CB, BACK_TO_CAT)
+from utils.callbacks import (CAT_CB_PREFIX, SUBCAT_CB_PREFIX, ITEM_DETAILS_CB, SHOW_ALL_PHOTOS_CB, BACK_TO_CAT, CAROUSEL_NAV_CB)
 from utils.validators import parse_callback
 
 category_router = Router()
@@ -66,6 +69,8 @@ async def show_items_in_subcategory(
     subcategory = await resolve_entity(callback, category_service.get_category_by_id,
                                        parse_callback(callback.data, SUBCAT_CB_PREFIX),
                                        invalid_id_text=not_subcat_id, load_error_text=serv_err_subcat, not_found_text=not_subcat)
+    if subcategory is None:
+        return
 
     # Сохраняем в контекст выбранную подкатегорию
     await store_selected_subcategory(state, subcategory)
@@ -73,15 +78,36 @@ async def show_items_in_subcategory(
     not_items = f"⚠️ В подкатегории <b>{subcategory.name}</b> пока нет объявлений."
     items = await load_entity_or_notify(callback, item_service.list_items_by_subcategory, subcategory.id,
                                         invalid_id_text=not_subcat_id, load_error_text=serv_err_item, not_found_text=not_items)
+    if items is None:
+        return
 
-    keyboard = build_items_keyboard(
-        items,
+    # keyboard = build_items_keyboard(
+    #     items,
+    #     parent_category_id=subcategory.parent_id,
+    #     item_details_cb_prefix=ITEM_DETAILS_CB,
+    #     cat_cb_prefix=CAT_CB_PREFIX,
+    # )
+
+    # карусель
+    current_index = 0
+    current_item = items[current_index]
+    keyboard = build_items_carousel_keyboard(
+        current_item_id=current_item.id,
+        subcategory_id=subcategory.id,
         parent_category_id=subcategory.parent_id,
+        current_index=current_index,
+        total_items=len(items),
+        nav_cb_prefix=CAROUSEL_NAV_CB,
         item_details_cb_prefix=ITEM_DETAILS_CB,
+        subcat_cb_prefix=SUBCAT_CB_PREFIX,
         cat_cb_prefix=CAT_CB_PREFIX,
     )
-    message_text = f"📋 Объявления в подкатегории <b>{subcategory.name}</b>\n\n Выберите объявление:"
-    await send_or_edit(callback, message_text, markup=keyboard)
+
+    #message_text = f"📋 Объявления в подкатегории <b>{subcategory.name}</b>\n\n Выберите объявление:"
+    #await send_or_edit(callback, message_text, markup=keyboard)
+
+    # карусель
+    await send_or_edit(callback, subcategory_item_card_text(current_item, current_index, len(items)), markup=keyboard)
 
 
 @category_router.callback_query(F.data.startswith(ITEM_DETAILS_CB))
@@ -149,3 +175,58 @@ async def show_all_photos(callback: CallbackQuery, photo_service: PhotoService) 
         "📸 <b>Все фото объявления</b>",
         markup=build_back_to_item_details_keyboard(item_id)
     )
+
+
+# карусель
+@category_router.callback_query(F.data.startswith(CAROUSEL_NAV_CB))
+async def navigate_items_carousel(
+    callback: CallbackQuery,
+    item_service: ItemService,
+    category_service: CategoryService,
+) -> None:
+    """Навигация по карточкам объявлений внутри подкатегории."""
+    await callback.answer()
+
+    payload = callback.data.removeprefix(CAROUSEL_NAV_CB)
+    try:
+        subcategory_id_str, index_str = payload.split(":", maxsplit=1)
+        subcategory_id = int(subcategory_id_str)
+        current_index = int(index_str)
+    except (ValueError, AttributeError):
+        await callback.answer(not_subcat_id, show_alert=True)
+        return
+
+    subcategory = await resolve_entity(
+        callback,
+        category_service.get_category_by_id,
+        subcategory_id,
+        invalid_id_text=not_subcat_id,
+        load_error_text=serv_err_subcat,
+        not_found_text=not_subcat,
+    )
+
+    not_items = f"⚠️ В подкатегории <b>{subcategory.name}</b> пока нет объявлений."
+    items = await load_entity_or_notify(
+        callback, item_service.list_items_by_subcategory, subcategory.id,
+        invalid_id_text=not_subcat_id, load_error_text=serv_err_item, not_found_text=not_items
+    )
+
+    total = len(items)
+    if total == 0:
+        return
+
+    current_index = current_index % total
+    current_item = items[current_index]
+
+    keyboard = build_items_carousel_keyboard(
+        current_item_id=current_item.id,
+        subcategory_id=subcategory.id,
+        parent_category_id=subcategory.parent_id,
+        current_index=current_index,
+        total_items=total,
+        nav_cb_prefix=CAROUSEL_NAV_CB,
+        item_details_cb_prefix=ITEM_DETAILS_CB,
+        subcat_cb_prefix=SUBCAT_CB_PREFIX,
+        cat_cb_prefix=CAT_CB_PREFIX,
+    )
+    await send_or_edit(callback, subcategory_item_card_text(current_item, current_index, total), markup=keyboard)
