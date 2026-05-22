@@ -59,7 +59,7 @@ def build_services(
     # services (domain layer)
     user_service = UserService(user_repo, frozenset(settings.admin_ids))
     rental_service = RentalService(rental_repo)  # , item_service, user_service, notification_service
-    item_service = ItemService(item_repo, photo_repo, rental_service)
+    item_service = ItemService(item_repo, rental_service)
     notification_service = NotificationService(bot)
     category_service = CategoryService(category_repo)
     photo_service = PhotoService(photo_repo)

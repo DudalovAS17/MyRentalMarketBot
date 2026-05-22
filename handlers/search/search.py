@@ -3,7 +3,7 @@ from aiogram.types import CallbackQuery, Message
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 
-from helpers_search import (build_search_prompt_keyboard, validate_search_query, build_search_results_text,
+from handlers.search.helpers_search import (build_search_prompt_keyboard, validate_search_query, build_search_results_text,
                             normalize_search_query, parse_search_page, fetch_search_page, build_search_prompt_text)
 from services.item_service import ItemService
 

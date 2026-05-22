@@ -4,7 +4,7 @@ from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 
 from handlers.entries.base_entry import show_main_menu
-from helpers_support import (render_admin_ticket_message, build_support_request_text, build_support_confirmation_text,
+from handlers.support.helpers_support import (render_admin_ticket_message, build_support_request_text, build_support_confirmation_text,
                              build_support_cancel_keyboard, build_support_already_open_text, notify_admins,
                              build_support_already_open_after_create_text)
 from services.support_service import SupportService, TicketAlreadyOpen

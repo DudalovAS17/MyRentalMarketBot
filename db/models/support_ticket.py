@@ -47,7 +47,7 @@ class SupportTicket(Base, TimestampMixin):
 
     __table_args__ = (
         Index("ix_support_tickets_user_id", "user_id"),
-        Index("ix_support_tickets_telegram_id", "telegram_id"),
+        #Index("ix_support_tickets_telegram_id", "telegram_id"),
         Index("ix_support_tickets_status", "status"),
 
         # Нельзя закрыть тикет без даты закрытия (и наоборот) (либо оба closed_at и closed_by_admin_tg_id пустые, либо оба заполнены)

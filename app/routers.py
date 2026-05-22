@@ -4,7 +4,7 @@ from aiogram import Dispatcher
 
 from handlers.admin import admin_router
 from handlers.auth import auth_router
-from handlers.base import base_router
+from handlers.base.base import base_router
 from handlers.category.category import category_router
 from handlers.item.router import items_router
 from handlers.rentals.router import rental_router
