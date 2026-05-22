@@ -1,17 +1,15 @@
-from __future__ import annotations
-
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
+from collections.abc import Awaitable, Callable
 
 from handlers.entries.base_entry import show_main_menu
 from handlers.entries.category_entry import show_categories
 from handlers.item.flow_create import start_create_item_from_menu
 from handlers.item.show import show_my_items
-from handlers.search import start_search
-from handlers.support import support_start
+from handlers.search.search import start_search
+from handlers.support.support import support_start
 from services.category_service import CategoryService
 from services.item_service import ItemService
-
 
 BLOCKED_ACCOUNT_TEXT = "⚠️ Ваша учётная запись заблокирована. Пожалуйста, обратитесь в службу поддержки."
 CANCELLED_TO_MAIN_MENU_TEXT = "❌ Операция отменена. Возвращаемся в главное меню 🏠"
@@ -24,7 +22,7 @@ def normalize_menu_text(text: str | None) -> str:
     """Нормализовать текст кнопки главного меню."""
     return text.strip() if text else ""
 
-
+MenuAction = Callable[[], Awaitable[None]]
 def resolve_main_menu_action(
     message: Message,
     state: FSMContext,
@@ -33,7 +31,7 @@ def resolve_main_menu_action(
     user,
     text: str,
     #help_command,
-):
+) -> MenuAction | None:
     """Определяет действие по тексту кнопки главного меню."""
 
     if not text:

@@ -8,8 +8,8 @@ from handlers.base import base_router
 from handlers.category.category import category_router
 from handlers.item.router import items_router
 from handlers.rentals.router import rental_router
-from handlers.search import search_router
-from handlers.support import support_router
+from handlers.search.search import search_router
+from handlers.support.support import support_router
 
 
 def register_routers(dp: Dispatcher) -> None:

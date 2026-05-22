@@ -16,7 +16,7 @@ class SupportTicketOut(BaseModel):
     id: int
 
     user_id: int
-    telegram_id: int
+    #telegram_id: int
     username: Optional[str] = None
 
     text: str
@@ -36,6 +36,6 @@ class SupportTicketCreateInternal(BaseModel):
     """Внутренняя схема для создания тикета поддержки из данных пользователя и текста обращения"""
 
     user_id: int
-    telegram_id: int
+    #telegram_id: int
     username: Optional[str] = None
     text: str

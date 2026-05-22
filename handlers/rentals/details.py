@@ -3,7 +3,7 @@ from aiogram.types import CallbackQuery, Message
 
 from .router import rental_router
 
-from handlers.rental_ui import build_rental_details_ui
+from handlers.rentals.rental_helpers.rental_ui import build_rental_details_ui
 from handlers.entries.rental_entry import show_my_rentals
 from services.rental_service import RentalService
 

@@ -51,31 +51,6 @@ async def show_main_menu_callback(callback: CallbackQuery, user) -> None:
     await show_main_menu(callback, user)
 
 
-# ───────────────────────────────────────────────── TextMessageHandler ─────────────────────────────────────────────────
-@base_router.message(F.text)
-async def text_message_handler(
-        message: Message,
-        state: FSMContext,
-        category_service: CategoryService,
-        item_service: ItemService,
-        user
-) -> None:
-    """Обрабатывает текстовые сообщения от пользователя в главном меню.
-
-    - определяет по тексту (или по ID кнопки), что пользователь хотел
-    - вызывает нужный сценарий (handler-функцию)
-    """
-    text = normalize_menu_text(message.text)
-    action = resolve_main_menu_action(message, state, category_service, item_service, user=user, text=text)
-
-    # Если текст не соответствует ни одной кнопке
-    if action is None:
-        await message.answer(UNKNOWN_MAIN_MENU_TEXT)
-        return
-
-    await action()
-
-
 # ──────────────────────────────────────────────── Commands ────────────────────────────────────────────────────────────
 @base_router.message(F.text == "/help")
 async def help_command(message: Message) -> None:
@@ -108,3 +83,28 @@ async def unknown_command(message: Message, user) -> None:
 async def noop(callback) -> None:
     """Закрыть callback-заглушку."""
     await callback.answer("Недоступно", show_alert=False)
+
+
+# ───────────────────────────────────────────────── TextMessageHandler ─────────────────────────────────────────────────
+@base_router.message(F.text)
+async def text_message_handler(
+        message: Message,
+        state: FSMContext,
+        category_service: CategoryService,
+        item_service: ItemService,
+        user
+) -> None:
+    """Обрабатывает текстовые сообщения от пользователя в главном меню.
+
+    - определяет по тексту (или по ID кнопки), что пользователь хотел
+    - вызывает нужный сценарий (handler-функцию)
+    """
+    text = normalize_menu_text(message.text)
+    action = resolve_main_menu_action(message, state, category_service, item_service, user=user, text=text)
+
+    # Если текст не соответствует ни одной кнопке
+    if action is None:
+        await message.answer(UNKNOWN_MAIN_MENU_TEXT)
+        return
+
+    await action()

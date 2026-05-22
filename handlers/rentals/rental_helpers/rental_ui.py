@@ -117,7 +117,7 @@ def build_rental_details_ui(details: RentalDetailsOut) -> tuple[str, InlineKeybo
     if user_role == RentalActorRole.OWNER:
         rows.extend(build_owner_actions(status, rental_id, owner_ok, renter_ok))
     else:
-        rows.extend(_build_renter_actions(status, rental_id, owner_ok, renter_ok))
+        rows.extend(build_renter_actions(status, rental_id, owner_ok, renter_ok))
 
     rows.append([InlineKeyboardButton(text="🔙 Назад к списку сделок", callback_data="rental_list")])
     # back_to_rentals
@@ -172,7 +172,7 @@ def build_owner_actions(status: RentalStatus, rental_id: int, owner_ok: bool, re
     return rows
 
 
-def _build_renter_actions(status: RentalStatus, rental_id: int, owner_ok: bool, renter_ok: bool) -> list[list[InlineKeyboardButton]]:
+def build_renter_actions(status: RentalStatus, rental_id: int, owner_ok: bool, renter_ok: bool) -> list[list[InlineKeyboardButton]]:
     rows = []
 
     if status == RentalStatus.REQUESTED:
