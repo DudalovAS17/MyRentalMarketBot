@@ -60,7 +60,7 @@ class SupportService:
         ticket = await self.repo.create(ticket_data)
         return SupportTicketOut.model_validate(ticket)
 
-    # ─────────────────────────────────────────── Admin actions ────────────────────────────────────────────────────────
+    # ─────────────────────────────────────────── Admin admin_actions ────────────────────────────────────────────────────────
     async def close_ticket_by_admin(self, *, ticket_id: int, admin_tg_id: int, strict: bool = False) -> bool:
         """Закрыть тикет обращения администратором"""
         ok = await self.repo.close(ticket_id=ticket_id, admin_tg_id=admin_tg_id)
@@ -69,7 +69,7 @@ class SupportService:
 
         return ok
 
-    # ─────────────────────────────────────────── Service actions ────────────────────────────────────────────────────────
+    # ─────────────────────────────────────────── Service admin_actions ────────────────────────────────────────────────────────
     async def mark_admin_replied(self, *, ticket_id: int, strict: bool = False) -> bool:
         """Отметить, что администратор ответил по тикету"""
         ok = await self.repo.touch_admin_reply(ticket_id=ticket_id)

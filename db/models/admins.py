@@ -10,6 +10,7 @@ from status.admin_status import AdminRole
 
 if TYPE_CHECKING:
     from db.models.item import Item
+    from db.models.rental import Rental
     from db.models.support_ticket import SupportTicket
     from db.models.admin_actions import AdminAction
 
@@ -66,9 +67,12 @@ class Admin(Base, TimestampMixin):
         back_populates="closed_by_admin",
     )
 
-    actions: Mapped[list["AdminAction"]] = relationship(
-        "AdminAction",
-        back_populates="admin",
+    admin_actions: Mapped[list["AdminAction"]] = relationship("AdminAction", back_populates="admin")
+
+    assigned_rentals: Mapped[list["Rental"]] = relationship(
+        "Rental",
+        foreign_keys="Rental.assigned_admin_id",
+        back_populates="assigned_admin",
     )
 
     __table_args__ = (

@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from db.models.review import Review
 
 class User(Base, TimestampMixin):
-    """Модель пользователя."""
+    """Клиент."""
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
@@ -65,17 +65,8 @@ class User(Base, TimestampMixin):
     # )
 
     support_tickets: Mapped[list["SupportTicket"]] = relationship("SupportTicket", back_populates="user")
-
-    #reviews_given: Mapped[list["Review"]] = relationship(
-    #    "Review", foreign_keys="Review.reviewer_id", back_populates="reviewer"
-    #)
-    #reviews_received: Mapped[list["Review"]] = relationship(
-    #    "Review", foreign_keys="Review.reviewee_id", back_populates="reviewee"
-    #)
-
     banned_by_admin: Mapped[Optional["Admin"]] = relationship("Admin", foreign_keys=[banned_by_admin_id])
-
-    reviews: Mapped[list["Review"]] = relationship("Review", back_populates="users")
+    reviews: Mapped[list["Review"]] = relationship("Review", back_populates="user")
 
     __table_args__ = (
         Index("ix_users_account_status", "account_status"),

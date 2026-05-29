@@ -70,12 +70,12 @@ class Review(Base, TimestampMixin):
         Index("ix_reviews_status", "status"),
 
         # рейтинг пользователя
-        Index("ix_reviews_reviewee_rating", "user_id", "rating"),
+        Index("ix_reviews_item_rating", "item_id", "rating"),
         # связка сделка+получатель
-        Index("ix_reviews_rental_reviewee", "rental_id", "user_id"),
+        Index("ix_reviews_rental_user", "rental_id", "user_id"),
 
         Index("ix_reviews_item_status", "item_id", "status"),
-        Index("ix_reviews_item_rating", "item_id", "rating"),
+
 
         # Рейтинг строго 1–5
         CheckConstraint("rating >= 1 AND rating <= 5", name="ck_reviews_rating_range"),

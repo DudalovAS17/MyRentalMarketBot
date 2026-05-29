@@ -6,6 +6,18 @@ from .item import Item
 from .category import Category
 from .photo import Photo
 from .review import Review
+from .admins import Admin
+from .item_characteristics import ItemCharacteristic
 
-
-__all__ = ["User", "Rental", "Item", "Category", "Photo", "AdminAction", "SupportTicket", "Review"]
+__all__ = [
+    "User",
+    "Rental",
+    "Item",
+    "ItemCharacteristic",
+    "Category",
+    "Photo",
+    "Admin",
+    "AdminAction",
+    "SupportTicket",
+    "Review"
+]

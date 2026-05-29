@@ -25,7 +25,7 @@ class Photo(Base, TimestampMixin):
     # идентификатор файла, который Telegram позволяет использовать повторно
     telegram_file_id: Mapped[str] = mapped_column(
         String(500),
-        nullable=False,
+        nullable=True,
         comment="Telegram file_id, который позволяет отправлять фото без повторной загрузки"
     )
 

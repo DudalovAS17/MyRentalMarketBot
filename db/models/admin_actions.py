@@ -41,10 +41,7 @@ class AdminAction(Base, TimestampMixin):
 
     # ------- Отношения | связи --------
 
-    admin: Mapped[Optional["Admin"]] = relationship(
-        "Admin",
-        back_populates="admin_actions",
-    )
+    admin: Mapped[Optional["Admin"]] = relationship("Admin", back_populates="admin_actions")
 
     __table_args__ = (
         Index("ix_admin_actions_admin_id", "admin_id"),

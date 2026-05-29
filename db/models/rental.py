@@ -14,6 +14,7 @@ if TYPE_CHECKING:
     from db.models.review import Review
     from db.models.user import User
     from db.models.admins import Admin
+    from db.models.support_ticket import SupportTicket
 
 class Rental(Base, TimestampMixin):
     """Заявка клиента на аренду товара."""
@@ -25,13 +26,13 @@ class Rental(Base, TimestampMixin):
     item_id: Mapped[int] = mapped_column(ForeignKey("items.id", ondelete="RESTRICT"), nullable=False)
 
     # сроки аренды
-    start_date: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False) # True
-    end_date: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False) # True
+    start_date: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
+    end_date: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
 
     rental_period_text: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
 
     # деньги
-    total_price: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False) # True
+    total_price: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=True)
     final_price: Mapped[Optional[Decimal]] = mapped_column(Numeric(12, 2), nullable=True)
 
     # статус
@@ -81,7 +82,11 @@ class Rental(Base, TimestampMixin):
 
     user: Mapped["User"] = relationship("User", back_populates="rentals")
 
-    assigned_admin: Mapped[Optional["Admin"]] = relationship("Admin", foreign_keys=[assigned_admin_id])
+    assigned_admin: Mapped[Optional["Admin"]] = relationship(
+        "Admin",
+        foreign_keys=[assigned_admin_id],
+        back_populates="assigned_rentals",
+    )
 
     # какие отзывы относятся к этой сделке
     reviews: Mapped[list["Review"]] = relationship(
@@ -89,6 +94,8 @@ class Rental(Base, TimestampMixin):
         back_populates="rentals",
         cascade="all, delete-orphan",
     )
+
+    support_tickets: Mapped[list["SupportTicket"]] = relationship("SupportTicket", back_populates="rental")
 
     __table_args__ = (
         # нельзя создать аренду, которая заканчивается раньше, чем начинается

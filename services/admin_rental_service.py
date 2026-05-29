@@ -60,7 +60,7 @@ class AdminRentalService:
             renter=UserOut.model_validate(r.renter),
         )
 
-    # ────────────────────────────────────── admin override actions ────────────────────────────────────────────────────
+    # ────────────────────────────────────── admin override admin_actions ────────────────────────────────────────────────────
     async def admin_cancel_rental(self, rental_id: int, admin_tg_id: int, reason: str, *, strict: bool = False) -> bool:
         """Принудительно отменить сделку администратором"""
 

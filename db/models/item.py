@@ -13,14 +13,15 @@ from status.item_status import ItemStatus
 if TYPE_CHECKING:
     from db.models.category import Category
     from db.models.admins import Admin
-    #from db.models.rental import Rental
+    from db.models.rental import Rental
     from db.models.photo import Photo
     from db.models.item_characteristics import ItemCharacteristic
     from db.models.review import Review
+    from db.models.support_ticket import SupportTicket
 
 
 class Item(Base, TimestampMixin):
-    """Модель предмета/вещи для аренды"""
+    """Товар каталога компании для аренды."""
     __tablename__ = 'items'
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
@@ -85,10 +86,10 @@ class Item(Base, TimestampMixin):
 
     category: Mapped["Category"] = relationship("Category", foreign_keys=[category_id])
     subcategory: Mapped[Optional["Category"]] = relationship("Category", foreign_keys=[subcategory_id])
-    #rentals: Mapped[list["Rental"]] = relationship("Rental", back_populates="item")
+    rentals: Mapped[list["Rental"]] = relationship("Rental", back_populates="item")
     item_photos: Mapped[list["Photo"]] = relationship(
         "Photo",
-        back_populates="items",
+        back_populates="item",
         cascade="all, delete-orphan",
         single_parent=True
     )
@@ -104,6 +105,7 @@ class Item(Base, TimestampMixin):
     updated_by_admin: Mapped[Optional["Admin"]] = relationship("Admin", foreign_keys=[updated_by_admin_id])
 
     reviews: Mapped[list["Review"]] = relationship("Review", back_populates="items")
+    support_tickets: Mapped[list["SupportTicket"]] = relationship("SupportTicket", back_populates="item")
 
     __table_args__ = (
         CheckConstraint("(price IS NULL) OR (price >= 0)", name="ck_items_price_non_neg"), # price_per_day

@@ -8,7 +8,7 @@ from db.models.base import Base , TimestampMixin
 
 
 class Category(Base, TimestampMixin):
-    """ Единая таблица для категорий и подкатегорий. Подкатегория — это Category с parent_id = id родителя"""
+    """Категории и подкатегории каталога товаров компании."""
     __tablename__ = "categories"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)

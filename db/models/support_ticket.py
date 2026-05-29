@@ -32,9 +32,14 @@ class SupportTicket(Base, TimestampMixin):
     # тема обращения: короткая тема для админки
     subject: Mapped[Optional[str]] = mapped_column(String(150), nullable=True)
 
+    item_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("items.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+
     # если пользователь пишет по уже созданной заявке, тикет будет связан с ней
     rental_id: Mapped[Optional[int]] = mapped_column(
-        ForeignKey("rental.id", ondelete="SET NULL"),
+        ForeignKey("rentals.id", ondelete="SET NULL"),
         nullable=True,
     )
 
@@ -61,8 +66,8 @@ class SupportTicket(Base, TimestampMixin):
     # тикет знает своего пользователя | пользователь знает свои тикеты
     user: Mapped["User"] = relationship("User", back_populates="support_tickets")
 
-    item: Mapped[Optional["Item"]] = relationship("Item")
-    rental: Mapped[Optional["Rental"]] = relationship("Rental")
+    item: Mapped[Optional["Item"]] = relationship("Item", back_populates="support_tickets")
+    rental: Mapped[Optional["Rental"]] = relationship("Rental", back_populates="support_tickets")
 
     closed_by_admin: Mapped[Optional["Admin"]] = relationship(
         "Admin",
