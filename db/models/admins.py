@@ -76,8 +76,8 @@ class Admin(Base, TimestampMixin):
     )
 
     __table_args__ = (
-        Index("ix_users_account_status", "account_status"),
-        Index("ix_users_username", "username"),
+        Index("ix_admins_account_status", "account_status"),
+        Index("ix_admins_username", "username"),
         Index("ix_admins_role", "role"),
         Index("ix_admins_is_active", "is_active"),
     )

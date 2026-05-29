@@ -26,7 +26,7 @@ class AdminAction(Base, TimestampMixin):
     # что сделал админ
     action_type: Mapped[str] = mapped_column(String(64), nullable=False)
 
-    # над какой сущностью было действие (rental, item, ..)
+    # над какой сущностью было действие (rentals, item, ..)
     entity_type: Mapped[str] = mapped_column(String(32), nullable=False)
 
     # Универсальный ID сущности, над которой выполнено действие

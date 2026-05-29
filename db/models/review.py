@@ -28,7 +28,7 @@ class Review(Base, TimestampMixin):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
 
     # Связь со сделкой (Review у тебя привязан не просто к пользователю, а именно к факту сделки)
-    rental_id: Mapped[int] = mapped_column(ForeignKey("rentals.id", ondelete="CASCADE"), nullable=True)
+    rental_id: Mapped[Optional[int]] = mapped_column(ForeignKey("rentals.id", ondelete="CASCADE"), nullable=True)
 
     # отзыв клиента именно о товаре
     item_id: Mapped[Optional[int]] = mapped_column(ForeignKey("items.id", ondelete="SET NULL"), nullable=True)
@@ -56,7 +56,7 @@ class Review(Base, TimestampMixin):
     # ------- Отношения | связи --------
 
     # отзыв знает, к какой аренде он относится
-    rental: Mapped["Rental"] = relationship("Rental", back_populates="reviews")
+    rentals: Mapped[Optional["Rental"]] = relationship("Rental", back_populates="reviews")
 
     user: Mapped["User"] = relationship("User", back_populates="reviews")
     item: Mapped[Optional["Item"]] = relationship("Item", back_populates="reviews")
@@ -71,7 +71,7 @@ class Review(Base, TimestampMixin):
 
         # рейтинг пользователя
         Index("ix_reviews_item_rating", "item_id", "rating"),
-        # связка сделка+получатель
+        # один отзыв клиента в рамках одной заявки
         Index("ix_reviews_rental_user", "rental_id", "user_id"),
 
         Index("ix_reviews_item_status", "item_id", "status"),

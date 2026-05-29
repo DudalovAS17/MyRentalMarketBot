@@ -71,7 +71,7 @@ class Settings(BaseSettings):
 
     db_user: str = Field(default="postgres", alias="POSTGRES_USER")
     db_pass: SecretStr = Field(alias="POSTGRES_PASSWORD")
-    db_name: str = Field(default="aiogram-rental-bot", alias="POSTGRES_DB")
+    db_name: str = Field(default="aiogram-rentals-bot", alias="POSTGRES_DB")
     db_port: int = Field(default=5432, alias="DB_PORT")
     db_host: str = Field(default="postgres", alias="DB_HOST")
 

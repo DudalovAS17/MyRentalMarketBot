@@ -12,7 +12,7 @@
     repr()
 """
 
-# Используется для логов, отладочных сообщений, консоли разработчика -> logger.info(rental)
+# Используется для логов, отладочных сообщений, консоли разработчика -> logger.info(rentals)
 def __repr__(self) -> str:
     return (
         f"<Rental id={self.id} item_id={self.item_id} "
@@ -62,7 +62,7 @@ SQLAlchemy-модель содержит данные, которые нельз
 - Decimal
 
 Без преобразования:
-json.dumps(rental) → выдаст ошибку.
+json.dumps(rentals) → выдаст ошибку.
 """
 
 """ ❌ Миксины ReprMixin, DictMixin — нарушение “чистоты ORM”

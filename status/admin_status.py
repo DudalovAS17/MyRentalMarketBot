@@ -12,7 +12,7 @@ class AdminActionType(str, enum.Enum):
 
 class AdminEntityType(str, enum.Enum):
     """Типы сущностей, с которыми работает администратор"""
-    RENTAL = "rental"
+    RENTAL = "rentals"
     ITEM = "item"
     USER = "user"
     COMPLAINT = "complaint"

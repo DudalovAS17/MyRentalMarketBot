@@ -149,7 +149,7 @@ class RentalService:
         )
 
         logger.info(
-            "rental.status_transition rental_id=%s actor_id=%s role=%s %s→%s ok=%s",
+            "rentals.status_transition rental_id=%s actor_id=%s role=%s %s→%s ok=%s",
             rental_id, actor_user_id, actor_role.value, expected_status.value, new_status.value, ok
         )
 

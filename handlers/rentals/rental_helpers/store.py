@@ -14,7 +14,7 @@ async def store_rent_start_date_or_abort(
     rent_data_err: str,
     invalid_id_text: str,
 ) -> tuple[int, int | None] | None:
-    """Записать дату начала аренды в rental draft или завершить rent-flow"""
+    """Записать дату начала аренды в rentals draft или завершить rent-flow"""
 
     data = await state.get_data()
     rent_ui_message_id = data.get("rent_ui_message_id")

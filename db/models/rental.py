@@ -26,13 +26,13 @@ class Rental(Base, TimestampMixin):
     item_id: Mapped[int] = mapped_column(ForeignKey("items.id", ondelete="RESTRICT"), nullable=False)
 
     # сроки аренды
-    start_date: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
-    end_date: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
+    start_date: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    end_date: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
 
     rental_period_text: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
 
     # деньги
-    total_price: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=True)
+    total_price: Mapped[Optional[Decimal]] = mapped_column(Numeric(12, 2), nullable=True)
     final_price: Mapped[Optional[Decimal]] = mapped_column(Numeric(12, 2), nullable=True)
 
     # статус
@@ -65,6 +65,7 @@ class Rental(Base, TimestampMixin):
         nullable=True,
     )
 
+    in_progress_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     processed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     closed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
 
@@ -95,7 +96,7 @@ class Rental(Base, TimestampMixin):
         cascade="all, delete-orphan",
     )
 
-    support_tickets: Mapped[list["SupportTicket"]] = relationship("SupportTicket", back_populates="rental")
+    support_tickets: Mapped[list["SupportTicket"]] = relationship("SupportTicket", back_populates="rentals")
 
     __table_args__ = (
         # нельзя создать аренду, которая заканчивается раньше, чем начинается
@@ -106,11 +107,12 @@ class Rental(Base, TimestampMixin):
 
         # запрет отрицательной стоимости (логическая ошибка)
         CheckConstraint("(total_price IS NULL) OR (total_price >= 0)", name="ck_rentals_total_price_non_neg"),
+        CheckConstraint("(final_price IS NULL) OR (final_price >= 0)", name="ck_rentals_final_price_non_neg"),
         CheckConstraint("quantity >= 1", name="ck_rentals_quantity_positive"),
 
         Index("ix_rentals_item_id", "item_id"),
         Index("ix_rentals_status", "status"),
-        Index("ix_rental_user_id", "user_id"),
+        Index("ix_rentals_user_id", "user_id"),
         Index("ix_rentals_user_status", "user_id", "status"),
         Index("ix_rentals_assigned_admin_status", "assigned_admin_id", "status"),
 

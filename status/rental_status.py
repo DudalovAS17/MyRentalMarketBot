@@ -6,21 +6,29 @@ class RentalActorRole(enum.Enum):
     OWNER = "owner"
     RENTER = "renter"
 
-class RentalStatus(enum.Enum):
-    """Статусы жизненного цикла сделки аренды"""
+# class RentalStatus(enum.Enum):
+#     """Статусы жизненного цикла сделки аренды"""
+#     REQUESTED = "requested"
+#     CONFIRMED = "confirmed"
+#     ACTIVE = "active"
+#     COMPLETED = "completed"
+#
+#     REJECTED_BY_OWNER = "rejected_by_owner"
+#     REJECTED_BY_RENTER = "rejected_by_renter"
+#     CANCELLED_CONFIRMED_BY_OWNER = "cancelled_confirmed_by_owner"
+#     CANCELLED_CONFIRMED_BY_RENTER = "cancelled_confirmed_by_renter"
+#     CANCELLED_BY_OWNER = "cancelled_by_owner"
+#     CANCELLED_BY_RENTER = "cancelled_by_renter"
+#
+#     DISPUTED = "disputed"
+
+class RentalStatus(enum.Enum): # NEW
     REQUESTED = "requested"
+    IN_PROGRESS = "in_progress"
     CONFIRMED = "confirmed"
-    ACTIVE = "active"
+    REJECTED = "rejected"
+    CANCELLED = "cancelled"
     COMPLETED = "completed"
-
-    REJECTED_BY_OWNER = "rejected_by_owner"
-    REJECTED_BY_RENTER = "rejected_by_renter"
-    CANCELLED_CONFIRMED_BY_OWNER = "cancelled_confirmed_by_owner"
-    CANCELLED_CONFIRMED_BY_RENTER = "cancelled_confirmed_by_renter"
-    CANCELLED_BY_OWNER = "cancelled_by_owner"
-    CANCELLED_BY_RENTER = "cancelled_by_renter"
-
-    DISPUTED = "disputed"
 
 # ───────────────────────────────────────── helper-функции ─────────────────────────────────────────────────────────────
 def is_terminal_status(status: RentalStatus) -> bool:

@@ -64,7 +64,7 @@ MAX_PHOTOS = 5
 
 
 # RENTAL HANDLER
-RENTAL_CB = "rental"
+RENTAL_CB = "rentals"
 RETURN_CB = "return"
 CONFIRM_CB = "confirm"
 REVIEW_CB = "review"

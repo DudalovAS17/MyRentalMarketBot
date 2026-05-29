@@ -1,7 +1,7 @@
 
 # =========================================== ОТЗЫВЫ =================================================
 """Базовые инварианты (очень важно)
-1) Отзыв всегда привязан к сделке (rental)
+1) Отзыв всегда привязан к сделке (rentals)
 2) Один пользователь → один отзыв в рамках одной сделки
 3) Отзыв можно оставить только после завершения аренды
 4) Рецензент и получатель — разные пользователи
@@ -22,8 +22,8 @@ async def start_review_process(
     rental_id = int(callback.data.split(":")[1])
 
     try:
-        rental = await rental_service.get_by_id(rental_id)
-        if not rental:
+        rentals = await rental_service.get_by_id(rental_id)
+        if not rentals:
             await callback.message.answer("❌ Сделка не найдена")
             return
 
@@ -33,10 +33,10 @@ async def start_review_process(
         # - отзыв ещё не оставлен
 
         # определяем роли
-        if user.id == rental.renter_id:
-            reviewee_id = rental.owner_id # "reviewer_role" - собственник
-        elif user.id == rental.owner_id:
-            reviewee_id = rental.renter_id # "reviewer_role" - покупатель
+        if user.id == rentals.renter_id:
+            reviewee_id = rentals.owner_id # "reviewer_role" - собственник
+        elif user.id == rentals.owner_id:
+            reviewee_id = rentals.renter_id # "reviewer_role" - покупатель
         else:
             await callback.message.answer("❌ Вы не участник этой сделки")
             return

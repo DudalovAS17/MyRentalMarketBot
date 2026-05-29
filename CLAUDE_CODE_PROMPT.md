@@ -150,7 +150,7 @@ ticket = await support_service.create(ticket_data=)
 
 **11. Schemas импортируют enum из ORM вместо из status/:**
 ```python
-# ❌ В schemas/item.py, schemas/rental.py, schemas/support.py, schemas/user.py
+# ❌ В schemas/item.py, schemas/rentals.py, schemas/support.py, schemas/user.py
 from db.models.item import ItemStatus  # НЕПРАВИЛЬНО
 
 # ✅ Правильно

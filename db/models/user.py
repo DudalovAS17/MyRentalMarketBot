@@ -54,7 +54,7 @@ class User(Base, TimestampMixin):
     # ------- Отношения | связи --------
 
     # один пользователь может оставить много заявок на аренду
-    rental: Mapped[list["Rental"]] = relationship("Rental", back_populates="user")
+    rentals: Mapped[list["Rental"]] = relationship("Rental", back_populates="user")
 
     # связь с корзиной: один пользователь может добавить несколько товаров в корзину
     # cart_items: Mapped[list["CartItem"]] = relationship(

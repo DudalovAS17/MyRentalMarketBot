@@ -96,15 +96,24 @@ class Item(Base, TimestampMixin):
 
     characteristics: Mapped[list["ItemCharacteristic"]] = relationship(
         "ItemCharacteristic",
-        back_populates="items",
+        back_populates="item",
         cascade="all, delete-orphan",
         single_parent=True,
     )
 
-    created_by_admin: Mapped[Optional["Admin"]] = relationship("Admin", foreign_keys=[created_by_admin_id])
-    updated_by_admin: Mapped[Optional["Admin"]] = relationship("Admin", foreign_keys=[updated_by_admin_id])
+    created_by_admin: Mapped[Optional["Admin"]] = relationship(
+        "Admin",
+        foreign_keys=[created_by_admin_id],
+        back_populates="created_items",
+    )
 
-    reviews: Mapped[list["Review"]] = relationship("Review", back_populates="items")
+    updated_by_admin: Mapped[Optional["Admin"]] = relationship(
+        "Admin",
+        foreign_keys=[updated_by_admin_id],
+        back_populates="updated_items",
+    )
+
+    reviews: Mapped[list["Review"]] = relationship("Review", back_populates="item")
     support_tickets: Mapped[list["SupportTicket"]] = relationship("SupportTicket", back_populates="item")
 
     __table_args__ = (
