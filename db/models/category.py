@@ -48,6 +48,7 @@ class Category(Base, TimestampMixin):
     __table_args__ = (
         UniqueConstraint("parent_id", "name", name="uq_categories_parent_id_name"),
         UniqueConstraint("parent_id", "slug", name="uq_categories_parent_id_slug"),
+        # TODO: add DB-specific partial unique indexes for root category name/slug if needed.
 
         CheckConstraint("parent_id IS NULL OR parent_id <> id", name="ck_categories_no_self_parent"),
         CheckConstraint("sort_order >= 0", name="ck_categories_sort_order_non_neg"),

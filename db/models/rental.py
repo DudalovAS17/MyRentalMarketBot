@@ -89,14 +89,14 @@ class Rental(Base, TimestampMixin):
         back_populates="assigned_rentals",
     )
 
-    # какие отзывы относятся к этой сделке
+    # какие отзывы относятся к этой заявке
     reviews: Mapped[list["Review"]] = relationship(
         "Review",
-        back_populates="rentals",
+        back_populates="rental",
         cascade="all, delete-orphan",
     )
 
-    support_tickets: Mapped[list["SupportTicket"]] = relationship("SupportTicket", back_populates="rentals")
+    support_tickets: Mapped[list["SupportTicket"]] = relationship("SupportTicket", back_populates="rental")
 
     __table_args__ = (
         # нельзя создать аренду, которая заканчивается раньше, чем начинается
@@ -116,6 +116,6 @@ class Rental(Base, TimestampMixin):
         Index("ix_rentals_user_status", "user_id", "status"),
         Index("ix_rentals_assigned_admin_status", "assigned_admin_id", "status"),
 
-        # получить все сделки по вещи с определёнными статусами: item_id + status
+        # получить все заявки по товару с определёнными статусами: item_id + status
         Index("ix_rentals_item_status", "item_id", "status"),
     )

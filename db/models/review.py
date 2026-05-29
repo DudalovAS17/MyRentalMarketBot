@@ -27,8 +27,8 @@ class Review(Base, TimestampMixin):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
 
-    # Связь со сделкой (Review у тебя привязан не просто к пользователю, а именно к факту сделки)
-    rental_id: Mapped[Optional[int]] = mapped_column(ForeignKey("rentals.id", ondelete="CASCADE"), nullable=True)
+    # # Связь с заявкой (Review у тебя привязан не просто к пользователю, а именно к факту сделки)
+    rental_id: Mapped[int] = mapped_column(ForeignKey("rentals.id", ondelete="CASCADE"), nullable=False)
 
     # отзыв клиента именно о товаре
     item_id: Mapped[Optional[int]] = mapped_column(ForeignKey("items.id", ondelete="SET NULL"), nullable=True)
@@ -56,7 +56,7 @@ class Review(Base, TimestampMixin):
     # ------- Отношения | связи --------
 
     # отзыв знает, к какой аренде он относится
-    rentals: Mapped[Optional["Rental"]] = relationship("Rental", back_populates="reviews")
+    rental: Mapped[Optional["Rental"]] = relationship("Rental", back_populates="reviews")
 
     user: Mapped["User"] = relationship("User", back_populates="reviews")
     item: Mapped[Optional["Item"]] = relationship("Item", back_populates="reviews")

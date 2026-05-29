@@ -36,7 +36,7 @@ class Photo(Base, TimestampMixin):
         comment="URL фотографии, если изображение взято с сайта или внешнего источника",
     )
 
-    # порядок отображения фотографии внутри вещи (позволяет сортировать фото, например какое показывать первым)
+    # порядок отображения фотографии внутри карточки товара (позволяет сортировать фото, например какое показывать первым)
     sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
     # у товара может быть несколько фото, но одно из них главное
@@ -53,6 +53,7 @@ class Photo(Base, TimestampMixin):
         Index("ix_photos_item_order", "item_id", "sort_order"),
 
         Index("ix_photos_item_main", "item_id", "is_main"),
+        # TODO: enforce only one main photo per item at DB or service level.
 
         # Чтобы не было отрицательных значений порядка
         CheckConstraint("sort_order >= 0", name="ck_photos_order_non_neg"),

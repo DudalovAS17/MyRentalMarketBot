@@ -58,7 +58,7 @@ class Item(Base, TimestampMixin):
     status: Mapped[ItemStatus] = mapped_column(
         SAEnum(ItemStatus, name="item_status"),
         nullable=False,
-        default=ItemStatus.PENDING # теперь правильнее ItemStatus.DRAFT
+        default=ItemStatus.DRAFT
     )
 
     created_by_admin_id: Mapped[Optional[int]] = mapped_column(
@@ -117,7 +117,7 @@ class Item(Base, TimestampMixin):
     support_tickets: Mapped[list["SupportTicket"]] = relationship("SupportTicket", back_populates="item")
 
     __table_args__ = (
-        CheckConstraint("(price IS NULL) OR (price >= 0)", name="ck_items_price_non_neg"), # price_per_day
+        CheckConstraint("price >= 0", name="ck_items_price_non_neg"), # price_per_day
         CheckConstraint("min_rental_period >= 1", name="ck_items_min_period"),
         CheckConstraint("(max_rental_period IS NULL) OR (max_rental_period >= min_rental_period)",
                         name="ck_items_max_ge_min"),
