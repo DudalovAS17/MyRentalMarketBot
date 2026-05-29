@@ -1,4 +1,4 @@
-from db.models.admin import AdminAction
+from db.models.admin_actions import AdminAction
 from db.repositories.base import BaseRepository
 
 

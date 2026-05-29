@@ -1,4 +1,4 @@
-from .admin import AdminAction
+from .admin_actions import AdminAction
 from .support_ticket import SupportTicket
 from .user import User
 from .rental import Rental

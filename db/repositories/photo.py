@@ -20,7 +20,7 @@ class PhotoRepository(BaseRepository):
             stmt = (
                 select(Photo)
                 .where(Photo.item_id == item_id)
-                .order_by(Photo.order.asc(), Photo.id.asc()) # .order_by(Photo.order)
+                .order_by(Photo.sort_order.asc(), Photo.id.asc()) # .order_by(Photo.sort_order)
             )
             return await self._list(s, stmt)
 
@@ -49,18 +49,18 @@ class PhotoRepository(BaseRepository):
             return await self._delete_commit(s, obj)
 
     async def reorder(self, item_id: int) -> int:
-        """Перенумеровать order = 0,.., N после удаления/добавления. Чтобы порядок был всегда плотным"""
+        """Перенумеровать sort_order = 0,.., N после удаления/добавления. Чтобы порядок был всегда плотным"""
         async with self._session() as s:
             stmt = (
                 select(Photo)
                 .where(Photo.item_id == item_id)
-                .order_by(Photo.order.asc(), Photo.id.asc())
+                .order_by(Photo.sort_order.asc(), Photo.id.asc())
             )
             result = await s.execute(stmt)
             photos = list(result.scalars())
 
             for i, photo in enumerate(photos):
-                photo.order = i
+                photo.sort_order = i
 
             await self._commit_or_rollback(s)
             return len(photos)
@@ -73,11 +73,11 @@ class PhotoRepository(BaseRepository):
         False — нельзя выполнить
         """
         async with self._session() as s:
-            # 1) получаем упорядоченный список id+order
+            # 1) получаем упорядоченный список id+sort_order
             stmt = (
-                select(Photo.id, Photo.order)
+                select(Photo.id, Photo.sort_order)
                 .where(Photo.item_id == item_id)
-                .order_by(Photo.order.asc(), Photo.id.asc())
+                .order_by(Photo.sort_order.asc(), Photo.id.asc())
             )
             res = await s.execute(stmt)
             rows = res.all() # [(10, 0), (11, 1), (12, 2)] (это для трех фото с id=10-12)
@@ -102,7 +102,7 @@ class PhotoRepository(BaseRepository):
                     return False
                 other_id, other_order = ids[idx + 1], orders[idx + 1]
 
-            this_order = orders[idx] # order текущего
+            this_order = orders[idx] # sort_order текущего
 
             # 2) делаем swap двух строк в одной транзакции
             try:
@@ -122,7 +122,7 @@ class PhotoRepository(BaseRepository):
                         await s.execute(
                             select(Photo.id)
                             .where(Photo.item_id == item_id)
-                            .order_by(Photo.order.asc(), Photo.id.asc())
+                            .order_by(Photo.sort_order.asc(), Photo.id.asc())
                         )
                     ).scalars().all()
             )
@@ -138,7 +138,7 @@ class PhotoRepository(BaseRepository):
             photos.remove(photo_id)
             photos.insert(new_order, photo_id)
 
-            # обновляем order всем одним UPDATE через CASE (быстро, без цикла add())
+            # обновляем sort_order всем одним UPDATE через CASE (быстро, без цикла add())
             mapping = {pid: idx for idx, pid in enumerate(photos)}
             stmt = (
                 update(Photo)

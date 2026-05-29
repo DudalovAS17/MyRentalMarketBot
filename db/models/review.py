@@ -1,30 +1,40 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-from sqlalchemy import Index, Integer, ForeignKey, Text, CheckConstraint, UniqueConstraint
+from typing import Optional, TYPE_CHECKING
+from sqlalchemy import Index, Integer, ForeignKey, Text, CheckConstraint, UniqueConstraint, Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from status.review_status import ReviewStatus
 from db.models.base import Base, TimestampMixin
 
 if TYPE_CHECKING:
     from db.models.user import User
+    from db.models.item import Item
     from db.models.rental import Rental
 
 
 class Review(Base, TimestampMixin):
-    """Модель для хранения отзывов о сделках аренды"""
+    """Отзыв клиента о товаре, заявке или сервисе компании.
+
+    Идеал:
+    ⭐ отзывы о товаре
+    ⭐ отзывы о сервисе
+    ⭐ отзывы после завершённой заявки
+    ⭐ оценка качества аренды
+    ⭐ обратная связь для компании
+    """
     __tablename__ = 'reviews'
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
 
     # Связь со сделкой (Review у тебя привязан не просто к пользователю, а именно к факту сделки)
-    rental_id: Mapped[int] = mapped_column(ForeignKey("rentals.id", ondelete="CASCADE"), nullable=False)
+    rental_id: Mapped[int] = mapped_column(ForeignKey("rentals.id", ondelete="CASCADE"), nullable=True)
+
+    # отзыв клиента именно о товаре
+    item_id: Mapped[Optional[int]] = mapped_column(ForeignKey("items.id", ondelete="SET NULL"), nullable=True)
 
     # Кто оставил отзыв
-    reviewer_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"), nullable=False)
-
-    # Кому оставлен отзыв
-    reviewee_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"),  nullable=False)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"), nullable=False)
 
     # Оценка (от 1 до 5)
     rating: Mapped[int] = mapped_column(Integer, nullable=False)
@@ -32,29 +42,44 @@ class Review(Base, TimestampMixin):
     # Текст отзыва (Текстовый комментарий)
     comment: Mapped[str | None] = mapped_column(Text, nullable=True)
 
+    # Отзывы лучше модерировать перед публикацией
+    status: Mapped[ReviewStatus] = mapped_column( # NEW
+        SAEnum(ReviewStatus, name="review_status"),
+        nullable=False,
+        default=ReviewStatus.PENDING,
+    )
+
+    # админ может оставить внутреннюю заметку
+    admin_note: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+
 
     # ------- Отношения | связи --------
 
     # отзыв знает, к какой аренде он относится
     rental: Mapped["Rental"] = relationship("Rental", back_populates="reviews")
 
-    reviewer: Mapped["User"] = relationship("User", foreign_keys=[reviewer_id])
-    reviewee: Mapped["User"] = relationship("User", foreign_keys=[reviewee_id])
+    user: Mapped["User"] = relationship("User", back_populates="reviews")
+    item: Mapped[Optional["Item"]] = relationship("Item", back_populates="reviews")
+
+
 
     __table_args__ = (
         Index("ix_reviews_rental_id", "rental_id"),
-        Index("ix_reviews_reviewer_id", "reviewer_id"),
-        Index("ix_reviews_reviewee_id", "reviewee_id"),
+        Index("ix_reviews_user_id", "user_id"),
+        Index("ix_reviews_item_id", "item_id"),
+        Index("ix_reviews_status", "status"),
+
+        # рейтинг пользователя
+        Index("ix_reviews_reviewee_rating", "user_id", "rating"),
+        # связка сделка+получатель
+        Index("ix_reviews_rental_reviewee", "rental_id", "user_id"),
+
+        Index("ix_reviews_item_status", "item_id", "status"),
+        Index("ix_reviews_item_rating", "item_id", "rating"),
 
         # Рейтинг строго 1–5
         CheckConstraint("rating >= 1 AND rating <= 5", name="ck_reviews_rating_range"),
 
         # Один отзыв на сделку от одного пользователя (Без этого: пользователь сможет 10 раз нажать «Оставить отзыв»)
-        UniqueConstraint("rental_id", "reviewer_id", name="uq_reviews_rental_reviewer"),
-
-        # Быстрые выборки:
-        # рейтинг пользователя
-        Index("ix_reviews_reviewee_rating", "reviewee_id", "rating"),
-        # связка сделка+получатель
-        Index("ix_reviews_rental_reviewee", "rental_id", "reviewee_id"),
+        UniqueConstraint("rental_id", "user_id", name="uq_reviews_rental_user"),
     )

@@ -4,6 +4,10 @@ from aiogram.fsm.context import FSMContext
 
 from .router import auth_router
 
+from handlers.entries.auth_entry import start_registration
+from handlers.entries.base_entry import show_main_menu
+from handlers.entries.entry_helper import build_registration_contact_keyboard
+
 from .helpers_auth.keyboards import build_change_phone_keyboard, build_open_profile_keyboard
 from .helpers_auth.texts import build_invalid_contact_text, build_phone_changed_success_text, build_change_phone_prompt_text
 from .helpers_auth.validation import is_own_contact
@@ -48,3 +52,29 @@ async def process_phone_number(message: Message, state: FSMContext, user_service
 
     await message.answer("🔙 Возвращаем вас в профиль...", reply_markup=build_open_profile_keyboard())
     return
+
+
+# проверь
+@auth_router.message(F.contact)
+async def complete_registration_with_contact(message: Message, user_service: UserService) -> None:
+    """Завершает регистрацию по присланному контакту."""
+    contact = message.contact
+    tg_user = message.from_user
+
+    if not contact or contact.user_id != tg_user.id:
+        await message.answer(
+            "❌ Пожалуйста, отправьте именно свой контакт через кнопку ниже.",
+            reply_markup=build_registration_contact_keyboard(),
+        )
+        return
+
+    user = await user_service.get_by_telegram_id(tg_user.id)
+    if not user:
+        await start_registration(message, user_service)
+        return
+
+    await user_service.update(user.id, UserUpdate(phone=contact.phone_number))
+    updated_user = await user_service.get_by_telegram_id(tg_user.id, strict=True)
+
+    await message.answer("✅ Номер подтверждён. Регистрация завершена.")
+    await show_main_menu(message, updated_user)

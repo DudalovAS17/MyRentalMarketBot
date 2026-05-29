@@ -1,444 +1,394 @@
-## Base
+# Base
 
-### 1. `nullable=False`
-
-Запрещает хранить NULL в колонке на уровне БД. У каждой записи ВСЕГДА есть время создания и обновления.
-
-Тогда 
-
-a) Если поле `nullable=False`,
-```
-if rental.created_at is not None:  # ❌ лишний шум
-```
-
-b) `Optional[datetime]` + `nullable=False` — плохо, т.к. 
-* `Optional` говорит: “может быть None”, 
-* но `nullable=False` говорит: “никогда не None”
-
-
-### 2. `admin_tg_id -> admin_id`
-
+### 1. `admin_tg_id -> admin_id`
 Поменял, но возможны будущие ошибки из-за того, что где-то не поменял.
 
-### 3. Убрали `class ReprMixin` и `class DictMixin`
-
-### 4.
-
-```
-    ✅server_default=func.now(),
-    ❌default=lambda: datetime.now(timezone.utc),
-```
-
-```
-    ✅server_default=func.now(),
-    ✅onupdate=func.now(),
-    ❌default=lambda: datetime.now(timezone.utc),
-    ❌onupdate=lambda: datetime.now(timezone.utc),
-```
-
-### 5. Тут все норм, но обдумай.
-Единые имена для PK/FK/индексов/уника_лок (удобно для Alembic и чтения схемы)
-```
-NAMING_CONVENTION: Final[dict[str, str]] = {
-    "ix": "ix_%(table_name)s_%(column_0_N_name)s",
-    "uq": "uq_%(table_name)s_%(column_0_N_name)s",
-    "ck": "ck_%(table_name)s_%(constraint_name)s",
-    "fk": "fk_%(table_name)s_%(column_0_N_name)s_%(referred_table_name)s",
-    "pk": "pk_%(table_name)s",
-}
-```
+### 2. 
+- ✅ `server_default=func.now()`
+- ✅ `onupdate=func.now()`
 
 ---
 
-## Category
+# Category
 
 ### 1. `id`
 - `primary_key=True`
-
-Это поле является первичным ключом таблицы. 
-Первичный ключ — это главный способ отличать одну запись от другой.
-
-Поле `id`:
-
-    * уникально для каждой записи;
-    * не может быть NULL;
-    * используется БД как главный идентификатор строки.
-
 - `autoincrement=True`
 
-Значение `id` БД будет увеличивать автоматически при создании новой записи.
-
-### 2. `parent_id`
-- `ForeignKey("categories.id", ondelete="CASCADE")` 
-    * если удалить родительскую категорию, БД удалит и дочерние категории;
-    * делает дерево категорий жёстко зависимым от родителя;
-    * подкатегория не считается самостоятельной сущностью без родителя.
-
-- #`index=True` - быстрее выборки по `parent_id`
-
-### Отношения
-
-### 3. `parent` (`categories`)
-- `remote_side="Category.id"`
-  * self-referential relationship без remote_side для SQLAlchemy неоднозначна;
-  * говорит ORM, что именно Category.id является “удалённой” стороной связи;
-  * иначе SQLAlchemy не сможет корректно понять, где родитель, а где потомок.
-
-_**self-referential relationship**_ — это связь модели самой с собой. 
-В твоём случае `Category` ссылается на `Category`: у категории есть `id`, у категории есть `parent_id`. 
-`parent_id` указывает на другую запись в той же таблице `categories`. 
-То есть одна и та же таблица хранит: и родительские категории, и подкатегории.
-
-- `back_populates = "subcategories" \ "parent"`
-    * `parent` — “мой родитель” (связь “вверх”)
-    * `subcategories` — “мои дочерние категории” (связь “вниз”)
-
-`back_populates` говорит SQLAlchemy: эти две связи — две стороны одной и той же relationship. 
-Склеивает их в одну согласованную ORM-связь
-
-### 4. `subcategories`
-
-- `back_populates="parent"`
-
-- `cascade="all, delete-orphan"`
-    * если дочерняя категория перестала принадлежать родителю, ORM считает её “сиротой” и удаляет
-    * это соответствует модели, где подкатегория не должна жить отдельно от дерева
-    * `delete-orphan` в self-referential связи опасен без `single_parent=True`
-
-- `single_parent=True`
-    * SQLAlchemy требует `single_parent=True`, когда используется `delete-orphan` и объект должен иметь только одного владельца
-    * одна подкатегория может иметь только одного родителя
-
-- ` # passive_deletes=True` - уважаем `ondelete` на стороне БД
-    * ORM не будет пытаться сама заранее грузить дочерние записи и удалять их по одной
-    * она доверяет delete-семантике БД (`ondelete="CASCADE"`)
-    * это снижает лишнюю ORM-активность и лучше согласует поведение с FK-правилами БД
-
-### 5. `__table_args__`
-В рамках одного родителя имя уникально
-- `UniqueConstraint("parent_id", "name", name="uq_categories_parent_id_name")`
-    * одинаковые имена допустимы в разных ветках дерева
-    * но внутри одного родителя имя должно быть уникально
-    * это значит, что уникальность категории в системе — локальная относительно parent_id, а не глобальная
-
-Защита от «сам себе родитель»
-- `CheckConstraint("parent_id IS NULL OR parent_id <> id", name="ck_categories_no_self_parent")`
-    * это только защита от тривиального цикла “сам себе родитель”
-    * она не защищает от более длинных циклов вида A → B → C → A
-    * значит модель БД запрещает самый грубый случай, но не решает полную задачу ацикличности дерева
-
-- [CheckConstraint - валидации на уровне БД]() (последняя линия обороны)
-
-Для быстрого получения категорий по parent_id
-- `Index("ix_categories_parent_id", "parent_id")`
-    * индекс нужен, потому что основной частый запрос — получить всех детей конкретного родителя;
-    * без индекса выборка подкатегорий по `parent_id` будет хуже масштабироваться;
-    * это индекс под типовой traversal дерева, а не просто “на всякий случай”.
-
----
-
-## Item
-
-### 1. `user_id` - владелец
-`ForeignKey("users.id", ondelete="CASCADE")` - удалил пользователя → снеслись его объявления
-
-### 2. `category_id`
-`ForeignKey("categories.id", ondelete="RESTRICT")` - нельзя удалить категорию, пока есть вещи
-
-### 3. `subcategory_id`
-`ForeignKey("categories.id", ondelete="SET NULL")` - подкатегория может обнулиться
-
-### 4. `price` / `deposit` - `Numeric(12, 2)`
-
-Decimal/Numeric — без проблем округления.
-
-### 5. `coordinates` - JSON
-
-`[dict[str, Any]],   {"lat": ..., "lng": ...}`
-
-### 6. `status` 
-- `SAEnum(ItemStatus, name="item_status")` # String(20)
-- `default=ItemStatus.PENDING`
-
-### 7. `moderated_at` - `DateTime(timezone=True)`
-
-### 8. `moderated_by_admin_id` - `ForeignKey("users.id", ondelete="SET NULL")` # Integer
-
-### 9. `min_rental_period` - `default=1`
-
-### 10. `views_count` / `orders_count` - `default=0`
+### 2.
+- `parent_id: ForeignKey("categories.id", ondelete="CASCADE")`
+- `sort_order: default=0`
+- `is_active: default=True`
 
 ## Отношения
 
-### 11. `owner` 
-- `back_populates="items"` 
-- `foreign_keys=[user_id]`
+`parent`
+- `"Category"`
+- `remote_side="Category.id"`
+- `back_populates="subcategories"` “мои дочерние категории” (связь “вниз”)
 
-### 12. `category` / `subcategory` - нужны?
+`subcategories`
+- `"Category"`
+- `back_populates="parent"` “мой родитель” (связь “вверх”)
+- `cascade="all, delete-orphan"`
+- `single_parent=True`
+- `passive_deletes=True`
 
-### 13. `rentals`
-- `back_populates="item"` 
+### `__table_args__`
+В рамках одного родителя имя уникально:
+- `UniqueConstraint("parent_id", "name", name="uq_categories_parent_id_name")`
 
-Убрал `cascade="all, delete-orphan`, почему:
-у `Rental.item_id стоит ForeignKey("items.id", ondelete="RESTRICT")`,
-значит: вещь с историей аренды удалять нельзя.
-Следовательно, удаление Item не должно автоматически удалять Rental.
+Защита от «сам себе родитель»:
+- `CheckConstraint("parent_id IS NULL OR parent_id <> id", name="ck_categories_no_self_parent")`
 
-А `cascade="all, delete-orphan"` здесь как раз означал бы:
-удалил `Item` → ORM начинает удалять связанные `Rental`.
-Это противоречит смыслу модели аренды как исторически значимой сущности.
+Для быстрого получения категорий по `parent_id`:
+- `Index("ix_categories_parent_id", "parent_id")`
 
-### 12. `item_photos`
+---
+
+# Item
+
+> Убрал: user id, location, coordinates, is_available, moderated_by_admin_id, moderation_reason
+
+- `price: Numeric(12, 2)`
+- `available_quantity: default=1`
+- `is_featured: default=False`
+- `moderated_at: DateTime(timezone=True)`
+- `sort_order: default=0`
+- `min_rental_period: default=1`
+- `views_count: default=0`
+- `orders_count: default=0`
+
+`is_featured: Boolean` 
+
+- `category_id: ForeignKey("categories.id", ondelete="RESTRICT")` - нельзя удалить категорию, пока есть вещи
+- `subcategory_id: ForeignKey("categories.id", ondelete="SET NULL")` - подкатегория может обнулиться
+- `created_by_admin_id: ForeignKey("admins.id", ondelete="SET NULL")`
+- `updated_by_admin_id: ForeignKey("admins.id", ondelete="SET NULL")`
+
+>`status` 
+>- `SAEnum(ItemStatus, name="item_status")`
+>- `default=ItemStatus.PENDING`
+
+## Отношения
+
+> Убрал: owner, rentals?
+
+>Ниже отношения, для чего нужны, пример:
+> - Без relationship ты можешь получить [только](): `item.category_id`
+> - Но с relationship ты можешь сделать: `item.category.name`
+
+`category / subcategory`
+- `"Category"`
+- `foreign_keys=[category_id / subcategory_id]`
+
+`created_by_admin / updated_by_admin`
+- `"Admin"`
+- `foreign_keys=[created_by_admin_id / updated_by_admin_id]`
+
+`item_photos`
+- `"Photo"` 
 - `back_populates="item"` Photo — настоящая дочерняя сущность Item
 - `cascade="all, delete-orphan"` удалил вещь → удалили её фото (фото не имеет смысла без вещи)
 - `single_parent=True` одно фото принадлежит одной вещи
 
-Убрал `passive_deletes=True`, почему:
-- Представь: У тебя есть Item с 100 Photo.
-- Ты делаешь: session.delete(item)
-- Что делает ORM (по умолчанию):
-    * ORM идёт в БД и загружает все 100 фото
-    * Потом удаляет их по одному
-    * Потом удаляет Item
-- То есть:
-```
-SELECT photos...
-DELETE photo 1
-DELETE photo 2
-...
-DELETE photo 100
-DELETE item
-```
-👉 Это много лишней работы.
+>Убрал `passive_deletes=True`, почему:
+>- Представь: У тебя есть Item с 100 Photo. 
+>- Ты делаешь: `session.delete(item)`.
+>- Что делает ORM (по умолчанию):
+>    * ORM идёт в БД и загружает все 100 фото
+>    * Потом удаляет их по одному
+>    * Потом удаляет Item.
+>
+> То есть: `SELECT photos... - DELETE photo 1 - DELETE photo 2 - ... - DELETE photo 100 - DELETE item`
+> 👉 Это много лишней работы.
+>
+> Что происходит с `passive_deletes=True`:
+>- Ты говоришь ORM: “Не трогай детей. Пусть БД сама всё сделает.”
+>И при этом у тебя в БД уже есть:
+>`FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE CASCADE`.
+>Тогда происходит: `DELETE item`. И ВСЁ.
+>- А БД сама удаляет все связанные photo
 
-Что происходит с `passive_deletes=True`
-- Ты говоришь ORM: “Не трогай детей. Пусть БД сама всё сделает.”
-И при этом у тебя в БД уже есть:
-`FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE CASCADE`
-Тогда происходит: `DELETE item`. И ВСЁ.
-- А БД сама: → удаляет все связанные photo
+`characteristics`
+- `"ItemCharacteristic"`
+- `back_populates="item"`
+- `cascade="all, delete-orphan"`
+- `single_parent=True`
 
+### `__table_args__`
+
+>Создай индекс, который помогает БД быстро искать товары по **[subcategory_id]()**, потом по **[status]()**, 
+>и сразу отдавать их в порядке **[sort_order]()**:
+> 
+>`Index("ix_items_subcategory_status_sort", "subcategory_id", "status", "sort_order")`
 
 ---
 
-## Rental
+# ItemCharacteristic
 
-[**_Rental здесь — это узел, который связывает Item + двух User + Review_**]()
+### 1. 
+- `item_id: ForeignKey("items.id", ondelete="CASCADE"))`
+- `sort_order: default=0`
 
-### 1. `item_id`
-`ForeignKey("items.id", ondelete="RESTRICT")`
+### 2.
+`item`
+- `"Item"`
+- `back_populates="characteristics"`
 
-### 2. `renter_id` / `owner_id`
-`ForeignKey("users.id", ondelete="RESTRICT")`
+---
 
-["RESTRICT" - не даём удалить вещь с историей аренды / арендатора с историями / владельца с историями]()
+# User
 
-### 3. `start_date` / `end_date`
-`DateTime(timezone=True)`
+[**_Rental здесь — это ...**]()
 
-### 4. `status`
-- `SAEnum(RentalStatus, name="rental_status")`
-- `default=RentalStatus.REQUESTED`
+`telegram_id`
+- `BigInteger`
+- `unique=True`
 
-### 5. `owner_handover_confirmed` / `renter_receive_confirmed`
-- `default=False`
-- потом заменятся через Alembic?
+- `rating: default=Decimal("0.00")`
+- `rating_count: default=0`
+
+- `phone: String(20)`
+- `email: String(100)`
+- `language_code: String(10)`
+
+`account_status`
+- `SAEnum(AccountStatus, name="account_status")`
+- `default=AccountStatus.ACTIVE`
+
+- `banned_by_admin_id: ForeignKey("users.id", ondelete="SET NULL")`
+- `banned_at: DateTime(timezone=True)`
+- `ban_reason: Text`
+
+> Убрал: `rating / rating_count`
+>
+>рейтинг
+>* `rating: Mapped[Decimal] = mapped_column(Numeric(3, 2), nullable=False, default=Decimal("0.00"))`
+>* `rating_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)`
+> 
+> Также убираем
+>* `CheckConstraint("rating >= 0 AND rating <= 5", name="ck_users_rating_range"),`
+>* `CheckConstraint("rating_count >= 0", name="ck_users_rating_count_non_neg"),`
 
 ## Отношения
 
-### 6. `item`  - У каждой аренды есть одна вещь
+> Убираем: `items` - в RentalMarketBot пользователи не создают товары. Товары создаёт компания через админов.
+```python
+    items: Mapped[list["Item"]] = relationship(
+        "Item",
+        back_populates="owner", # User.items  <->  Item.owner
+        foreign_keys="Item.user_id", # связь User.items строится через колонку Item.user_id
+        cascade="all, delete-orphan", # Item — дочерняя сущность пользователя: Удалили юзера → удалились его вещи (если в Item FK ondelete=CASCADE — идеально)
+        single_parent=True, # вещь принадлежит одному владельцу, а не нескольким
+        passive_deletes=True, # если пользователь удаляется, БД сама удалит Item через ondelete="CASCADE"
+    )
+```
+
+> Убираем: `rentals_as_owner / rentals_as_renter` - это список аренд, где пользователь выступает владельцем/арендатором.
+> В новом проекте нет owner-пользователя. Есть клиент и компания.
+```python
+    rentals_as_owner / rentals_as_renter: Mapped[list["Rental"]] = relationship(
+        "Rental", 
+        foreign_keys="Rental.owner_id / .renter_id", # потому что Rental связан с User двумя FK: `owner_id` и `renter_id`. Без этого SQLAlchemy не поймёт, какая именно связь нужна.
+        back_populates="owner / renter"
+    )
+
+# `Cascade`? Нет. И это правильно.  Почему:
+#   - аренды — это история
+#   - удаление пользователя не должно удалять истории аренды
+#   - в `Rental.owner_id` стоит `ondelete="RESTRICT"`
+```
+
+
+Вместо этого новые связи:
+- один пользователь может оставить много заявок на аренду
+```python
+    rental_requests: Mapped[list["RentalRequest"]] = relationship(
+        "RentalRequest",
+        back_populates="user",
+    )
+```
+
+- связь с корзиной: один пользователь может добавить несколько товаров в корзину
+```python
+    cart_items: Mapped[list["CartItem"]] = relationship(
+        "CartItem",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        single_parent=True,
+    )
+```
+
+---
+
+# Rental
+
+**[Заявка клиента на аренду товара.]()**
+
+`item_id: ForeignKey("items.id", ondelete="RESTRICT")`
+
+`start_date / end_date: DateTime(timezone=True)`
+  - Если пользователь может выбрать не точные даты, а период: `nullable=True`
+  - Сейчас стоит `nullable=False`
+
+`total_price`
+  - `nullable=True`: В заявке цена может быть предварительной. Менеджер потом уточняет итоговую стоимость, доставку, срок, наличие.
+  - Сейчас стоит `nullable=False`
+
+`status`
+- `SAEnum(RentalStatus, name="rental_status")`
+- `default=RentalStatus.REQUESTED`
+
+- `quantity: default=1`
+- `user_id: ForeignKey("users.id", ondelete="RESTRICT")`
+- `assigned_admin_id: ForeignKey("admins.id", ondelete="SET NULL")`
+- `processed_at: DateTime(timezone=True)`
+- `closed_at: DateTime(timezone=True)`
+
+## Отношения
+
+`item`  - У каждой аренды есть одна вещь
+- `"Item"`
 - `back_populates="rentals"`
 
-### 7. `renter` - У аренды есть один арендатор
-- `back_populates="rentals_as_renter"`
-- `foreign_keys=[renter_id]`
+`user`
+- `"User"`
+- `back_populates="rentals"`
 
-Здесь `foreign_keys` потому что `Rental` связан с `User` двумя разными FK: `renter_id` \ `owner_id`.
-Если не указать `foreign_keys`, SQLAlchemy не поймёт, через какой именно FK строить связь.
+`assigned_admin`
+- `"Admin"`
+- `foreign_keys=[assigned_admin_id]`
 
-### 8. `owner` - У аренды есть один владелец вещи
-- `back_populates="rentals_as_owner"`
-- `foreign_keys=[owner_id]`
-
-### 9. `reviews` - У одной аренды может быть несколько отзывов
+`reviews` - У одной аренды может быть несколько отзывов
 - `back_populates="rental"`
 - `cascade="all, delete-orphan"`
 - `#single_parent=True`
 - `#lazy="selectin"`
 - `#passive_deletes=True`
 
----
+```python
+# Убрал:
 
-## User
+# Арендатор
+renter_id: Mapped[int] = mapped_column(
+    ForeignKey("users.id", ondelete="RESTRICT"), 
+    nullable=False
+)
 
-[**_Rental здесь — это узел, который связывает Item + двух User + Review_**]()
+# Владелец
+owner_id: Mapped[int] = mapped_column(
+    ForeignKey("users.id", ondelete="RESTRICT"), 
+    nullable=False
+)
 
-### 1. `telegram_id`
-- `BigInteger`
-- `unique=True`
+deposit_amount: Mapped[Optional[Decimal]] = mapped_column(
+    Numeric(12, 2), 
+    nullable=True
+)
 
-### 2. `rating`
-- `default=Decimal("0.00")`
+owner_handover_confirmed: Mapped[bool] = mapped_column(
+    Boolean, 
+    default=False, 
+    nullable=False
+)
 
-### 3. `rating_count`
-- `default=0`
+renter_receive_confirmed: Mapped[bool] = mapped_column(
+    Boolean, 
+    default=False, 
+    nullable=False
+)
 
-### 4. `account_status`
-- `SAEnum(AccountStatus, name="account_status")`
-- `default=AccountStatus.ACTIVE`
+# Удалил эти отношения:
+renter: Mapped["User"] = relationship("User", foreign_keys=[renter_id], back_populates="rentals_as_renter")
+owner: Mapped["User"] = relationship("User", foreign_keys=[owner_id],  back_populates="rentals_as_owner")
 
-### 5. `banned_by_admin_id`
-- `ForeignKey("users.id", ondelete="SET NULL")` # было Integer
+Index("ix_rentals_renter_id", "renter_id"),
+Index("ix_rentals_owner_id", "owner_id"),
 
-## Отношения
+# история арендатора (история бронирований): renter_id + status
+Index("ix_rentals_renter_status", "renter_id", "status"),
 
-### 6. `items`  - У каждой аренды есть одна вещь
-- `back_populates="owner"` - [User.items  <->  Item.owner]()
-- `foreign_keys="Item.user_id"` - [связь User.items строится через колонку Item.user_id]()
-- `cascade="all, delete-orphan"` (Item — дочерняя сущность пользователя)
-  * Удалили юзера → удалились его вещи (если в Item FK ondelete=CASCADE — идеально)
-- `single_parent=True` - [вещь принадлежит одному владельцу, а не нескольким]()
-- `passive_deletes=True` 
-    * ORM доверяет delete-семантике БД
-    * если пользователь удаляется, БД сама удалит Item через ondelete="CASCADE"
-    * ORM не обязана загружать все Item и удалять их по одной
-
-### 7. `rentals_as_owner` - [Это список аренд, где пользователь выступает владельцем]()
-- `foreign_keys="Rental.owner_id"` - потому что Rental связан с User двумя FK: `owner_id` и `renter_id`. 
-Без этого SQLAlchemy не поймёт, какая именно связь нужна.
-- `back_populates="owner"`
-
-Cascade? Нет. И это правильно.  Почему:
- * аренды — это история
- * удаление пользователя не должно удалять истории аренды
- * в `Rental.owner_id` стоит `ondelete="RESTRICT"`
-
-### 8. `rentals_as_renter` = [Это список аренд, где пользователь выступает арендатором]()
-- `foreign_keys="Rental.renter_id"`
-- `back_populates="renter"`
-
-### 9. `support_tickets - [У пользователя может быть много тикетов поддержки]()
-- `back_populates="user"`
-
-Почему нет cascade
-
-Это логично, потому что:
-
-- тикет поддержки — часть истории взаимодействия;
-- `SupportTicket.user_id` стоит с `ondelete="RESTRICT"`;
-- удаление пользователя не должно уничтожать историю обращений. 
-
-Смысл: это не дочерний disposable-объект вроде `Photo`, а исторически значимая сущность
-
----
-
-## Admin
-
-[**_`AdminAction` здесь — это журнал действий администратора_**]()
-
-Это не доменная сущность вроде `Rental` или `Item`, а audit/event record:
-- кто сделал действие;
-- какое действие;
-- над какой сущностью;
-- с какими деталями.
-
-[То есть модель отвечает не за “состояние чего-то”, а за фиксирование факта события.]()
-
-### 1. `action_type`, `entity_type`, `entity_id`
-- сервис обязан приводить их к str
-
-### 2. `payload`
-- `JSON`
-
----
-
-## Photo
-
-[**_`Photo` — это не самостоятельная сущность уровня `Item` или `Rental`_**]()
-
-Это модель, которая отвечает на вопросы:
-- к какой вещи относится фото;
-- как получить идентификатор файла;
-- в каком порядке это фото показывать.
-
-То есть по смыслу:
-[Photo живёт только внутри Item и не имеет самостоятельной ценности вне вещи.]()
-
-### 1. `item_id`
-- `ForeignKey("items.id", ondelete="CASCADE")`
-
-### 2. `telegram_file_id`
-- здесь мы храним как file_id из Telegram, так и URL?
-
-### 3. `order`
-- `default=0` (Если явно не задано — фото попадает в базовый порядок)
-
----
-
-## SupportTicket
-
-[**_`SupportTicket` — модель уже не ресурса, а истории взаимодействия пользователя с системой_**]()
-
-```
-  Поддержка — полный дизайн (MVP)
-  
-  Главная идея: Поддержка = тикеты, которые создают пользователи.
-  
-  Админ видит тикеты в админке, может:
-  - открыть тикет
-  - ответить пользователю
-  - закрыть тикет
-  
-  Пользователь:
-  - инициирует обращение (“Написать в поддержку”)
-  - получает ответ
-  - видит статус “принято/закрыто” (минимально)
+# история арендодателя (его подтверждения): owner_id + status
+Index("ix_rentals_owner_status", "owner_id", "status"),
 ```
 
-### 1. `user_id`
-- `ForeignKey("users.id", ondelete="RESTRICT")`
+---
 
-### 2. `telegram_id` и `username` убрал
+# Admin / AdminAction
 
-### 3. `status`
-- `SAEnum(SupportTicketStatus, name="support_ticket_status")`
-- `default=SupportTicketStatus.OPEN`
+[`Admin`— Админ/менеджер компании]()
 
-### 4. `closed_at` и `admin_last_reply_at`
-- `DateTime(timezone=True)`
+>`telegram_id`
+>- `BigInteger`
+>- `unique=True`
+
+>`role`
+>- `SAEnum(AdminRole, name="admin_role")`
+>- `default=AdminRole.MANAGER`
+
+>`is_active: default=True`
+
+>`account_status`
+>- `SAEnum(AccountStatus, name="account_status")`
+>- `default=AccountStatus.ACTIVE`
+
+
+[`AdminAction` — журнал действий администратора]()
+
+`admin_id`
+- `ForeignKey("admins.id", ondelete="SET NULL")`
+
+- `admin_tg_id: BigInteger`
+- `payload: JSON`
 
 ---
 
-## Review
+# Photo
 
-[**_`Review` — это уже не ресурс, а репутационная сущность, привязанная к сделке_**]()
+>`item_id: ForeignKey("items.id", ondelete="CASCADE")`
 
-- относится к конкретной аренде;
-- влияет на репутацию пользователей.
+>- `telegram_file_id: String(500)` - идентификатор файла, который Telegram позволяет использовать повторно
+>- `url: String(1000)` - ссылка на фото товара с сайта
 
-Review отвечает на вопрос: кто, о ком, по какой сделке и с какой оценкой оставил отзыв.
-
-То есть отзыв у тебя:
-- не существует сам по себе;
-- не существует без сделки;
-- не является просто “комментарием пользователя”;
-- это формализованная репутационная запись внутри контекста аренды.
-
-### 1. `rental_id`
-- `ForeignKey("rentals.id", ondelete="CASCADE")`
-
-### 2. `reviewer_id` и `reviewee_id`
-- `ForeignKey("users.id", ondelete="RESTRICT")`
-
-(Удаление юзера → удалились отзывы. Не подходит. История сделок/репутации должна сохраняться)
-
-## Отношения
-
-### 3. `reviewer` и `reviewee`
-- `foreign_keys=[reviewer_id]` (Без foreign_keys ORM не поймёт, по какому полю строить эту связь: reviewer_id или reviewee_id)
-- #`lazy="joined"`
+>`default`
+>- `sort_order: 0` Если явно не задано — фото попадает в базовый порядок
+>- `is_main: False` 
 
 ---
+
+# SupportTicket
+
+>`status`
+>- `SAEnum(SupportTicketStatus, name="support_ticket_status")`
+>- `default=SupportTicketStatus.OPEN`
+
+>`DateTime(timezone=True)`
+>- `closed_at` / `admin_last_reply_at`
+
+> `ForeignKey`
+>- `user_id: ("users.id", ondelete="RESTRICT")`
+>- `rental_id: ("rental_requests.id", ondelete="SET NULL")`
+>- `closed_by_admin_id: ("admins.id", ondelete="SET NULL")`
+
+> Убрал: `telegram_id` / `username`
+
+
+---
+
+# Review
+
+>- `rental_id: ForeignKey("rentals.id", ondelete="CASCADE")`
+>- `item_id: ForeignKey("items.id", ondelete="SET NULL")`
+>- `user_id: ForeignKey("users.id", ondelete="RESTRICT")`
+
+>`status`
+>   - `SAEnum(ReviewStatus, name="review_status")`
+>   - `default=ReviewStatus.PENDING`
+
+---
+
+# Общее
 
 ## Схема проекта
 
@@ -480,225 +430,6 @@ Review отвечает на вопрос: кто, о ком, по какой с
    └─ отдельно, без FK на User
 ```
 
-Главный принцип:
-- **_родитель_** = сущность, от которой зависит другая;
-- **_child_** = живёт “под” родителем;
-- **_историческая связь_** = удалять родителя нельзя, пока есть история;
-- **_мягкая ссылка_** = связь есть, но при удалении можно обнулить.
-
-Это видно по `relationship(...)`, `cascade=...` и особенно по `ForeignKey(..., ondelete=...)` в моделях
-
-### A. `User -> Item` = родитель → дочерняя сущность
-
-Почему:
-- в `Item.user_id` -> `users.id` стоит `ondelete="CASCADE"`
-- в `User.items` стоит `cascade="all, delete-orphan"` и `single_parent=True`
-
-**Смысл:**
-- вещь принадлежит пользователю;
-- без владельца эта вещь в текущей модели не должна жить.
-
-Мысленно:
-```
-User (родитель)
-  └─ Item (дочерняя сущность)
-```
-
-### B. `Item -> Photo` = родитель → дочерняя сущность
-
-Почему:
-- `Photo.item_id` -> `items.id` с `ondelete="CASCADE"`
-- `Item.item_photos` с `cascade="all, delete-orphan"` и `single_parent=True`
-
-**Смысл**: фото не существует отдельно от вещи.
-
-Мысленно:
-```
-Item (родитель)
-  └─ Photo (дочерняя сущность)
-```
-
-### C. `Category -> Category` = дерево, self-referential relationship
-
-Почему:
-- `Category.parent_id -> categories.id`
-- `parent` и `subcategories` связывают категорию саму с собой
-
-**Смысл**: одна категория может быть родителем для подкатегорий.
-
-Мысленно:
-```
-Category (родитель)
-  └─ Category (подкатегория)
-```
-
-## История / нельзя удалять (не “родитель-ребёнок”)
-
-### D. `Item -> Rental` - историческая связь.
-
-Почему:
-- `Rental.item_id` -> `items.id` с `ondelete="RESTRICT"`
-- у `Item.rentals` нет `delete-orphan` каскада
-
-**Смысл**: 
-- аренда — это история сделки;
-- нельзя удалить `item`, если по ней есть история аренды.
-
-Мысленно:
-```
-Item
-  └─ Rental
-```
-
-### E. `User -> Rental` - историческая связь.
-
-Почему:
-- `Rental.renter_id` и `Rental.owner_id` обе с `ondelete="RESTRICT"`
-
-**Смысл**: 
-- нельзя удалять пользователя, если он участвовал в арендах;
-- аренда хранит историю владельца и арендатора.
-
-Мысленно:
-```
-User (owner)  ─┐
-               ├─ Rental (история сделки)
-User (renter) ─┘
-```
-
-### F. `Rental -> Review` - это ближе к дочерней сущности сделки.
-
-Почему:
-- `Review.rental_id` -> `rentals.id` с `ondelete="CASCADE"`
-- `Rental.reviews` с `cascade="all, delete-orphan"`
-
-Смысл:
-- отзыв живёт внутри контекста конкретной аренды;
-- если аренды нет, отзыв теряет смысл.
-
-Мысленно:
-```
-Rental (родитель)
-  └─ Review (дочерняя сущность сделки)
-```
-
-Но при этом `Review.reviewer_id` и `reviewee_id` на `User` идут через `RESTRICT`, 
-то есть пользователей удалять нельзя, если отзывы уже существуют.
-
-
-### G. `User -> SupportTicket` - это исторически важная, но не “delete-orphan child” связь.
-
-Почему:
-- `SupportTicket.user_id` -> `users.id` с `ondelete="RESTRICT"`
-- тикет — часть истории поддержки.
-
-Мысленно:
-```
-User
-  └─ SupportTicket   (история поддержки, не удалять каскадом)
-```
-
-## “мягкая ссылка”
-
-### H. `Item -> subcategory` - мягкая ссылка
-
-Почему:
-`subcategory_id` -> `categories.id` с `ondelete="SET NULL"`
-
-Смысл:
-- если подкатегория исчезнет, вещь не обязана исчезнуть;
-- можно просто обнулить subcategory_id.
-
-Мысленно:
-```
-Item
-  └─ subcategory_id -> Category
-       if deleted -> NULL
-```
-
-## I. `Item -> moderated_by_admin_id` - мягкая ссылка
-
-Почему:
-- `moderated_by_admin_id` -> `users.id` с `ondelete="SET NULL"`
-
-Смысл:
-- запись о модерации может остаться, даже если конкретный admin-user исчезнет из ссылки.
-
-## J. `User -> banned_by_admin_id`
-
-То же самое:
-- `banned_by_admin_id` -> `users.id` с `SET NULL`
-
-## Вообще нет FK-родителя
-
-### K. `AdminAction` - стоит особняком.
-
-Почему:
-- у него `admin_id` хранится просто как `BigInteger`;
-- это не FK на `users.id`
-
-Смысл:
-- audit log не зависит от ORM-связи с `User`;
-- он хранит внешний идентификатор админа как значение.
-
-Мысленно:
-```
-AdminAction
-  └─ admin_id/admin_tg_id   (значение, а не ORM-родительская связь)
-```
-
-## Карта именно “по типам связей”
-
-### Настоящие parent-child
-- `User -> Item`
-- `Item -> Photo`
-- `Category -> subcategories`
-- `Rental -> Review`
-
-### История / RESTRICT
-- `Item -> Rental`
-- `User -> Rental`
-- `User -> Review`
-- `User -> SupportTicket`
-
-### Мягкие ссылки / SET NULL
-- `Item -> subcategory`
-- `Item -> moderated_by_admin_id`
-- `User -> banned_by_admin_id`
-
-### Без FK-связи
-- `AdminAction.admin_id/admin_tg_id`
-
-
-## Простым языком
-
-Когда смотришь на новую связь в модели, задавай 3 вопроса:
-
-### 1. Может ли сущность жить без родителя?
-
-Если нет, это parent-child.
-
-Примеры:
-- `Photo` без `Item` — нет
-- `Item` без `User` в твоей модели — нет
-
-### 2. Это история, которую нельзя терять?
-
-Если да, скорее всего `RESTRICT`.
-
-Примеры:
-- `Rental`
-- `Review`
-- `SupportTicket`
-
-### 3. Это просто дополнительная ссылка?
-
-Если да, возможен SET NULL.
-
-Примеры:
-- `subcategory_id`
-- `moderated_by_admin_id`
-
 ## Короткая интуиция по проекту
 
 ```
@@ -721,32 +452,6 @@ AdminAction
   Category
    └─ строит дерево сама с собой
 ```
-
----
-
-
-### **ForeignKey("users.id", ondelete="RESTRICT")**
-
-❌ Запрещает удалить строку из users, если на неё есть ссылки в этой таблице
-
-- RESTRICT = «не трогай, если есть история»   (История / финансы / сделки)
-- CASCADE = 🔥 удаляет всё связанное	(временные данные)
-- SET NULL	= ставит NULL	мягкие связи (мягкие связи)
-- NO ACTION	= зависит от БД	редко
-
-### **Два разных механизма создания индексов**
-- mapped_column(..., index=True)
-- __table_args__ = (Index("ix_xxx_field", "field"))
-
-Если оставить оба:
-* SQLAlchemy создаст ДВА индекса
-* один с автогенерированным именем
-* второй с явным именем
-
-👉 Это непрофессионально и ведёт к мусору в БД.
-
-*Решение - не используем index=True*
-*Вместо него - __table_args__ = Index()
 
 ---
 
@@ -794,3 +499,40 @@ AdminAction
 - Category — это структура
 - SupportTicket — это след взаимодействия
 - AdminAction — это лог событий
+
+---
+
+Category
+### 1. `nullable`
+- `True`: `emoji` / `parent_id` / `slug`
+- `False`: `name` / `sort_order` / `is_active`
+
+Item
+### 1. `nullable`
+- `True`: `subcategory_id` / `description` / `short_description` / `price_text` / `created_by_admin_id` 
+/ `updated_by_admin_id` / `moderated_at` / `max_rental_period` / 
+- `False`: `category_id` / `title` / `price` / `available_quantity` / `is_featured` / `sort_order` 
+/ `status` / `min_rental_period` / `views_count` / `orders_count`
+
+ItemCharacteristic
+### 1. `nullable`
+- `True`:
+- `False`: `item_id` / `name` / `value` / `sort_order`
+
+User
+### 1. `nullable`
+- `True`: `username` / `telegram_id` / `phone` / `email` / `language_code` /
+`banned_at` / `banned_by_admin_id` / `ban_reason`
+- `False`: `item_id` / `account_status`
+
+Rental
+### 1. `nullable`
+- `True`: `rental_period_text` / `` / `` / ``
+- `False`: `item_id` / `start_date` / `end_date` / `total_price` / `status` / `quantity`
+
+---
+
+# Параметры
+
+`nullable`
+`default`

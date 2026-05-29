@@ -68,7 +68,7 @@ class RegistrationCheckMiddleware(BaseMiddleware):
         # 🚫 Проверка подтверждения телефона (без телефона — не даём пользоваться ботом)
         if not getattr(user, "phone", None):
             logger.info(f"[RegistrationCheck] Пользователь {tg_user_id} не завершил регистрацию (нет телефона)")
-            await deny(event,MSG_NEED_PHONE)
+            await deny(event, MSG_NEED_PHONE)
             return None
 
         # ✅ Всё хорошо → добавляем пользователя в data

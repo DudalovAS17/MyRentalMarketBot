@@ -81,6 +81,11 @@ async def show_items_in_subcategory(
     if items is None:
         return
 
+    # карусель
+    if not items:
+        await send_or_edit(callback, not_items)
+        return
+
     # keyboard = build_items_keyboard(
     #     items,
     #     parent_category_id=subcategory.parent_id,

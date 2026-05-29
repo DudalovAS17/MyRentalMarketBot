@@ -34,8 +34,8 @@ class PhotoService:
     async def create_photo(self, *, item_id: int, telegram_file_id: str, order: Optional[int] = None) -> PhotoOut:
         """Добавляет фото к объявлению
 
-        Если `order` не указан, фото добавляется в конец.
-        Если `order` указан, после вставки порядок фотографий уплотняется.
+        Если `sort_order` не указан, фото добавляется в конец.
+        Если `sort_order` указан, после вставки порядок фотографий уплотняется.
         """
 
         is_insert = order is not None
@@ -115,7 +115,7 @@ class PhotoService:
         return ok
 
     async def set_order(self, photo_id: int, new_order: int, strict: bool = False) -> bool:
-        """Установить новую позицию (order) фотографии внутри списка фотографий объявления"""
+        """Установить новую позицию (sort_order) фотографии внутри списка фотографий объявления"""
         photo = await self.photo_repo.get_by_id(photo_id)
         if not photo:
             if strict:

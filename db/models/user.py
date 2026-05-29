@@ -1,20 +1,19 @@
 from __future__ import annotations
 
-from decimal import Decimal
 from datetime import datetime
 from typing import Optional, TYPE_CHECKING
-from sqlalchemy import (Integer, String, CheckConstraint, Enum as SAEnum, Index, DateTime, Numeric,
-                        Text, ForeignKey, BigInteger)
+from sqlalchemy import Integer, String, Enum as SAEnum, Index, DateTime, Text, ForeignKey, BigInteger
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from db.models.base import Base, TimestampMixin
 from status.user_status import AccountStatus
 
 if TYPE_CHECKING:
-    from db.models.item import Item
+    #from db.models.item import Item
     from db.models.rental import Rental
     from db.models.support_ticket import SupportTicket
-    #from db.models.review import Review
+    from db.models.admins import Admin
+    from db.models.review import Review
 
 class User(Base, TimestampMixin):
     """Модель пользователя."""
@@ -34,14 +33,11 @@ class User(Base, TimestampMixin):
     phone: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
     email: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
 
-    # рейтинг
-    rating: Mapped[Decimal] = mapped_column(Numeric(3, 2), nullable=False, default=Decimal("0.00"))
-    rating_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    # флаг отправки сообщений: полезно для рассылок и уведомлений
+    #can_receive_messages: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
-    # ________________________ удалено ______________________________________________
-    #is_blocked: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    #is_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    # ________________________ удалено ______________________________________________
+    # Добавить язык пользователя
+    language_code: Mapped[Optional[str]] = mapped_column(String(10), nullable=True)
 
     account_status: Mapped[AccountStatus] = mapped_column(
         SAEnum(AccountStatus, name="account_status"),
@@ -51,27 +47,22 @@ class User(Base, TimestampMixin):
 
     # аудит админов (когда, кто, зачем)
     banned_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
-    banned_by_admin_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    banned_by_admin_id: Mapped[Optional[int]] = mapped_column(ForeignKey("admins.id", ondelete="SET NULL"), nullable=True)
     ban_reason: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+
 
     # ------- Отношения | связи --------
 
-    items: Mapped[list["Item"]] = relationship(
-        "Item",
-        back_populates="owner",
-        foreign_keys="Item.user_id",
-        cascade="all, delete-orphan",
-        single_parent=True,
-        passive_deletes=True,
-    )
+    # один пользователь может оставить много заявок на аренду
+    rental: Mapped[list["Rental"]] = relationship("Rental", back_populates="user")
 
-    rentals_as_owner: Mapped[list["Rental"]] = relationship(
-        "Rental", foreign_keys="Rental.owner_id", back_populates="owner"
-    )
-
-    rentals_as_renter: Mapped[list["Rental"]] = relationship(
-        "Rental", foreign_keys="Rental.renter_id", back_populates="renter"
-    )
+    # связь с корзиной: один пользователь может добавить несколько товаров в корзину
+    # cart_items: Mapped[list["CartItem"]] = relationship(
+    #     "CartItem",
+    #     back_populates="user",
+    #     cascade="all, delete-orphan",
+    #     single_parent=True,
+    # )
 
     support_tickets: Mapped[list["SupportTicket"]] = relationship("SupportTicket", back_populates="user")
 
@@ -82,12 +73,17 @@ class User(Base, TimestampMixin):
     #    "Review", foreign_keys="Review.reviewee_id", back_populates="reviewee"
     #)
 
-    __table_args__ = (
-        CheckConstraint("rating >= 0 AND rating <= 5", name="ck_users_rating_range"),
-        CheckConstraint("rating_count >= 0", name="ck_users_rating_count_non_neg"),
+    banned_by_admin: Mapped[Optional["Admin"]] = relationship("Admin", foreign_keys=[banned_by_admin_id])
 
+    reviews: Mapped[list["Review"]] = relationship("Review", back_populates="users")
+
+    __table_args__ = (
         Index("ix_users_account_status", "account_status"),
         Index("ix_users_username", "username"),
+
+        Index("ix_users_telegram_id", "telegram_id"),
+        Index("ix_users_phone", "phone"),
+        #Index("ix_users_can_receive_messages", "can_receive_messages"),
     )
 
 
@@ -96,7 +92,6 @@ class User(Base, TimestampMixin):
 top_up_amount — сколько всего денег пользователь пополнил.
 consume_records — сколько всего денег пользователь потратил.
 can_receive_messages — можно ли пользователю отправлять сообщения. (Полезно, когда пользователь заблокировал бота, удалил чат или отправка начала падать) 
-language — язык пользователя.
 referral_code — личный реферальный код пользователя.
 referred_by_user_id — ID пользователя, который пригласил этого человека.
 referred_at — когда именно пользователь был привязан к рефералу.

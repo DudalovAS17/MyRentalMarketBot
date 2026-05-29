@@ -140,14 +140,14 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('item_id', sa.Integer(), nullable=False),
     sa.Column('telegram_file_id', sa.String(length=500), nullable=False, comment='Telegram file_id, который позволяет отправлять фото без повторной загрузки'),
-    sa.Column('order', sa.Integer(), nullable=False, comment='позволяет сортировать фото (например, какое показывать первым)'),
+    sa.Column('sort_order', sa.Integer(), nullable=False, comment='позволяет сортировать фото (например, какое показывать первым)'),
     sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False),
-    sa.CheckConstraint('"order" >= 0', name=op.f('ck_photos_ck_photos_order_nonneg')),
+    sa.CheckConstraint('"sort_order" >= 0', name=op.f('ck_photos_ck_photos_order_nonneg')),
     sa.ForeignKeyConstraint(['item_id'], ['items.id'], name=op.f('fk_photos_item_id_items'), ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id', name=op.f('pk_photos'))
     )
-    op.create_index('ix_photos_item_order', 'photos', ['item_id', 'order'], unique=False)
+    op.create_index('ix_photos_item_order', 'photos', ['item_id', 'sort_order'], unique=False)
     op.create_table('rentals',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('item_id', sa.Integer(), nullable=False),

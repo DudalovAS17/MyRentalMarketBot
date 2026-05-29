@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-from sqlalchemy import Integer
-from sqlalchemy import ForeignKey, String, Index, CheckConstraint
+from typing import Optional, TYPE_CHECKING
+from sqlalchemy import Integer, ForeignKey, Boolean, String, Index, CheckConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from db.models.base import Base, TimestampMixin
@@ -12,7 +11,7 @@ if TYPE_CHECKING:
 
 
 class Photo(Base, TimestampMixin):
-    """Фотография, привязанная к объявлению (Item)"""
+    """Фотография товара каталога"""
 
     __tablename__ = "photos"
 
@@ -30,8 +29,19 @@ class Photo(Base, TimestampMixin):
         comment="Telegram file_id, который позволяет отправлять фото без повторной загрузки"
     )
 
+    # ссылка на фото товара с сайта
+    url: Mapped[Optional[str]] = mapped_column(
+        String(1000),
+        nullable=True,
+        comment="URL фотографии, если изображение взято с сайта или внешнего источника",
+    )
+
     # порядок отображения фотографии внутри вещи (позволяет сортировать фото, например какое показывать первым)
-    order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+
+    # у товара может быть несколько фото, но одно из них главное
+    is_main: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+
 
     # ------- Отношения | связи --------
 
@@ -40,8 +50,13 @@ class Photo(Base, TimestampMixin):
 
     __table_args__ = (
         # быстрый поиск всех фото по item_id (создаёт в базе индекс на колонку item_id)
-        Index("ix_photos_item_order", "item_id", "order"),
+        Index("ix_photos_item_order", "item_id", "sort_order"),
+
+        Index("ix_photos_item_main", "item_id", "is_main"),
 
         # Чтобы не было отрицательных значений порядка
-        CheckConstraint('"order" >= 0', name="ck_photos_order_non_neg")
+        CheckConstraint("sort_order >= 0", name="ck_photos_order_non_neg"),
+
+        # у фото должен быть хотя бы telegram_file_id или url
+        CheckConstraint("(telegram_file_id IS NOT NULL) OR (url IS NOT NULL)", name="ck_photos_has_source"),
     )

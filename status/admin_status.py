@@ -1,4 +1,5 @@
 import enum
+from enum import StrEnum
 from status.rental_status import RentalStatus
 
 # ───────────────────────────────────────────── enum ───────────────────────────────────────────────────────────────────
@@ -16,6 +17,11 @@ class AdminEntityType(str, enum.Enum):
     USER = "user"
     COMPLAINT = "complaint"
     SUPPORT_TICKET = "support_ticket"
+
+class AdminRole(StrEnum):
+    OWNER = "owner" # владелец системы, полный доступ
+    ADMIN = "admin" # управление каталогом, заявками, настройками
+    MANAGER = "manager" # обработка заявок и поддержка
 
 # ───────────────────────────────────── классификация статусов ─────────────────────────────────────────────────────────
 CANCEL_STATUS_MAP = {

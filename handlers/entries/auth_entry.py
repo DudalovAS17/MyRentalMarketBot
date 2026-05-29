@@ -32,5 +32,5 @@ async def start_registration(message: Message, user_service: UserService) -> Non
     await message.answer(
         build_registration_welcome_text(),
         reply_markup=build_registration_contact_keyboard(),
-        arse_mode="HTML"
+        parse_mode="HTML"
     )
