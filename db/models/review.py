@@ -56,12 +56,10 @@ class Review(Base, TimestampMixin):
     # ------- Отношения | связи --------
 
     # отзыв знает, к какой аренде он относится
-    rental: Mapped[Optional["Rental"]] = relationship("Rental", back_populates="reviews")
+    rental: Mapped["Rental"] = relationship("Rental", back_populates="reviews")
 
     user: Mapped["User"] = relationship("User", back_populates="reviews")
     item: Mapped[Optional["Item"]] = relationship("Item", back_populates="reviews")
-
-
 
     __table_args__ = (
         Index("ix_reviews_rental_id", "rental_id"),

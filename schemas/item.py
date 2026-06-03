@@ -4,67 +4,74 @@ from decimal import Decimal
 
 from status.item_status import ItemStatus
 
-
+# ────────────────────────────────────────── Item  ─────────────────────────────────────────────────────────────────────
 class ItemCreate(BaseModel):
-    """Схема для создания объявления"""
-
+    """Схема для создания товара каталога."""
     category_id: int
     subcategory_id: Optional[int] = None
-    title: str = Field(..., min_length=3, max_length=255)
-    description: Optional[str] = None
-    price: Decimal = Field(..., ge=0)
-    deposit: Optional[Decimal] = Field(None, ge=0)
-    min_rental_period: int = Field(1, ge=1)
-    max_rental_period: Optional[int] = None
-    location: Optional[str] = None
-    coordinates: Optional[Dict[str, Any]] = None
 
-    @field_validator("coordinates")
-    @classmethod
-    def validate_coordinates(cls, v):
-        if v is not None:
-            if "lat" not in v or "lng" not in v:
-                raise ValueError("coordinates must have 'lat' and 'lng'")
-        return v
+    title: str = Field(..., min_length=3, max_length=200)
+    description: Optional[str] = None
+    short_description: Optional[str] = Field(None, max_length=300)
+
+    price: Decimal = Field(..., ge=0)
+    price_text: Optional[str] = Field(None, max_length=100)
+
+    available_quantity: int = Field(None, ge=0)
+
+    is_featured: bool = False
+    sort_order: int = Field(None, ge=0)
+
+    min_rental_period: int = Field(None, ge=1)
+    max_rental_period: Optional[int] = Field(None, ge=1)
 
 
 class ItemUpdate(BaseModel):
-    """Схема для обновления объявления (только изменяемые поля)"""
-
+    """Схема для обновления товара каталога. (только изменяемые поля)"""
     category_id: Optional[int] = None
     subcategory_id: Optional[int] = None
-    title: Optional[str] = Field(None, min_length=3, max_length=255)
+
+    title: Optional[str] = Field(None, min_length=3, max_length=200)
     description: Optional[str] = None
+    short_description: Optional[str] = Field(None, max_length=300)
+
     price: Optional[Decimal] = Field(None, ge=0)
-    deposit: Optional[Decimal] = Field(None, ge=0)
+    price_text: Optional[str] = Field(None, max_length=100)
+
+    available_quantity: Optional[int] = Field(None, ge=0)
+
+    is_featured: Optional[bool] = None
+    sort_order: Optional[int] = Field(None, ge=0)
+
     min_rental_period: Optional[int] = Field(None, ge=1)
-    max_rental_period: Optional[int] = None
-    location: Optional[str] = None
-    coordinates: Optional[Dict[str, Any]] = None
+    max_rental_period: Optional[int] = Field(None, ge=1)
 
 
 class ItemOut(BaseModel):
-    """Схема для возврата данных об объявлении"""
-
+    """Схема для возврата данных товара каталога."""
     id: int
-    user_id: int
     category_id: int
     subcategory_id: Optional[int] = None
+
     title: str
     description: Optional[str] = None
+    short_description: Optional[str] = None
+
     price: Decimal = Field(..., ge=0)
-    deposit: Optional[Decimal] = None
-    location: Optional[str] = None
-    coordinates: Optional[Dict[str, Any]] = None
+    price_text: Optional[str] = None
+
+    available_quantity: int
+
+    is_featured: bool
+    sort_order: int
+
     min_rental_period: int
     max_rental_period: Optional[int] = None
+
     status: ItemStatus
+
     views_count: int
     orders_count: int
-
-    moderated_at: Optional[AwareDatetime] = None
-    moderated_by_admin_id: Optional[int] = None
-    moderation_reason: Optional[str] = None
 
     created_at: AwareDatetime
     updated_at: AwareDatetime
@@ -72,23 +79,57 @@ class ItemOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+# ────────────────────────────────────────── Item Characteristic ───────────────────────────────────────────────────────
+class ItemCharacteristicCreate(BaseModel):
+    """Схема для создания характеристики товара каталога."""
+
+    item_id: int
+    name: str = Field(..., min_length=1, max_length=100)
+    value: str = Field(..., min_length=1, max_length=200)
+    sort_order: int = Field(0, ge=0)
+
+
+class ItemCharacteristicUpdate(BaseModel):
+    """Схема для обновления характеристики товара каталога."""
+
+    name: Optional[str] = Field(None, min_length=1, max_length=100)
+    value: Optional[str] = Field(None, min_length=1, max_length=200)
+    sort_order: Optional[int] = Field(None, ge=0)
+
+
+class ItemCharacteristicOut(BaseModel):
+    """Схема для возврата характеристики товара каталога."""
+
+    id: int
+    item_id: int
+    name: str
+    value: str
+    sort_order: int
+
+    created_at: AwareDatetime
+    updated_at: AwareDatetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+# ────────────────────────────────────────── Item Moderation ───────────────────────────────────────────────────────────
 class ItemModerationUpdate(BaseModel):
-    """Для Админов - схема для обновления объявления"""
+    """Для Админов - схема для публикации/скрытия товара каталога."""
 
     is_featured: Optional[bool] = None
     status: Optional[ItemStatus] = None
-    moderation_reason: Optional[str] = None
 
 
-class ItemAdminOut(ItemOut): #
-    """Админская схема для возврата данных об объявлении"""
+class ItemAdminOut(ItemOut):
+    """Админская схема для возврата товара каталога."""
 
-    is_featured: Optional[bool] = None
+    created_by_admin_id: Optional[int] = None
+    updated_by_admin_id: Optional[int] = None
+
     moderated_at: Optional[AwareDatetime] = None
-    moderated_by_admin_id: Optional[int] = None
-    moderation_reason: Optional[str] = None
 
 
+# ────────────────────────────────────────── Item Draft ────────────────────────────────────────────────────────────────
 class ItemCreateDraft(BaseModel):
     """ Черновик для FSM (пошаговое заполнение).
 
@@ -100,14 +141,18 @@ class ItemCreateDraft(BaseModel):
     category_id: Optional[int] = None
     subcategory_id: Optional[int] = None
 
-    title: Optional[str] = Field(default=None, min_length=3, max_length=255)
+    title: Optional[str] = Field(default=None, min_length=3, max_length=200)
     description: Optional[str] = None
+    short_description: Optional[str] = Field(None, max_length=300)
 
     price: Optional[Decimal] = Field(default=None, ge=0)
-    deposit: Optional[Decimal] = Field(default=None, ge=0)
+    price_text: Optional[str] = Field(None, max_length=100)
+
+    available_quantity: int = Field(1, ge=0)
 
     min_rental_period: int = Field(default=1, ge=1)
-    max_rental_period: Optional[int] = None
+    #min_rental_period: Optional[int] = Field(None, ge=1)
+    max_rental_period: Optional[int] = Field(None, ge=1)
 
-    location: Optional[str] = None
-    coordinates: Optional[Dict[str, Any]] = None
+    is_featured: bool = False
+    sort_order: int = Field(0, ge=0)

@@ -48,7 +48,7 @@
 
 # Item
 
-> Убрал: user id, location, coordinates, is_available, moderated_by_admin_id, moderation_reason
+> Убрал: user id, location, coordinates, deposit, is_available, moderated_by_admin_id, moderation_reason
 
 - `price: Numeric(12, 2)`
 - `available_quantity: default=1`

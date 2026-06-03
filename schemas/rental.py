@@ -4,94 +4,153 @@ from pydantic import BaseModel, Field, AwareDatetime, ConfigDict
 
 from schemas.item import ItemOut
 from schemas.user import UserOut
-from status.rental_status import RentalActorRole, RentalStatus
+from status.rental_status import RentalStatus
+
+
+"""
+    RentalCreate        → клиент создаёт заявку
+    RentalUpdate        → менеджер/система обновляет заявку
+    RentalOut           → базовый вывод заявки
+    RentalDetailsOut    → заявка + товар + клиент
+    RentalAdminDetailsOut → админский подробный вывод   
+    RentalCreateDraft   → FSM-черновик пошагового создания
+"""
 
 class RentalCreate(BaseModel):
-    """Схема для создания сделки аренды"""
+    """Клиентская схема для создания заявки на аренду товара."""
 
     item_id: int
-    renter_id: int
-    owner_id: int
-    start_date: AwareDatetime
-    end_date: AwareDatetime
-    total_price: Decimal = Field(..., ge=0)
-    deposit_amount: Optional[Decimal] = Field(None, ge=0)
+    user_id: int
 
-
-class RentalUpdate(BaseModel):
-    """Схема для обновления сделки (только изменяемые поля)"""
+    total_price: Optional[Decimal] = Field(None, ge=0)
 
     start_date: Optional[AwareDatetime] = None
     end_date: Optional[AwareDatetime] = None
-    total_price: Optional[Decimal] = Field(default=None, ge=0)
-    deposit_amount: Optional[Decimal] = Field(default=None, ge=0)
+    rental_period_text: Optional[str] = Field(None, max_length=100)
+
+    quantity: int = Field(1, ge=1)
+
+    delivery_needed: Optional[bool] = None
+    delivery_address: Optional[str] = None
+
+    client_name: Optional[str] = Field(None, max_length=150)
+    client_phone: Optional[str] = Field(None, max_length=30)
+    client_comment: Optional[str] = None
+
+
+class RentalUpdate(BaseModel):
+    """Схема для обновления заявки на аренду менеджером или системой."""
+
+    start_date: Optional[AwareDatetime] = None
+    end_date: Optional[AwareDatetime] = None
+    rental_period_text: Optional[str] = Field(None, max_length=100)
+
+    total_price: Optional[Decimal] = Field(None, ge=0)
+    final_price: Optional[Decimal] = Field(None, ge=0)
+
     status: Optional[RentalStatus] = None
+    quantity: Optional[int] = Field(None, ge=1)
+
+    delivery_needed: Optional[bool] = None
+    delivery_address: Optional[str] = None
+    client_name: Optional[str] = Field(None, max_length=150)
+    client_phone: Optional[str] = Field(None, max_length=30)
+    client_comment: Optional[str] = None
+    manager_comment: Optional[str] = None
+
+    assigned_admin_id: Optional[int] = None
+
+    in_progress_at: Optional[AwareDatetime] = None
+    processed_at: Optional[AwareDatetime] = None
+    closed_at: Optional[AwareDatetime] = None
+    confirmed_at: Optional[AwareDatetime] = None
+    rejected_at: Optional[AwareDatetime] = None
+    cancelled_at: Optional[AwareDatetime] = None
+    completed_at: Optional[AwareDatetime] = None
+
 
 class RentalOut(BaseModel):
-    """Схема для возврата сделки наружу"""
-
+    """Схема для возврата заявки на аренду наружу."""
     id: int
     item_id: int
-    renter_id: int
-    owner_id: int
-    start_date: AwareDatetime
-    end_date: AwareDatetime
-    total_price: Decimal
-    deposit_amount: Optional[Decimal]
+    user_id: int
+
+    start_date: Optional[AwareDatetime] = None
+    end_date: Optional[AwareDatetime] = None
+
+    rental_period_text: Optional[str] = None
+    total_price: Optional[Decimal] = None
+    final_price: Optional[Decimal] = None
+
     status: RentalStatus
-    owner_handover_confirmed: bool
-    renter_receive_confirmed: bool
+    quantity: int
+
+    delivery_needed: Optional[bool] = None
+    delivery_address: Optional[str] = None
+    client_name: Optional[str] = None
+    client_phone: Optional[str] = None
+    client_comment: Optional[str] = None
+    manager_comment: Optional[str] = None
+
+    assigned_admin_id: Optional[int] = None
+    in_progress_at: Optional[AwareDatetime] = None
+    processed_at: Optional[AwareDatetime] = None
+    closed_at: Optional[AwareDatetime] = None
+    confirmed_at: Optional[AwareDatetime] = None
+    rejected_at: Optional[AwareDatetime] = None
+    cancelled_at: Optional[AwareDatetime] = None
+    completed_at: Optional[AwareDatetime] = None
+
     created_at: AwareDatetime
     updated_at: AwareDatetime
 
     model_config = ConfigDict(from_attributes=True)
 
 
-class RentalWithRoleOut(RentalOut):
-    """Схема для возврата сделки наружу с указанием роли текущего пользователя в сделке"""
-
-    user_role: RentalActorRole
+# ────────────────────────────────────────── Rental Details ────────────────────────────────────────────────────────────
+# class RentalWithRoleOut(RentalOut):
+#     """Совместимое имя для списка клиентских заявок."""
+#
+#     user_role: RentalActorRole
 
 
 class RentalDetailsOut(BaseModel):
-    """Схема для возврата полной информации о сделке наружу, включая объявление, арендатора,
-    владельца и роль текущего пользователя"""
+    """Полная информация о заявке: заявка, товар и клиент."""
 
-    id: int
     rental: RentalOut
     item: ItemOut
-    renter: UserOut
-    owner: UserOut
-    user_role: RentalActorRole
+    user: UserOut
 
     model_config = ConfigDict(from_attributes=True)
 
 
+# ────────────────────────────────────────── Rental Admin Details ──────────────────────────────────────────────────────
 class RentalAdminDetailsOut(BaseModel):
-    """Схема для возврата полной информации о сделке наружу для администратора"""
+    """Полная информация о заявке для администратора/менеджера."""
 
     rental: RentalOut
     item: ItemOut
-    renter: UserOut
-    owner: UserOut
+    user: UserOut
 
     model_config = ConfigDict(from_attributes=True)
 
 
+# ────────────────────────────────────────── Rental Draft ──────────────────────────────────────────────────────────────
 class RentalCreateDraft(BaseModel):
-    """ FSM-черновик для создания сделки аренды.
-
-    Поля совпадают с RentalCreate, но start/end/total могут быть пустыми до выбора дат.
-    """
+    """FSM-черновик для пошагового создания заявки на аренду."""
 
     model_config = ConfigDict(extra="forbid")
 
     item_id: Optional[int] = None
-    renter_id: Optional[int] = None
-    owner_id: Optional[int] = None
 
     start_date: Optional[str] = None
     end_date: Optional[str] = None
 
-    total_price: Optional[Decimal] = Field(default=None, ge=0)
-    deposit_amount: Optional[Decimal] = Field(default=None, ge=0)
+    rental_period_text: Optional[str] = Field(None, max_length=100)
+    quantity: Optional[int] = Field(None, ge=1)
+
+    delivery_needed: Optional[bool] = None
+    delivery_address: Optional[str] = None
+    client_name: Optional[str] = Field(None, max_length=150)
+    client_phone: Optional[str] = Field(None, max_length=30)
+    client_comment: Optional[str] = None

@@ -1,25 +1,54 @@
 import enum
 
-class ItemStatus(enum.Enum):
-    ACTIVE = "ACTIVE"
-    PENDING = "PENDING"
-    REJECTED = "REJECTED"
-    HIDDEN = "HIDDEN"
+# set() — изменяемое множество
+# frozenset() — неизменяемое множество
+# далее использую frozenset()
 
-ALLOWED_STATUS_TRANSITIONS: dict[ItemStatus, set[ItemStatus]] = {
-    ItemStatus.PENDING: {ItemStatus.ACTIVE, ItemStatus.REJECTED},
-    ItemStatus.ACTIVE: {ItemStatus.HIDDEN},
-    ItemStatus.HIDDEN: {ItemStatus.ACTIVE},
-    ItemStatus.REJECTED: set(),
+class ItemStatus(enum.Enum):
+    """ Статус товара в каталоге компании.
+
+    Используется для управления жизненным циклом карточки товара:
+    черновик → опубликован → временно скрыт / архивирован"""
+
+    DRAFT = "DRAFT" # товар создан, но ещё не опубликован
+    ACTIVE = "ACTIVE" # товар виден клиентам в каталоге
+    HIDDEN = "HIDDEN" # временно скрыт, но может быть возвращён
+    ARCHIVED = "ARCHIVED" # больше не используется, исторически сохранён
+
+
+ALLOWED_STATUS_TRANSITIONS: dict[ItemStatus, frozenset[ItemStatus]] = {
+    ItemStatus.DRAFT: frozenset({ItemStatus.ACTIVE, ItemStatus.HIDDEN, ItemStatus.ARCHIVED}),
+    ItemStatus.ACTIVE: frozenset({ItemStatus.HIDDEN, ItemStatus.ARCHIVED}),
+    ItemStatus.HIDDEN: frozenset({ItemStatus.ACTIVE, ItemStatus.ARCHIVED}),
+    ItemStatus.ARCHIVED: frozenset(),
 }
 
-#ALLOWED_STATUS_TRANSITIONS: dict[ItemStatus, frozenset[ItemStatus]] = {
-#    ItemStatus.PENDING: frozenset({ItemStatus.ACTIVE, ItemStatus.REJECTED}),
-#    ItemStatus.ACTIVE: frozenset({ItemStatus.HIDDEN}),
-#    ItemStatus.HIDDEN: frozenset({ItemStatus.ACTIVE}),
-#    ItemStatus.REJECTED: frozenset(),
-#}
-
 def can_transition(old_status: ItemStatus, new_status: ItemStatus) -> bool:
-    """Проверить, разрешён ли переход объявления из old_status в new_status"""
-    return new_status in ALLOWED_STATUS_TRANSITIONS.get(old_status, set())
+    """Проверить, разрешён ли переход товара из old_status в new_status"""
+    return new_status in ALLOWED_STATUS_TRANSITIONS.get(old_status, frozenset())
+
+"""
+    DRAFT → ACTIVE
+    товар подготовили и опубликовали
+    
+    DRAFT → HIDDEN
+    создали, но пока скрыли
+    
+    DRAFT → ARCHIVED
+    создали ошибочно / решили не использовать
+    
+    ACTIVE → HIDDEN
+    временно скрыли из каталога
+    
+    ACTIVE → ARCHIVED
+    товар окончательно сняли с каталога
+    
+    HIDDEN → ACTIVE
+    вернули товар в каталог
+    
+    HIDDEN → ARCHIVED
+    окончательно убрали
+    
+    ARCHIVED → ничего
+    архив — финальное состояние
+"""

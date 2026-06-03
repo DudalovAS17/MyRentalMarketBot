@@ -1,10 +1,13 @@
 import enum
 
 class AccountStatus(enum.Enum):
-    """Статусы состояния аккаунта пользователя"""
-    ACTIVE = "ACTIVE"
-    BLOCKED = "BLOCKED"
-    BANNED = "BANNED"
+    """Статус аккаунта пользователя или сотрудника компании.
+
+    Используется для базового контроля доступа:
+    активный аккаунт может пользоваться ботом, заблокированный — нет."""
+
+    ACTIVE = "ACTIVE" # клиент/админ может пользоваться ботом
+    BANNED = "BANNED" # доступ заблокирован админом
 
 
 ALLOWED_STATUS_TRANSITIONS: dict[AccountStatus, frozenset[AccountStatus]] = {
