@@ -8,101 +8,194 @@ from db.repositories.base import BaseRepository
 from schemas.item import ItemCreate, ItemUpdate
 from status.item_status import ItemStatus
 
+"""Убрал: list_by_user_id - Все объявления владельца. 
+При active_only=True — только ACTIVE, active_only=False - все объявления владельца
+
+"""
+
+"""
+exclude_none=True делает хорошую вещь:
+если в ItemCreate какое-то nullable-поле = None, оно просто не попадёт в Item(...)
+
+
+Но важное условие
+Это хорошо работает, если в ItemCreate у тебя уже стоят нормальные defaults:
+
+available_quantity: int = Field(1, ge=0)
+is_featured: bool = False
+sort_order: int = Field(0, ge=0)
+min_rental_period: int = Field(1, ge=1)
+
+Тогда они не None, и exclude_none=True их не выкинет.
+
+Единственный нюанс
+
+exclude_none=True также выкинет nullable-поля, которые ты специально хотел записать как None.
+
+Для create это обычно нормально.
+
+Например, если товар создаётся без подкатегории:
+
+subcategory_id=None
+
+можно просто не передавать это поле — в БД всё равно будет NULL.
+"""
+
+"""
+data = update_data.model_dump(exclude_unset=True)
+- взять из ItemUpdate только те поля, которые были реально переданы.
+
+(exclude_unset=True защищает от случайного обновления всех полей в None.)
+
+
+"changed = False" = были ли реальные изменения?
+
+    changed = False
+    for field_name, value in data.items():
+        if getattr(obj, field_name) != value:
+            setattr(obj, field_name, value)
+            changed = True
+
+    if not changed:
+        return obj
+        
+Он нужен, чтобы не делать лишний commit, если значения пришли такие же, как уже есть в БД.        
+
+if getattr(obj, field_name) != value:
+Сравниваем старое и новое значение.
+Если старое значение отличается от нового — значит реально надо обновлять.
+
+Обновляем поле:
+setattr(obj, field_name, value)
+changed = True
+
+Например: setattr(obj, "title", "Перфоратор Bosch"),
+то же самое, что: obj.title = "Перфоратор Bosch"
+
+
+Записываем, кто обновил товар:
+if updated_by_admin_id is not None:
+    obj.updated_by_admin_id = updated_by_admin_id
+    
+
+"""
+
 
 class ItemRepository(BaseRepository):
-    """Репозиторий объявлений"""
+    """Репозиторий товаров каталога компании."""
 
     # ───────────────────────────────────────────────────────────────────────────────────────────────────────
     @staticmethod
     def _apply_active_filter(stmt):
-        return (
-            stmt.where(Item.status == ItemStatus.ACTIVE)
-        ) # доступные=активные
+        """Оставить только опубликованные/активные товары каталога."""
+        return stmt.where(Item.status == ItemStatus.ACTIVE)
+
+    @staticmethod
+    def _apply_catalog_order(stmt):
+        """Стабильный порядок выдачи товаров в каталоге."""
+        return stmt.order_by(Item.sort_order.asc(), Item.id.desc())
+
+    @staticmethod
+    def _apply_pagination(stmt, *, limit: Optional[int], offset: int):
+        if limit is not None:
+            stmt = stmt.limit(limit).offset(offset)
+        return stmt
 
     # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
     async def list_all(self, *, active_only: bool = True, limit: Optional[int] = None, offset: int = 0) -> list[Item]:
-        """Все объявления (по умолчанию только активные=доступные)"""
+        """Все товары каталога; по умолчанию только опубликованные."""
         async with self._session() as s:
             stmt = select(Item)
             if active_only:
                 stmt = self._apply_active_filter(stmt)
 
-            if limit is not None:
-                stmt = stmt.limit(limit).offset(offset)
-            #stmt = stmt.offset(offset)
-            #if limit is not None:
-            #    stmt = stmt.limit(limit)
-
+            stmt = self._apply_catalog_order(stmt)
+            stmt = self._apply_pagination(stmt, limit=limit, offset=offset)
             return await self._list(s, stmt)
 
     async def get_by_id(self, item_id: int) -> Optional[Item]:
-        """Объявление по ID"""
+        """Товар каталога по ID."""
         async with self._session() as s:
             return await s.get(Item, item_id)
 
-    async def list_by_user_id(self, user_id: int, *, active_only: bool = False) -> list[Item]:
-        """Все объявления владельца. При active_only=True — только ACTIVE, active_only=False - все объявления владельца"""
+    async def list_by_created_admin_id(self, admin_id: int, *, active_only: bool = False) -> list[Item]:
+        """Все товары каталога, созданные указанным администратором/менеджером."""
         async with self._session() as s:
-            stmt = select(Item).where(Item.user_id == user_id)
+            stmt = select(Item).where(Item.created_by_admin_id == admin_id)
             if active_only:
                 stmt = self._apply_active_filter(stmt)
 
+            stmt = self._apply_catalog_order(stmt)
+            return await self._list(s, stmt)
+
+    async def list_by_updated_admin_id(self, admin_id: int, *, active_only: bool = False) -> list[Item]:
+        """Все товары каталога, последний раз обновлённые указанным администратором/менеджером."""
+        async with self._session() as s:
+            stmt = select(Item).where(Item.updated_by_admin_id == admin_id)
+            if active_only:
+                stmt = self._apply_active_filter(stmt)
+
+            stmt = self._apply_catalog_order(stmt)
             return await self._list(s, stmt)
 
     async def list_by_category(self, category_id: int, *, active_only: bool = True) -> list[Item]:
-        """Получает все активные=доступные объявления по категории"""
+        """Получить товары каталога по категории."""
         async with self._session() as s:
             stmt = select(Item).where(Item.category_id == category_id)
             if active_only:
                 stmt = self._apply_active_filter(stmt)
 
+            stmt = self._apply_catalog_order(stmt)
             return await self._list(s, stmt)
 
     async def list_by_subcategory(self, subcategory_id: int, *, active_only: bool = True) -> list[Item]:
-        """Получает все активные=доступные объявления по подкатегории"""
+        """Получить товары каталога по подкатегории."""
         async with self._session() as s:
             stmt = select(Item).where(Item.subcategory_id == subcategory_id)
             if active_only:
                 stmt = self._apply_active_filter(stmt)
 
+            stmt = self._apply_catalog_order(stmt)
             return await self._list(s, stmt)
 
     async def search(self, query: str, *, active_only: bool = True, limit: int = 50, offset: int = 0) -> list[Item]:
         """Поиск объявлений по тексту. По названию ИЛИ описанию"""
         q = f"%{query.strip()}%"
         async with self._session() as s:
-            stmt = select(Item).where(or_(Item.title.ilike(q), Item.description.ilike(q)))
+            stmt = select(Item).where(
+                or_(
+                    Item.title.ilike(q),
+                    Item.description.ilike(q),
+                    Item.short_description.ilike(q),
+                )
+            )
             if active_only:
                 stmt = self._apply_active_filter(stmt)
-            stmt = stmt.limit(limit).offset(offset)
 
+            stmt = self._apply_catalog_order(stmt)
+            stmt = self._apply_pagination(stmt, limit=limit, offset=offset)
             return await self._list(s, stmt)
 
-    # ──────────────────────────────────────────── NEW (Admin-Item logic) ────────────────────────────────────────
+    # ──────────────────────────────────────────── Admin-Item logic ────────────────────────────────────────────────────
     async def list_by_status(self, status: ItemStatus, limit: int, offset: int = 0) -> list[Item]:
-        """Объявления на модерации по статусу, по убыванию id"""
+        """Товары каталога по статусу с пагинацией."""
         async with self._session() as s:
             stmt = (
                 select(Item)
                 .where(Item.status == status)
-                .order_by(Item.id.desc())
+                .order_by(Item.sort_order.asc(), Item.id.desc())
                 .limit(limit)
                 .offset(offset)
             )
 
             return await self._list(s, stmt)
 
-    async def list_pending(self, limit: int, offset: int = 0) -> list[Item]:
-        """Объявления на модерации - PENDING"""
-        return await self.list_by_status(status=ItemStatus.PENDING, limit=limit, offset=offset)
+    async def list_drafts(self, limit: int, offset: int = 0) -> list[Item]:
+        """Черновики товаров каталога."""
+        return await self.list_by_status(status=ItemStatus.DRAFT, limit=limit, offset=offset)
 
-    async def set_status(self,
-        item_id: int,
-        new_status: ItemStatus,
-        admin_user_id: int,
-        reason: Optional[str] = None,
-    ) -> Optional[Item]:
-        """Техническое обновление статуса объявления. Бизнес-проверки выполняет сервис (whitelist)."""
+    async def set_status(self, item_id: int, new_status: ItemStatus, updated_by_admin_id: Optional[int] = None) -> Optional[Item]:
+        """Техническое обновление статуса товара каталога; бизнес-проверки выполняет сервис."""
         async with self._session() as s:
             obj: Optional[Item] = await s.get(Item, item_id)
             if not obj:
@@ -110,21 +203,36 @@ class ItemRepository(BaseRepository):
 
             obj.status = new_status
             obj.moderated_at = datetime.now(timezone.utc)
-            obj.moderated_by_admin_id = admin_user_id
-            if reason is not None:
-                obj.moderation_reason = reason
+            if updated_by_admin_id is not None:
+                obj.updated_by_admin_id = updated_by_admin_id
 
             return await self._commit_refresh(s, obj)
 
     # ───────────────────────────────────────────────────────────────────────────────────────────────────────
-    async def create(self,  user_id: int, item_data: ItemCreate) -> Item:
-        """Создать объявление"""
-        obj = Item(user_id=user_id, **item_data.model_dump())
+    async def create(
+            self,
+            item_data: ItemCreate,
+            *,
+            created_by_admin_id: Optional[int] = None,
+            status: ItemStatus = ItemStatus.DRAFT
+    ) -> Item:
+        """Создать товар каталога компании."""
+        obj = Item(
+            **item_data.model_dump(exclude_none=True),
+            created_by_admin_id=created_by_admin_id,
+            status=status,
+        )
         async with self._session() as s:
             return await self._add_commit_refresh(s, obj)
 
-    async def update(self, item_id: int,  update_data: ItemUpdate) -> Optional[Item]:
-        """Обновить поля объявления (только переданные)
+    async def update(
+        self,
+        item_id: int,
+        update_data: ItemUpdate,
+        *,
+        updated_by_admin_id: Optional[int] = None,
+    ) -> Optional[Item]:
+        """Обновить поля товара каталога.
 
         - если item не найден → None
         - если patch пустой → вернуть текущий ORM без commit
@@ -139,13 +247,22 @@ class ItemRepository(BaseRepository):
             if not data:
                 return obj
 
-            for k, v in data.items():
-                setattr(obj, k, v)
+            changed = False
+            for field_name, value in data.items():
+                if getattr(obj, field_name) != value:
+                    setattr(obj, field_name, value)
+                    changed = True
+
+            if not changed:
+                return obj
+
+            if updated_by_admin_id is not None:
+                obj.updated_by_admin_id = updated_by_admin_id
 
             return await self._commit_refresh(s, obj)
 
     async def delete(self, item_id: int) -> bool:
-        """Удалить объявление. True — удалено, False — не найдено/ошибка"""
+        """Удалить товар каталога. True — удалён, False — не найден."""
         async with self._session() as s:
             obj = await s.get(Item, item_id)
             if not obj:

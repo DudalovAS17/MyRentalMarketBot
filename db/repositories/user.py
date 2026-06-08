@@ -1,56 +1,93 @@
 from typing import Optional
-from sqlalchemy import select, exists, update
-from decimal import Decimal
+from sqlalchemy import select, exists
 
 from db.models.user import User
 from db.repositories.base import BaseRepository
 
 from schemas.user import UserCreate, UserUpdate, UserAdminUpdate
+from status.user_status import AccountStatus
 
+"""Удален: update_rating - Обновить кеш рейтинга пользователя
+
+list_by_account_status(...) - быстро получать:
+- активных клиентов
+- заблокированных клиентов
+
+В create() пока так:
+        obj = User(**user_data.model_dump())
+        #obj = User(**user_data.model_dump(exclude_none=True))
+
+Сейчас delete() физически удаляет клиента.
+Для реального RentalMarketBot лучше использовать: account_status = BANNED
+"""
 
 class UserRepository(BaseRepository):
-    """Репозиторий пользователей"""
+    """Репозиторий клиентов."""
+
+    # ───────────────────────────────────────────────────────────────────────────────────────────────────────
+    @staticmethod
+    def _apply_account_status_filter(stmt, status: AccountStatus):
+        """Оставить только клиентов с указанным статусом аккаунта."""
+        return stmt.where(User.account_status == status)
+
+    @staticmethod
+    def _apply_id_order(stmt):
+        """Стабильный порядок выдачи клиентов."""
+        return stmt.order_by(User.id.asc())
+
+    @staticmethod
+    def _apply_pagination(stmt, *, limit: Optional[int], offset: int):
+        if limit is not None:
+            stmt = stmt.limit(limit).offset(offset)
+        return stmt
 
     # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
     async def list_all(self, *, limit: Optional[int] = None, offset: int = 0) -> list[User]:
-        """Вернуть список пользователей по id по возрастанию"""
+        """Вернуть список клиентов по id по возрастанию."""
         async with self._session() as s:
-            stmt = select(User).order_by(User.id)
-            if limit is not None:
-                stmt = stmt.limit(limit).offset(offset)
+            stmt = select(User)
+            stmt = self._apply_id_order(stmt)
+            stmt = self._apply_pagination(stmt, limit=limit, offset=offset)
 
-            # stmt = select(User).order_by(User.id).offset(offset)
-            # if limit is not None:
-            #     stmt = stmt.limit(limit)
+            return await self._list(s, stmt)
+
+    async def list_by_acc_status(self, status: AccountStatus, *, limit: Optional[int] = None, offset: int = 0) -> list[User]:
+        """Вернуть клиентов с указанным статусом аккаунта."""
+        async with self._session() as s:
+            stmt = select(User)
+            stmt = self._apply_account_status_filter(stmt, status)
+            stmt = self._apply_id_order(stmt)
+            stmt = self._apply_pagination(stmt, limit=limit, offset=offset)
 
             return await self._list(s, stmt)
 
     async def get_by_id(self, user_id: int) -> Optional[User]:
-        """Найти пользователя по id"""
+        """Найти клиента по id."""
         async with self._session() as s:
             return await s.get(User, user_id)
 
     async def get_by_telegram_id(self, telegram_id: int) -> Optional[User]:
-        """Найти пользователя по Telegram ID"""
+        """Найти клиента по Telegram ID."""
         async with self._session() as s:
             stmt = select(User).where(User.telegram_id == telegram_id)
             return await self._one_or_none(s, stmt)
 
     async def exists_by_telegram_id(self, telegram_id: int) -> bool:
-        """Проверить существование пользователя по Telegram ID"""
+        """Проверить существование клиента по Telegram ID."""
         async with self._session() as s:
             stmt = select(exists().where(User.telegram_id == telegram_id))
             return await self._exists(s, stmt)
 
     # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
     async def create(self, user_data: UserCreate) -> User:
-        """Создать нового пользователя"""
+        """Создать нового клиента."""
         obj = User(**user_data.model_dump())
+        #obj = User(**user_data.model_dump(exclude_none=True))
         async with self._session() as s:
             return await self._add_commit_refresh(s, obj)
 
     async def update(self, user_id: int, update_data: UserUpdate | UserAdminUpdate) -> Optional[User]:
-        """Обновить данные пользователя (только переданные поля)"""
+        """Обновить данные клиента или админские поля аккаунта."""
         async with self._session() as s:
             obj: Optional[User] = await s.get(User, user_id)
             if not obj:
@@ -60,31 +97,22 @@ class UserRepository(BaseRepository):
             if not data:
                 return obj
 
-            for k, v in data.items():
-                setattr(obj, k, v)
+            changed = False
+            for field_name, value in data.items():
+                if getattr(obj, field_name) != value:
+                    setattr(obj, field_name, value)
+                    changed = True
+
+            if not changed:
+                return obj
 
             return await self._commit_refresh(s, obj)
 
     async def delete(self, user_id: int) -> bool:
-        """Удалить пользователя по id.
-
-        Возвращает True — если удалён.
-        Возвращает False — если не найден.
-        """
+        """Удалить клиента по id."""
         async with self._session() as s:
             obj = await s.get(User, user_id)
             if not obj:
                 return False
 
             return await self._delete_commit(s, obj)
-
-    # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-    async def update_rating(self, *, user_id: int, rating: Decimal, rating_count: int) -> bool:
-        """Обновить кеш рейтинга пользователя. Возвращает True, если строка обновлена."""
-        async with self._session() as s:
-            stmt = (
-                update(User)
-                .where(User.id == user_id)
-                .values(rating=rating, rating_count=rating_count)
-            )
-            return await self._execute_update_commit(s, stmt)

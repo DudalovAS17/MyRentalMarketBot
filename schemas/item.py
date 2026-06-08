@@ -1,5 +1,5 @@
-from pydantic import BaseModel, Field, AwareDatetime, ConfigDict, field_validator
-from typing import Optional, Dict, Any
+from pydantic import BaseModel, Field, AwareDatetime, ConfigDict
+from typing import Optional
 from decimal import Decimal
 
 from status.item_status import ItemStatus
@@ -17,12 +17,12 @@ class ItemCreate(BaseModel):
     price: Decimal = Field(..., ge=0)
     price_text: Optional[str] = Field(None, max_length=100)
 
-    available_quantity: int = Field(None, ge=0)
+    available_quantity: int = Field(1, ge=0)
 
     is_featured: bool = False
-    sort_order: int = Field(None, ge=0)
+    sort_order: int = Field(0, ge=0)
 
-    min_rental_period: int = Field(None, ge=1)
+    min_rental_period: int = Field(1, ge=1)
     max_rental_period: Optional[int] = Field(None, ge=1)
 
 

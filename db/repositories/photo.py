@@ -1,12 +1,35 @@
 from typing import Optional, Literal
-from sqlalchemy import select, update, func, case
+from sqlalchemy import select, func
 
 from db.models.photo import Photo
 from db.repositories.base import BaseRepository
 
 
 class PhotoRepository(BaseRepository):
-    """Репозиторий для работы с фотографиями объявления"""
+    """Репозиторий фотографий товаров каталога."""
+
+    # ───────────────────────────────────────────────────────────────────────────────────────────────────────
+    @staticmethod
+    def _apply_item_filter(stmt, item_id: int):
+        """Оставить только фотографии товара."""
+        return stmt.where(Photo.item_id == item_id)
+
+    @staticmethod
+    def _apply_order(stmt):
+        """Стабильный порядок фотографий внутри карточки товара."""
+        return stmt.order_by(Photo.sort_order.asc(), Photo.id.asc())
+
+    @staticmethod
+    def _apply_main_filter(stmt):
+        """Оставить только главные фотографии."""
+        return stmt.where(Photo.is_main.is_(True))
+
+    async def _photos_in_order(self, session, item_id: int) -> list[Photo]:
+        stmt = select(Photo)
+        stmt = self._apply_item_filter(stmt, item_id)
+        stmt = self._apply_order(stmt)
+        result = await session.execute(stmt)
+        return list(result.scalars())
 
     # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
     async def get_by_id(self, photo_id: int) -> Optional[Photo]:
@@ -15,29 +38,78 @@ class PhotoRepository(BaseRepository):
             return await s.get(Photo, photo_id)
 
     async def list_by_item_id(self, item_id: int) -> list[Photo]:
-        """Все фото для конкретного объявления"""
+        """Вернуть все фотографии товара."""
         async with self._session() as s:
-            stmt = (
-                select(Photo)
-                .where(Photo.item_id == item_id)
-                .order_by(Photo.sort_order.asc(), Photo.id.asc()) # .order_by(Photo.sort_order)
-            )
+            stmt = select(Photo)
+            stmt = self._apply_item_filter(stmt, item_id)
+            stmt = self._apply_order(stmt)
             return await self._list(s, stmt)
 
-    async def count_by_item(self, item_id: int) -> int:
-        """Сколько фото привязано к объявлению"""
+    async def get_main_by_item_id(self, item_id: int) -> Optional[Photo]:
+        """Вернуть главную фотографию товара, если она задана."""
         async with self._session() as s:
-            #stmt = select(func.count()).where(Photo.item_id == item_id)
-            stmt = select(func.count()).select_from(Photo).where(Photo.item_id == item_id)
+            stmt = select(Photo)
+            stmt = self._apply_item_filter(stmt, item_id)
+            stmt = self._apply_main_filter(stmt)
+            stmt = self._apply_order(stmt)
+            return await self._one_or_none(s, stmt.limit(1))
+
+    async def count_by_item(self, item_id: int) -> int:
+        """Вернуть количество фотографий товара."""
+        async with self._session() as s:
+            stmt = select(func.count()).select_from(Photo)
+            stmt = self._apply_item_filter(stmt, item_id)
             res = await s.execute(stmt)
             return int(res.scalar() or 0)
 
     # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-    async def create(self, *, item_id: int, telegram_file_id: str, order: int = 0) -> Photo:
-        """Создать фотографию для объявления"""
+    async def create(
+            self,
+            *,
+            item_id: int,
+            telegram_file_id: Optional[str] = None, # telegram_file_id: str
+            url: Optional[str] = None,
+            order: int = 0,
+            is_main: bool = False,
+    ) -> Photo:
+        """Создать фотографию товара каталога."""
         async with self._session() as s:
-            obj = Photo(item_id=item_id, telegram_file_id=telegram_file_id, order=order)
+            obj = Photo(item_id=item_id, telegram_file_id=telegram_file_id, url=url, sort_order=order, is_main=is_main)
             return await self._add_commit_refresh(s, obj)
+
+    async def update(
+        self,
+        photo_id: int,
+        *,
+        telegram_file_id: Optional[str] = None,
+        url: Optional[str] = None,
+        sort_order: Optional[int] = None,
+        is_main: Optional[bool] = None,
+    ) -> Optional[Photo]:
+        """Обновить фотографию товара каталога."""
+        async with self._session() as s:
+            obj: Optional[Photo] = await s.get(Photo, photo_id)
+            if not obj:
+                return None
+
+            changed = False
+            if telegram_file_id is not None and telegram_file_id != obj.telegram_file_id:
+                obj.telegram_file_id = telegram_file_id
+                changed = True
+            if url is not None and url != obj.url:
+                obj.url = url
+                changed = True
+            if sort_order is not None and sort_order != obj.sort_order:
+                obj.sort_order = sort_order
+                changed = True
+            if is_main is not None and is_main != obj.is_main:
+                obj.is_main = is_main
+                changed = True
+
+            if not changed:
+                return obj
+
+            return await self._commit_refresh(s, obj)
 
     async def delete(self, photo_id: int) -> bool:
         """Удалить фото по id. Возвращает True - если удалено, False - если не найдено"""
@@ -48,105 +120,85 @@ class PhotoRepository(BaseRepository):
 
             return await self._delete_commit(s, obj)
 
+    # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
     async def reorder(self, item_id: int) -> int:
-        """Перенумеровать sort_order = 0,.., N после удаления/добавления. Чтобы порядок был всегда плотным"""
+        """Уплотнить sort_order фотографий товара до 0..N."""
         async with self._session() as s:
-            stmt = (
-                select(Photo)
-                .where(Photo.item_id == item_id)
-                .order_by(Photo.sort_order.asc(), Photo.id.asc())
-            )
-            result = await s.execute(stmt)
-            photos = list(result.scalars())
+            photos = await self._photos_in_order(s, item_id)
+            if not photos:
+                return 0
 
-            for i, photo in enumerate(photos):
-                photo.sort_order = i
+            for sort_order, photo in enumerate(photos):
+                photo.sort_order = sort_order
 
             await self._commit_or_rollback(s)
             return len(photos)
 
-    # ───────────────────────────────────── Не осмысленные функции ─────────────────────────────────────────────────────
-    async def swap_with_neighbor(self, *, item_id: int, photo_id: int, direction: Literal["up", "down"]) -> bool:
-        """Поменять фотографию местами с соседней в пределах объявления.
-
-        True — swap выполнен,
-        False — нельзя выполнить
-        """
+    async def set_main(self, *, item_id: int, photo_id: int) -> bool:
+        """Сделать фотографию главной внутри товара."""
         async with self._session() as s:
-            # 1) получаем упорядоченный список id+sort_order
-            stmt = (
-                select(Photo.id, Photo.sort_order)
-                .where(Photo.item_id == item_id)
-                .order_by(Photo.sort_order.asc(), Photo.id.asc())
-            )
-            res = await s.execute(stmt)
-            rows = res.all() # [(10, 0), (11, 1), (12, 2)] (это для трех фото с id=10-12)
-            if not rows:
+            photos = await self._photos_in_order(s, item_id) # Берёт все фото товара
+            if photo_id not in {photo.id for photo in photos}: # Проверяет, что photo_id действительно принадлежит этому item_id
                 return False
 
-            ids = [r[0] for r in rows] # [10, 11, 12]
-            orders = [r[1] for r in rows] # [0, 1, 2]
+            for photo in photos:
+                photo.is_main = photo.id == photo_id # Одну фотку делает главной
 
-            try:
-                idx = ids.index(photo_id) # поиск позиции переданного фото photo_id в списке
-                # if photo_id=12 -> idx = 2 (index - ищет первое вхождение элемента (в ids) и возвращает его позицию (индекс))
-            except ValueError: # ?
+            await self._commit_or_rollback(s)
+            return True
+
+    async def swap_with_neighbor(self, *, item_id: int, photo_id: int, direction: Literal["up", "down"]) -> bool:
+        """Поменять фотографию местами с соседней в пределах товара.
+
+        True — swap выполнен, False — нельзя выполнить"""
+        async with self._session() as s:
+            photos = await self._photos_in_order(s, item_id) # Берёт все фото товара в текущем порядке
+            photo_ids = [photo.id for photo in photos]
+            if photo_id not in photo_ids: # Проверяет, что photo_id принадлежит этому item_id
                 return False
+
+            # [(10, 0), (11, 1), (12, 2)] (это для трех фото с id=10-12)
+            # ids - [10, 11, 12], orders - [0, 1, 2]
+            idx = photo_ids.index(photo_id) # поиск позиции переданного фото photo_id в списке
+            # if photo_id=12 -> idx = 2 (index - ищет первое вхождение элемента (в ids) и возвращает его позицию (индекс))
 
             if direction == "up":
                 if idx == 0: # уже самое верхнее, двигать некуда
                     return False
-                other_id, other_order = ids[idx - 1], orders[idx - 1]
-            else:  # down
-                if idx == len(ids) - 1: # уже самое нижнее
+                swap_idx = idx - 1
+            else: # down
+                if idx == len(photos) - 1: # уже самое нижнее
                     return False
-                other_id, other_order = ids[idx + 1], orders[idx + 1]
+                swap_idx = idx + 1
 
-            this_order = orders[idx] # sort_order текущего
+            photos[idx], photos[swap_idx] = photos[swap_idx], photos[idx] # Меняет фото местами?
+            for sort_order, photo in enumerate(photos):
+                photo.sort_order = sort_order # Перезаписывает sort_order заново: 0, 1, 2, ...
 
-            # 2) делаем swap двух строк в одной транзакции
-            try:
-                async with s.begin():
-                    await s.execute(update(Photo).where(Photo.id == photo_id).values(order=other_order))
-                    await s.execute(update(Photo).where(Photo.id == other_id).values(order=this_order))
-            except Exception:
-                await s.rollback()
-                raise
-
+            await self._commit_or_rollback(s)
             return True
 
     async def set_order(self, *, photo_id: int, item_id: int, new_order: int) -> bool:
+        """Установить позицию фотографии внутри списка фотографий товара."""
         async with self._session() as s:
-            photos = list(
-                    (
-                        await s.execute(
-                            select(Photo.id)
-                            .where(Photo.item_id == item_id)
-                            .order_by(Photo.sort_order.asc(), Photo.id.asc())
-                        )
-                    ).scalars().all()
-            )
-
-            if photo_id not in photos:
+            photos = await self._photos_in_order(s, item_id)
+            photo_ids = [photo.id for photo in photos]
+            if photo_id not in photo_ids:
                 return False
 
-            n = len(photos)
-            if new_order < 0 or new_order >= n:
+            if new_order < 0 or new_order >= len(photos):
                 return False
 
-            # переставляем photo_id в нужную позицию
-            photos.remove(photo_id)
-            photos.insert(new_order, photo_id)
+            # достали нужное фото и вставили в новую позицию
+            current_index = photo_ids.index(photo_id)
+            if current_index == new_order: # ранний выход, если фото уже стоит на нужной позиции
+                return True
+            photo = photos.pop(current_index)
+            photos.insert(new_order, photo)
 
-            # обновляем sort_order всем одним UPDATE через CASE (быстро, без цикла add())
-            mapping = {pid: idx for idx, pid in enumerate(photos)}
-            stmt = (
-                update(Photo)
-                .where(Photo.item_id == item_id)
-                .values(order=case(mapping, value=Photo.id))
-            )
+            # после перестановки порядок всегда становится плотным: 0, 1, 2, 3...
+            for sort_order, photo in enumerate(photos):
+                photo.sort_order = sort_order
 
-            async with s.begin():
-                await s.execute(stmt)
-
+            await self._commit_or_rollback(s)
             return True

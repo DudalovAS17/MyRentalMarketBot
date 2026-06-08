@@ -1,122 +1,184 @@
 from typing import Optional
-from sqlalchemy import select, update, or_, exists, and_
+from sqlalchemy import select, update, exists, and_
 from sqlalchemy.orm import selectinload
 
 from db.models.rental import Rental
 from db.repositories.base import BaseRepository
 
 from schemas.rental import RentalCreate, RentalUpdate
-from status.rental_status import RentalStatus, RentalActorRole, is_open_status
+from status.rental_status import RentalStatus, open_statuses
 
+"""try_set_owner_handover_confirmed
+Владелец отмечает: 'передал вещь' (только если CONFIRMED, и он owner, и флаг ещё False)
+Возвращает True - владелец подтвердил передачу
+
+try_set_renter_confirm_receive
+Арендатор отмечает: 'получил вещь' (только если CONFIRMED, и он renter, и флаг ещё False)
+Возвращает True - арендатор подтвердил получение вещи
+
+try_activate_confirmed_rental
+CONFIRMED -> ACTIVE если обе стороны подтвердили передачу/получение
+Возвращает True - арендатор подтвердил получение (статус перешёл в ACTIVE)
+"""
 
 class RentalRepository(BaseRepository):
-    """Репозиторий для работы с арендами (сделками)"""
+    """Репозиторий заявок клиентов на аренду товаров компании."""
 
     _OPEN_RENTAL_LOOKUP_LIMIT = 10
     # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-    async def list_all(self) -> list[Rental]:
-        """Вернуть все сделки"""
+
+    @staticmethod
+    def _apply_recent_order(stmt):
+        """Стабильный порядок выдачи заявок: новые сначала."""
+        return stmt.order_by(Rental.created_at.desc(), Rental.id.desc())
+
+    @staticmethod
+    def _apply_pagination(stmt, *, limit: Optional[int], offset: int):
+        if limit is not None:
+            stmt = stmt.limit(limit).offset(offset)
+        return stmt
+
+    @staticmethod
+    def _apply_status_filter(stmt, status: RentalStatus):
+        """Оставить только заявки с указанным статусом."""
+        return stmt.where(Rental.status == status)
+
+    @staticmethod
+    def _apply_open_status_filter(stmt):
+        """Оставить только открытые заявки."""
+        return stmt.where(Rental.status.in_(open_statuses()))
+
+    @staticmethod
+    def _apply_item_filter(stmt, item_id: int):
+        """Оставить только заявки по товару."""
+        return stmt.where(Rental.item_id == item_id)
+
+    @staticmethod
+    def _apply_user_filter(stmt, user_id: int):
+        """Оставить только заявки клиента."""
+        return stmt.where(Rental.user_id == user_id)
+
+    @staticmethod
+    def _apply_assigned_admin_filter(stmt, admin_id: int):
+        """Оставить только заявки, назначенные менеджеру."""
+        return stmt.where(Rental.assigned_admin_id == admin_id)
+
+    @staticmethod
+    def _with_details(stmt):
+        """Подгрузить связи заявки, пока сессия живая."""
+        return stmt.options(
+            selectinload(Rental.item), # товар
+            selectinload(Rental.user), # клиент
+            selectinload(Rental.assigned_admin), # назначенный менеджер
+        )
+
+    # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+    async def list_all(self, *, limit: Optional[int] = None, offset: int = 0) -> list[Rental]:
+        """Вернуть все заявки клиентов."""
         async with self._session() as s:
-            return await self._list(s, select(Rental))
+            stmt = select(Rental)
+            stmt = self._apply_recent_order(stmt)
+            stmt = self._apply_pagination(stmt, limit=limit, offset=offset)
+
+            return await self._list(s, stmt)
 
     async def get_by_id(self, rental_id: int) -> Optional[Rental]:
         """Найти сделку по ID"""
         async with self._session() as s:
             return await s.get(Rental, rental_id)
 
-    async def list_by_item_id(self, item_id: int) -> list[Rental]:
-        """Все сделки по конкретной вещи = Получение аренд по ID вещи"""
+    async def list_by_item_id(self, item_id: int, *, limit: Optional[int] = None, offset: int = 0) -> list[Rental]:
+        """Вернуть заявки по товару."""
         async with self._session() as s:
-            stmt = select(Rental).where(Rental.item_id == item_id)
+            stmt = select(Rental)
+            stmt = self._apply_item_filter(stmt, item_id)
+            stmt = self._apply_recent_order(stmt)
+            stmt = self._apply_pagination(stmt, limit=limit, offset=offset)
+
             return await self._list(s, stmt)
 
-    async def list_by_renter_id(self, renter_id: int) -> list[Rental]:
-        """Сделки, где пользователь — арендатор"""
+    async def list_by_user_id(self, user_id: int, *, limit: Optional[int] = None, offset: int = 0) -> list[Rental]:
+        """Вернуть заявки клиента."""
         async with self._session() as s:
-            stmt = select(Rental).where(Rental.renter_id == renter_id)
+            stmt = select(Rental)
+            stmt = self._apply_user_filter(stmt, user_id)
+            stmt = self._apply_recent_order(stmt)
+            stmt = self._apply_pagination(stmt, limit=limit, offset=offset)
+
             return await self._list(s, stmt)
 
-    async def list_by_owner_id(self, owner_id: int) -> list[Rental]:
-        """Сделки, где пользователь — владелец"""
+    async def list_by_assigned_admin_id(self, admin_id: int, *, limit: Optional[int] = None, offset: int = 0) -> list[Rental]:
+        """Вернуть заявки, назначенные менеджеру."""
         async with self._session() as s:
-            stmt = select(Rental).where(Rental.owner_id == owner_id)
+            stmt = select(Rental)
+            stmt = self._apply_assigned_admin_filter(stmt, admin_id)
+            stmt = self._apply_recent_order(stmt)
+            stmt = self._apply_pagination(stmt, limit=limit, offset=offset)
+
             return await self._list(s, stmt)
 
-    async def list_by_user_id(self, user_id: int) -> list[Rental]:
-        """Все сделки, где пользователь — арендатор или владелец"""
-        async with self._session() as s:
-            stmt = (
-                select(Rental)
-                .where(or_(Rental.renter_id == user_id, Rental.owner_id == user_id))
-                .order_by(Rental.created_at.desc())
-            )
-            return await self._list(s, stmt)
-
-    async def list_by_status(self, status: RentalStatus) -> list[Rental]:
+    async def list_by_status(self, status: RentalStatus, *, limit: Optional[int] = None, offset: int = 0) -> list[Rental]:
         """Сделки по статусу"""
         async with self._session() as s:
-            stmt = select(Rental).where(Rental.status == status)
+            stmt = select(Rental)
+            stmt = self._apply_status_filter(stmt, status)
+            stmt = self._apply_recent_order(stmt)
+            stmt = self._apply_pagination(stmt, limit=limit, offset=offset)
+
             return await self._list(s, stmt)
 
     async def get_details_by_id(self, rental_id: int) -> Optional[Rental]:
-        """Позволяет убрать зависимость сервиса сделок от сервисов объявлений, пользователей и тд.
-
-        “Подгрузи эти связи заранее, пока сессия живая”
-        """
+        """Вернуть заявку с заранее подгруженными товаром, клиентом и назначенным менеджером."""
         async with self._session() as s:
-            stmt = (
-                select(Rental)
-                .where(Rental.id == rental_id)
-                .options(
-                    selectinload(Rental.item),
-                    selectinload(Rental.renter),
-                    selectinload(Rental.owner),
-                )
-            )
+            stmt = select(Rental).where(Rental.id == rental_id)
+            stmt = self._with_details(stmt)
+
             return await self._one_or_none(s, stmt)
+
+    async def list_recent_open_by_item_id(self, item_id: int) -> list[Rental]:
+        """Вернуть последние открытые заявки по товару."""
+        async with self._session() as s:
+            stmt = select(Rental)
+            stmt = self._apply_item_filter(stmt, item_id)
+            stmt = self._apply_open_status_filter(stmt)
+            stmt = self._apply_recent_order(stmt)
+            stmt = stmt.limit(self._OPEN_RENTAL_LOOKUP_LIMIT)
+            return await self._list(s, stmt)
 
     # ──────────────────────────────────────────── Для admin-панели ────────────────────────────────────────────────────
     async def list_recent(self, *, limit: int, offset: int = 0) -> list[Rental]:
-        """Последние сделки (по убыванию created_at)"""
+        """Последние заявки клиентов."""
         async with self._session() as s:
-            stmt = (
-                select(Rental)
-                #.order_by(Rental.created_at.desc())
-                .order_by(Rental.created_at.desc(), Rental.id.desc())
-                .limit(limit)
-                .offset(offset)
-            )
+            stmt = select(Rental)
+            stmt = self._apply_recent_order(stmt)
+            stmt = self._apply_pagination(stmt, limit=limit, offset=offset)
+
             return await self._list(s, stmt)
 
     async def list_recent_with_details_for_admins(self, *, limit: int, offset: int) -> list[Rental]:
-        """Последние сделки для админ-панели с заранее подгруженными связями - для сервиса admin_rental_service"""
+        """Последние заявки для админ-панели с заранее подгруженными связями."""
         async with self._session() as s:
-            stmt = (
-                select(Rental)
-                .order_by(Rental.created_at.desc()) # , Rental.id.desc()
-                .limit(limit)
-                .offset(offset)
-                .options(
-                    selectinload(Rental.item),
-                    selectinload(Rental.owner),
-                    selectinload(Rental.renter),
-                )
-            )
+            stmt = select(Rental)
+            stmt = self._apply_recent_order(stmt)
+            stmt = self._apply_pagination(stmt, limit=limit, offset=offset)
+            stmt = self._with_details(stmt)
+
             return await self._list(s, stmt)
 
     # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
     async def create(self, rental_data: RentalCreate) -> Rental:
-        """Создать новую сделку"""
+        """Создать новую заявку клиента на аренду товара."""
         async with self._session() as s:
             obj = Rental(**rental_data.model_dump())
+            # obj = Rental(**rental_data.model_dump(exclude_none=True))
             return await self._add_commit_refresh(s, obj)
 
     async def update(self, rental_id: int, update_data: RentalUpdate) -> Optional[Rental]:
-        """Обновить сделку.
+        """Обновить заявку.
 
-        Возвращает Rental — если изменения применены.
-        Возвращает текущий объект без изменений - если `update_data` пустой
-        Возвращает None — если сделка не найдена или изменений нет.
+        Возвращает Rental — если заявка найдена.
+        Возвращает текущий объект без commit — если patch пустой или значения не изменились.
+        Возвращает None — если заявка не найдена.
         """
         async with self._session() as s:
             obj: Optional[Rental] = await s.get(Rental, rental_id)
@@ -127,13 +189,19 @@ class RentalRepository(BaseRepository):
             if not data:
                 return obj
 
-            for k, v in data.items():
-                setattr(obj, k, v)
+            changed = False
+            for field_name, value in data.items():
+                if getattr(obj, field_name) != value:
+                    setattr(obj, field_name, value)
+                    changed = True
+
+            if not changed:
+                return obj
 
             return await self._commit_refresh(s, obj)
 
     async def delete(self, rental_id: int) -> bool:
-        """Удалить сделку по id.
+        """Удалить заявку по id.
 
         Возвращает True — удалена.
         Возвращает False — не найдена.
@@ -146,130 +214,57 @@ class RentalRepository(BaseRepository):
             return await self._delete_commit(s, obj)
 
     # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-    async def try_update_status(self, *,
-        rental_id: int, # какую сделку мы хотим изменить
-        new_status: RentalStatus, # переводим в этот статус
-        expected_status: RentalStatus, # из какого статуса разрешён переход
-        actor_user_id: int, # кто нажал кнопку (текущий пользователь)
-        actor_role: RentalActorRole,  # чьё это право (owner/renter)
+    async def try_update_status(
+            self,
+            *,
+            rental_id: int, # какую сделку мы хотим изменить
+            new_status: RentalStatus, # переводим в этот статус
+            expected_status: RentalStatus, # из какого статуса разрешён переход
 
-        # Параметры для уведомлений (на будущее)
-        #notify_recipient_role: Optional[str] = None,  # 'renter', 'owner', 'other'
-        #notify_message_template: Optional[str] = None,
-        #notify_button_text: Optional[str] = None,
-        #notify_button_callback_action: Optional[str] = None
+            # Параметры для уведомлений (на будущее)
+            #notify_recipient_role: Optional[str] = None,  # 'renter', 'owner', 'other'
+            #notify_message_template: Optional[str] = None,
+            #notify_button_text: Optional[str] = None,
+            #notify_button_callback_action: Optional[str] = None
     ) -> bool:
-        """Атомарно обновить статус сделки, если совпали ожидаемый текущий статус и участник, уже проверенные сервисом."""
-
-        match actor_role:
-            case RentalActorRole.OWNER:
-                actor_col = Rental.owner_id
-            case RentalActorRole.RENTER:
-                actor_col = Rental.renter_id
-
+        """Атомарно обновить статус заявки, если текущий статус совпадает с ожидаемым."""
         async with self._session() as s:
             stmt = (
                 update(Rental)
                 .where(Rental.id == rental_id)
-                .where(actor_col == actor_user_id)
                 .where(Rental.status == expected_status)
                 .values(status=new_status)
             )
             return await self._execute_update_commit(s, stmt)
 
-    async def try_update_status_if_participant(self, *,
-        rental_id: int,
-        new_status: RentalStatus,
-        expected_status: RentalStatus,
-        actor_user_id: int,
+    async def try_update_status_if_user(
+            self,
+            *,
+            rental_id: int,
+            user_id: int,
+            new_status: RentalStatus,
+            expected_status: RentalStatus,
     ) -> bool:
-        """Атомарно обновить статус сделки, если текущий пользователь является участником сделки и текущий статус совпадает с ожидаемым.
-
-        Для DISPUTE (оба участника могут, в try_update_status только 1)
-        """
+        """Атомарно обновить статус заявки, если она принадлежит клиенту и статус совпадает с ожидаемым."""
         async with self._session() as s:
             stmt = (
                 update(Rental)
                 .where(Rental.id == rental_id)
-                .where(or_(Rental.owner_id == actor_user_id, Rental.renter_id == actor_user_id))
+                .where(Rental.user_id == user_id)
                 .where(Rental.status == expected_status)
                 .values(status=new_status)
             )
             return await self._execute_update_commit(s, stmt)
-
-    # ───────────────────────────────── Тут мы обновляем булевый флаг (не статус) ──────────────────────────────────────
-    async def try_set_owner_handover_confirmed(self, *, rental_id: int, owner_id: int) -> bool:
-        """Владелец отмечает: 'передал вещь' (только если CONFIRMED, и он owner, и флаг ещё False)
-
-        Возвращает True - владелец подтвердил передачу
-        """
-        async with self._session() as s:
-            stmt = (
-                update(Rental)
-                .where(Rental.id == rental_id)
-                .where(Rental.owner_id == owner_id)
-                .where(Rental.status == RentalStatus.CONFIRMED)
-                .where(Rental.owner_handover_confirmed.is_(False))
-                .values(owner_handover_confirmed=True)
-            )
-            return await self._execute_update_commit(s, stmt)
-
-    async def try_set_renter_confirm_receive(self, *, rental_id: int, renter_id: int) -> bool:
-        """Арендатор отмечает: 'получил вещь' (только если CONFIRMED, и он renter, и флаг ещё False)
-
-        Возвращает True - арендатор подтвердил получение вещи
-        """
-        async with self._session() as s:
-            stmt = (
-                update(Rental)
-                .where(Rental.id == rental_id)
-                .where(Rental.renter_id == renter_id)
-                .where(Rental.status == RentalStatus.CONFIRMED)
-                .where(Rental.renter_receive_confirmed.is_(False))
-                .values(renter_receive_confirmed=True)
-            )
-            return await self._execute_update_commit(s, stmt)
-
-    async def try_activate_confirmed_rental(self, *, rental_id: int) -> bool:
-        """CONFIRMED -> ACTIVE если обе стороны подтвердили передачу/получение
-
-        Возвращает True - арендатор подтвердил получение (статус перешёл в ACTIVE)
-        """
-        async with self._session() as s:
-            stmt = (
-                update(Rental)
-                .where(Rental.id == rental_id)
-                .where(Rental.status == RentalStatus.CONFIRMED)
-                .where(Rental.owner_handover_confirmed.is_(True))
-                .where(Rental.renter_receive_confirmed.is_(True))
-                .values(status=RentalStatus.ACTIVE)
-            )
-            return await self._execute_update_commit(s, stmt)
-
-    async def list_recent_open_by_item_id(self, item_id: int) -> list[Rental]:
-        """Возвращает последние сделки по id"""
-        async with self._session() as s:
-            stmt = (
-                select(Rental)
-                .where(Rental.item_id == item_id)
-                #.order_by(desc(Rental.id))
-                .order_by(Rental.created_at.desc()) # , Rental.id.desc()
-                .limit(self._OPEN_RENTAL_LOOKUP_LIMIT)
-            )
-            return await self._list(s, stmt)
 
     # ─────────────────────────────── For item-service: moderate_set_status() ──────────────────────────────────────────
     async def has_open_rentals_for_item(self, item_id: int) -> bool:
-        """Техническая проверка: есть ли у item открытые сделки"""
-        open_statuses = [st for st in RentalStatus if is_open_status(st)]
+        """Проверить, есть ли у товара открытые заявки."""
 
         async with self._session() as s:
             stmt = select(
                 exists().where(
-                    and_(
-                        Rental.item_id == item_id,
-                        Rental.status.in_(open_statuses),
-                    )
+                    and_(Rental.item_id == item_id, Rental.status.in_(open_statuses()))
                 )
             )
-            return bool(await s.scalar(stmt)) # return await self._exists(s, stmt) - лучше
+
+            return await self._exists(s, stmt)
