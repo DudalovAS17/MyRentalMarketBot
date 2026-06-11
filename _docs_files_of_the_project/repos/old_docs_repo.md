@@ -1,9 +1,5 @@
 ## Base
 
-### Нужно фиксить:
-#### [типизация довольно широкая: Any, Optional[Any], list[Any]]()
-- create / update / delete - либо так obj: Any) -> Any:
-
 ---
 
 ## Category

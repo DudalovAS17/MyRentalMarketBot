@@ -9,16 +9,25 @@ from utils.validators import validate_name
 logger = logging.getLogger(__name__)
 
 class CategoryService:
-    """Сервис для работы с категориями и подкатегориями"""
+    """Сервис для работы с категориями и подкатегориями каталога компании."""
 
     def __init__(self, repo: CategoryRepository) -> None:
         self.repo = repo
 
+    # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+    @staticmethod
+    def _to_out(category) -> CategoryOut:
+        return CategoryOut.model_validate(category)
+
+    @classmethod
+    def _to_out_list(cls, categories) -> list[CategoryOut]:
+        return [cls._to_out(category) for category in categories]
+
     # ────────────────────────────────────────── Read methods ──────────────────────────────────────────────────────────
     async def list_main_categories(self) -> list[CategoryOut]:
         """Вернуть все категории без подкатегорий (parent_id = NULL)"""
-        cats = await self.repo.list_roots()
-        return [CategoryOut.model_validate(c) for c in cats]
+        categories = await self.repo.list_roots()
+        return self._to_out_list(categories)
 
     async def list_subcategories(self, category_id: int, *, strict: bool = False) -> list[CategoryOut]:
         """Вернуть все подкатегории для категории"""
@@ -28,7 +37,7 @@ class CategoryService:
                 raise NotFoundError(f"Категория не найдена: id={category_id}")
 
         subs = await self.repo.list_subcategories(category_id)
-        return [CategoryOut.model_validate(s) for s in subs]
+        return self._to_out_list(subs)
 
     async def get_category_by_id(self, category_id: int, *, strict: bool = False) -> Optional[CategoryOut]:
         """Вернуть категорию по id"""
@@ -38,40 +47,38 @@ class CategoryService:
                 raise NotFoundError(f"Категория не найдена: id={category_id}")
             return None
 
-        return CategoryOut.model_validate(cat)
+        return self._to_out(cat)
 
     # ─────────────────────────────────────────── Admin write methods ──────────────────────────────────────────────────
-    async def create(self, name: str, parent_id: Optional[int] = None) -> CategoryOut:
+    async def create(
+            self,
+            name: str,
+            *,
+            emoji: Optional[str] = None,
+            parent_id: Optional[int] = None,
+            sort_order: int = 0,
+            is_active: bool = True,
+            slug: Optional[str] = None,
+    ) -> CategoryOut:
         """Создать категорию или подкатегорию"""
         normalized_name = validate_name(name)
 
-        obj = await self.repo.create(name=normalized_name, parent_id=parent_id)
-        dto = CategoryOut.model_validate(obj)
+        if parent_id is not None:
+            parent_cat = await self.repo.get_by_id(parent_id)
+            if not parent_cat:
+                raise NotFoundError(f"Родительская категория не найдена: id={parent_id}")
+
+        category = await self.repo.create(
+            name=normalized_name,
+            emoji=emoji,
+            parent_id=parent_id,
+            sort_order=sort_order,
+            is_active=is_active,
+            slug=slug,
+        )
+
+        dto = self._to_out(category)
         logger.info("Создана категория: id=%s parent_id=%s", dto.id, parent_id)
-        return dto
-
-    async def update(
-            self,
-            category_id: int,
-            name: Optional[str] = None,
-            emoji: Optional[str] = None,
-            *,
-            strict: bool = False
-    ) -> Optional[CategoryOut]:
-        """Обновить категорию или подкатегорию"""
-
-        normalized_name: Optional[str] = None
-        if name is not None:
-            normalized_name = validate_name(name)
-
-        obj = await self.repo.update(category_id, name=normalized_name, emoji=emoji)
-        if not obj:
-            if strict:
-                raise NotFoundError(f"Категория не найдена: id={category_id}")
-            return None
-
-        dto = CategoryOut.model_validate(obj)
-        logger.info("Категория обновлена: id=%s", dto.id)
         return dto
 
     async def delete(self, category_id: int, *, strict: bool = False) -> bool:

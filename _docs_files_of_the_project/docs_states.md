@@ -118,7 +118,7 @@
 
 ---
 
-# RentStates
+# RentalCreateStates
 
 [**FSM-состояния оформления аренды**]()
 

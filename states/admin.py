@@ -1,12 +1,16 @@
 from aiogram.fsm.state import State, StatesGroup
 
 class AdminStates(StatesGroup):
-    waiting_rental_id = State()
-    waiting_cancel_reason = State()
-    waiting_dispute_resolution = State()
-    waiting_dispute_target = State()
 
-    # Admin item logic
+    # Rental request management
+    waiting_rental_id = State()
+    waiting_rental_cancel_reason = State()
+    waiting_rental_resolution = State()
+    waiting_rental_target_status = State()
+
+    # Catalog item management
     waiting_item_reject_reason = State()
+
+    # Client account management
     waiting_user_id = State()
     waiting_user_ban_reason = State()

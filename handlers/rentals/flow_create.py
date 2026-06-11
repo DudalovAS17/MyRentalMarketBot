@@ -11,7 +11,7 @@ from services.user_service import UserService
 from services.rental_service import RentalService
 from services.notif_service import NotificationService
 
-from states.rental import RentStates
+from states.rental import RentalCreateStates
 from schemas.rental import RentalCreate, RentalCreateDraft
 from keyboards.rental_kb import build_rent_end_date_keyboard, build_rent_confirmation_keyboard
 from utils.functions import send_or_edit, render_rent_ui, abort_rent_flow
@@ -57,10 +57,10 @@ async def start_rent_process(callback: CallbackQuery, state: FSMContext, item_se
     )
 
     await state.update_data(rent_ui_message_id=sent.message_id)
-    await state.set_state(RentStates.start_date)
+    await state.set_state(RentalCreateStates.start_date)
 
 
-@rental_router.callback_query(RentStates.start_date, F.data.startswith(START_DATE_CB))
+@rental_router.callback_query(RentalCreateStates.start_date, F.data.startswith(START_DATE_CB))
 async def process_start_date(callback: CallbackQuery, state: FSMContext, item_service: ItemService, rental_service: RentalService) -> None:
     """Обработка выбранной даты начала аренды и переход к выбору даты окончания"""
     await callback.answer()
@@ -100,10 +100,10 @@ async def process_start_date(callback: CallbackQuery, state: FSMContext, item_se
         rent_ui_message_id
     )
 
-    await state.set_state(RentStates.end_date)
+    await state.set_state(RentalCreateStates.end_date)
 
 
-@rental_router.callback_query(RentStates.end_date, F.data.startswith(END_DATE_CB))
+@rental_router.callback_query(RentalCreateStates.end_date, F.data.startswith(END_DATE_CB))
 async def process_end_date(callback: CallbackQuery, state: FSMContext, item_service: ItemService, rental_service: RentalService) -> None:
     """Обработка выбранной даты окончания аренды и показ подтверждения"""
     await callback.answer()
@@ -149,10 +149,10 @@ async def process_end_date(callback: CallbackQuery, state: FSMContext, item_serv
                                          total_with_deposit)
     await render_rent_ui(callback, state, text, keyboard, rent_ui_message_id)
 
-    await state.set_state(RentStates.confirmation)
+    await state.set_state(RentalCreateStates.confirmation)
 
 
-@rental_router.callback_query(RentStates.confirmation, F.data == CONFIRM_RENT_CB)
+@rental_router.callback_query(RentalCreateStates.confirmation, F.data == CONFIRM_RENT_CB)
 async def confirm_rent(callback: CallbackQuery, state: FSMContext, rental_service: RentalService, user_service: UserService,
                         item_service: ItemService, notification_service: NotificationService, user) -> None:
     """Создать запрос аренды и показать экран успеха и уведомляет владельца"""

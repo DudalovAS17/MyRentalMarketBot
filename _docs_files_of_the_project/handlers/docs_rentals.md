@@ -60,7 +60,7 @@
 >      - `rent_draft`
 >      - `rent_ui_message_id`
 >    - ✅ отправляем ОТДЕЛЬНОЕ сообщение - “экран аренды” (не трогаем карточку объявления), чтобы дальше редактировать только его
->    - переводит FSM в `RentStates.start_date`
+>    - переводит FSM в `RentalCreateStates.start_date`
 >
 > `return`, если:
 > - `item` не найден 
@@ -75,7 +75,7 @@
 >    - записывает `start_date` в `RentalCreateDraft`
 >    - загружает `item` и проверяет доступность вещи
 >    - рендерит экран выбора [даты окончания]() через `render_rent_ui(...)`!
->    - переводит FSM в `RentStates.end_date`
+>    - переводит FSM в `RentalCreateStates.end_date`
 >
 > `return`, если 
 >   - дата повреждена
@@ -94,7 +94,7 @@
 >    - строит клавиатуру подтверждения
 >    - считает `total_with_deposit`
 >    - рендерит confirmation экран через `render_rent_ui(...)`
->    - переводит FSM в `RentStates.confirmation`
+>    - переводит FSM в `RentalCreateStates.confirmation`
 
 
 > `confirm_rent`: `CONFIRM_RENT_CB` - **[Создаёт запрос аренды со статусом REQUESTED и показывает экран успеха]()**
@@ -138,7 +138,7 @@
 > Просто вызывает `callback.answer()`
 
 ### Что использует:
-- `RentStates`
+- `RentalCreateStates`
 - `RentalCreate` / `RentalCreateDraft`
 - `ServiceError` / `ValidationError`
 - `send_or_edit` / `render_rent_ui` / `abort_rent_flow`

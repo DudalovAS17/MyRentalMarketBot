@@ -1,6 +1,6 @@
 from aiogram.fsm.state import StatesGroup, State
 
-class RentStates(StatesGroup):
+class RentalCreateStates(StatesGroup):
     """Состояния процесса аренды"""
 
     start_date = State() # Пользователь выбирает дату начала

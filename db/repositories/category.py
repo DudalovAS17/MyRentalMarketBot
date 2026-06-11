@@ -4,10 +4,8 @@ from sqlalchemy import select, exists, and_
 from db.models.category import Category
 from db.repositories.base import BaseRepository
 
-_UNSET = object()
-
 """
-_UNSET = object()
+_UNSET = object() для update (убрал update пока)
 Причина: позволяет отличать: "поле не передали", от "поле передали как None".
 Это особенно важно для nullable-полей: emoji/parent_id/slug
 
@@ -164,49 +162,6 @@ class CategoryRepository(BaseRepository):
                 slug=slug,
             )
             return await self._add_commit_refresh(s, obj)
-
-    async def update(
-            self,
-            category_id: int,
-            *,
-            name: Optional[str] = None,
-            emoji: Optional[str] | object = _UNSET, # emoji: Optional[str] = None
-            parent_id: Optional[int] | object = _UNSET,
-            sort_order: Optional[int] = None,
-            is_active: Optional[bool] = None,
-            slug: Optional[str] | object = _UNSET,
-    ) -> Optional[Category]:
-        """Переименовать/сменить поля категории или подкатегории"""
-        async with self._session() as s:
-            obj: Optional[Category] = await s.get(Category, category_id)
-            if not obj:
-                return None
-
-            changed = False
-            if name is not None and name != obj.name: # не пустое, и отличается от текущей
-                obj.name = name
-                changed = True
-            if emoji is not _UNSET and emoji != obj.emoji: # None
-                obj.emoji = emoji
-                changed = True
-            if parent_id is not _UNSET and parent_id != obj.parent_id:
-                obj.parent_id = parent_id
-                changed = True
-            if sort_order is not None and sort_order != obj.sort_order:
-                obj.sort_order = sort_order
-                changed = True
-            if is_active is not None and is_active != obj.is_active:
-                obj.is_active = is_active
-                changed = True
-            if slug is not _UNSET and slug != obj.slug:
-                obj.slug = slug
-                changed = True
-
-
-            if not changed:
-                return obj
-
-            return await self._commit_refresh(s, obj)
 
     async def delete(self, category_id: int) -> bool:
         """Удалить категорию или подкатегорию (Если удаляешь категорию — её подкатегории тоже уйдут, каскад)

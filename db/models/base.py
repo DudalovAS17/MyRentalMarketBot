@@ -5,7 +5,7 @@ from typing import Final
 from sqlalchemy import MetaData, DateTime, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
-# Единые имена для PK/FK/индексов/уника_лок (удобно для Alembic и чтения схемы)
+
 NAMING_CONVENTION: Final[dict[str, str]] = {
     "ix": "ix_%(table_name)s_%(column_0_N_name)s",
     "uq": "uq_%(table_name)s_%(column_0_N_name)s",
@@ -13,7 +13,6 @@ NAMING_CONVENTION: Final[dict[str, str]] = {
     "fk": "fk_%(table_name)s_%(column_0_N_name)s_%(referred_table_name)s",
     "pk": "pk_%(table_name)s",
 }
-
 
 class Base(DeclarativeBase):
     """Базовый класс для всех SQLAlchemy моделей"""
