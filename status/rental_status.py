@@ -1,10 +1,5 @@
 import enum
 
-# class RentalActorRole(enum.Enum):
-#     """Роль текущего пользователя в сделке аренды"""
-#     OWNER = "owner"
-#     RENTER = "renter"
-
 class RentalStatus(enum.Enum):
     """Статус заявки клиента на аренду товара.
 
@@ -22,6 +17,7 @@ class RentalStatus(enum.Enum):
     # DISPUTED = "disputed"
 
 # ───────────────────────────────────── классификация статусов ─────────────────────────────────────────────────────────
+# после них заявка закрыта и дальше не должна двигаться.
 TERMINAL_STATUSES: frozenset[RentalStatus] = frozenset({
     RentalStatus.REJECTED,
     RentalStatus.CANCELLED_BY_CLIENT,
@@ -29,16 +25,17 @@ TERMINAL_STATUSES: frozenset[RentalStatus] = frozenset({
     RentalStatus.COMPLETED,
 })
 
+# Открытая заявка — это заявка, которая ещё влияет на доступность товара.
 OPEN_STATUSES: frozenset[RentalStatus] = frozenset({
         RentalStatus.REQUESTED,
         RentalStatus.IN_PROGRESS,
         RentalStatus.CONFIRMED,
     })
 
-
+# статус сам знает, какие поля времени нужно проставить при переходе.
 STATUS_TIMESTAMP_FIELDS: dict[RentalStatus, tuple[str, ...]] = {
     RentalStatus.IN_PROGRESS: ("in_progress_at",),
-    RentalStatus.CONFIRMED: ("confirmed_at", "processed_at"),
+    RentalStatus.CONFIRMED: ("confirmed_at",),
     RentalStatus.REJECTED: ("rejected_at", "closed_at"),
     RentalStatus.CANCELLED_BY_CLIENT: ("cancelled_at", "closed_at"),
     RentalStatus.CANCELLED_BY_ADMIN: ("cancelled_at", "closed_at"),
@@ -51,7 +48,7 @@ STATUS_LABELS: dict[RentalStatus, str]  = {
     RentalStatus.CONFIRMED: "Подтверждена",
     RentalStatus.REJECTED: "Отклонена",
     RentalStatus.CANCELLED_BY_CLIENT: "Отменена клиентом",
-    RentalStatus.CANCELLED_BY_ADMIN: "Отменена менеджером",
+    RentalStatus.CANCELLED_BY_ADMIN: "Отменена компанией",
     RentalStatus.COMPLETED: "Завершена",
 
     # RentalStatus.ACTIVE: "Активна",
@@ -63,15 +60,15 @@ ALLOWED_STATUS_TRANSITIONS: dict[RentalStatus, frozenset[RentalStatus]] = {
     RentalStatus.REQUESTED: frozenset({
         RentalStatus.IN_PROGRESS,
         RentalStatus.CONFIRMED,
-        RentalStatus.REJECTED,
+        RentalStatus.REJECTED, # если менеджер ещё не подтвердил заявку, он её не “отменяет”, а отклоняет
         RentalStatus.CANCELLED_BY_CLIENT,
-        RentalStatus.CANCELLED_BY_ADMIN,
+        #RentalStatus.CANCELLED_BY_ADMIN, # поэтому убираем это
     }),
     RentalStatus.IN_PROGRESS: frozenset({
         RentalStatus.CONFIRMED,
-        RentalStatus.REJECTED,
+        RentalStatus.REJECTED, # пока заявка ещё в обработке, менеджер не отменяет подтверждённую услугу, а отклоняет заявку.
         RentalStatus.CANCELLED_BY_CLIENT,
-        RentalStatus.CANCELLED_BY_ADMIN,
+        #RentalStatus.CANCELLED_BY_ADMIN, # поэтому убираем это
     }),
     RentalStatus.CONFIRMED: frozenset({
         RentalStatus.COMPLETED,
@@ -107,3 +104,21 @@ def can_transition(old_status: RentalStatus, new_status: RentalStatus) -> bool:
 def status_timestamp_fields(status: RentalStatus) -> tuple[str, ...]:
     """Вернуть поля дат, которые нужно проставить при переводе заявки в статус."""
     return STATUS_TIMESTAMP_FIELDS.get(status, ())
+
+
+"""
+TERMINAL_STATUSES нужен для проверок:
+    можно ли ещё менять заявку?
+    показывать ли заявку как активную?
+    считать ли товар занятым?
+    можно ли отменить заявку?
+
+
+OPEN_STATUSES нужен в:
+    has_open_rentals_for_item()
+    ensure_item_available()
+    list_recent_open_by_item_id()
+    open_statuses() для SQL .in_(...)
+
+
+"""
