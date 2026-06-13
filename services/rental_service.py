@@ -20,8 +20,6 @@ from utils.errors import NotFoundError, ForbiddenError, ConflictError, Validatio
     
 """
 
-# клиент выбрал товар → создал заявку → смотрит свои заявки → может отменить свою заявку
-
 logger = logging.getLogger(__name__)
 
 class RentalService:
@@ -118,6 +116,7 @@ class RentalService:
 
     # delete() - запрещено
 
+    # Переход REQUESTED / IN_PROGRESS / CONFIRMED → CANCELLED_BY_CLIENT (Клиент отменяет свою заявку до фактической выдачи товара)
     async def cancel_by_client(self, rental_id: int, user_id: int, *, strict: bool = False) -> bool:
         """Отменить заявку клиентом."""
 
@@ -151,21 +150,7 @@ class RentalService:
         logger.info("Заявка отменена клиентом: id=%s user_id=%s", rental_id, user_id)
         return True
 
-
-    # Переход (может менеджер): REQUESTED / IN_PROGRESS → CONFIRMED - confirm_requested()
-    # Переход (менеджер отклоняет заявку клиента): REQUESTED → REJECTED_BY_ADMIN - admin_cancel_rental()
-    # Переход (клиент отменяет свою заявку): REQUESTED → CANCELLED_BY_CLIENT - cancel_by_client()
-    # Переход (компания/менеджер отменяет подтверждённую заявку): CONFIRMED → CANCELLED_BY_ADMIN - admin_cancel_rental()?
-    # Переход (клиент отменяет свою подтверждённую заявку): CONFIRMED → CANCELLED_BY_CLIENT - cancel_by_client()?
-
-    # Переход (начало аренды [менеджер выдал товар клиенту]): CONFIRMED → ACTIVE / ISSUED - start_rental()
-    # Переход (менеджер закрывает заявку как завершённую [товар выдан/возвращён]): ACTIVE / ISSUED → COMPLETED - complete_active()
-
-    # Переход (Открыть спор: может owner или renter): ACTIVE → DISPUTED - open_dispute()
-
-
     # ───────────────────────────────────── Admin-Rental logic 🔧 ──────────────────────────────────────────────────────
-
     # Внутренний метод — ORM для доменной логики
     async def _get_open_rental_for_item(self, item_id: int):
         """Вернуть первую открытую заявку по товару или None.
