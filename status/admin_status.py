@@ -1,6 +1,9 @@
 import enum
 from enum import StrEnum
 
+from status.rental_status import RentalStatus
+
+
 class AdminActionType(enum.Enum):
     """Типы действий администратора для audit-записей"""
 
@@ -40,3 +43,16 @@ class AdminRole(StrEnum):
     MANAGER = "manager" # обработка заявок и поддержка
 
 # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+RENTAL_STATUS_ADMIN_ACTIONS: dict[RentalStatus, AdminActionType] = {
+    RentalStatus.IN_PROGRESS: AdminActionType.TAKE_RENTAL_IN_PROGRESS,
+    RentalStatus.CONFIRMED: AdminActionType.CONFIRM_RENTAL,
+    RentalStatus.REJECTED: AdminActionType.REJECT_RENTAL,
+    RentalStatus.CANCELLED_BY_ADMIN: AdminActionType.ADMIN_CANCEL_RENTAL,
+    RentalStatus.COMPLETED: AdminActionType.COMPLETE_RENTAL,
+}
+
+
+def admin_action_for_rental_status(status: RentalStatus) -> AdminActionType:
+    """Вернуть audit-действие сотрудника для перевода заявки в статус."""
+    return RENTAL_STATUS_ADMIN_ACTIONS.get(status, AdminActionType.CANCEL_RENTAL)

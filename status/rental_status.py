@@ -36,6 +36,15 @@ OPEN_STATUSES: frozenset[RentalStatus] = frozenset({
     })
 
 
+STATUS_TIMESTAMP_FIELDS: dict[RentalStatus, tuple[str, ...]] = {
+    RentalStatus.IN_PROGRESS: ("in_progress_at",),
+    RentalStatus.CONFIRMED: ("confirmed_at", "processed_at"),
+    RentalStatus.REJECTED: ("rejected_at", "closed_at"),
+    RentalStatus.CANCELLED_BY_CLIENT: ("cancelled_at", "closed_at"),
+    RentalStatus.CANCELLED_BY_ADMIN: ("cancelled_at", "closed_at"),
+    RentalStatus.COMPLETED: ("completed_at", "closed_at"),
+}
+
 STATUS_LABELS: dict[RentalStatus, str]  = {
     RentalStatus.REQUESTED: "Заявка отправлена",
     RentalStatus.IN_PROGRESS: "В обработке",
@@ -94,3 +103,7 @@ def open_statuses() -> tuple[RentalStatus, ...]:
 def can_transition(old_status: RentalStatus, new_status: RentalStatus) -> bool:
     """Проверить, разрешён ли переход заявки из old_status в new_status."""
     return new_status in ALLOWED_STATUS_TRANSITIONS.get(old_status, frozenset())
+
+def status_timestamp_fields(status: RentalStatus) -> tuple[str, ...]:
+    """Вернуть поля дат, которые нужно проставить при переводе заявки в статус."""
+    return STATUS_TIMESTAMP_FIELDS.get(status, ())

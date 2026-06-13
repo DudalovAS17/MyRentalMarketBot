@@ -43,18 +43,18 @@ class RentalUpdate(BaseModel):
 
     start_date: Optional[AwareDatetime] = None
     end_date: Optional[AwareDatetime] = None
-    rental_period_text: Optional[str] = Field(None, max_length=100)
+    rental_period_text: Optional[str] = Field(default=None, max_length=100)
 
-    total_price: Optional[Decimal] = Field(None, ge=0)
-    final_price: Optional[Decimal] = Field(None, ge=0)
+    total_price: Optional[Decimal] = Field(default=None, ge=0)
+    final_price: Optional[Decimal] = Field(default=None, ge=0)
 
     status: Optional[RentalStatus] = None
-    quantity: Optional[int] = Field(None, ge=1)
+    quantity: Optional[int] = Field(default=None, ge=1)
 
     delivery_needed: Optional[bool] = None
     delivery_address: Optional[str] = None
-    client_name: Optional[str] = Field(None, max_length=150)
-    client_phone: Optional[str] = Field(None, max_length=30)
+    client_name: Optional[str] = Field(default=None, max_length=150)
+    client_phone: Optional[str] = Field(default=None, max_length=30)
     client_comment: Optional[str] = None
     manager_comment: Optional[str] = None
 
@@ -147,7 +147,7 @@ class RentalCreateDraft(BaseModel):
     end_date: Optional[str] = None
 
     rental_period_text: Optional[str] = Field(None, max_length=100)
-    quantity: Optional[int] = Field(None, ge=1)
+    quantity: Optional[int] = Field(default=None, ge=1)
 
     delivery_needed: Optional[bool] = None
     delivery_address: Optional[str] = None

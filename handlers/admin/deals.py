@@ -210,12 +210,8 @@ async def admin_deals_resolve_apply_target(callback: CallbackQuery, state: FSMCo
         await callback.answer("Некорректный исход", show_alert=True)
         return
 
-    ok = await admin_rental_service.admin_resolve_dispute(
-        rental_id=rental_id,
-        admin_tg_id=callback.from_user.id,
-        resolution=resolution,
-        target_status=target_status,
-    )
+    ok = await admin_rental_service.admin_set_status(rental_id=rental_id, admin_tg_id=callback.from_user.id,
+                                                     resolution=resolution, target_status=target_status)
 
     await state.clear()
 

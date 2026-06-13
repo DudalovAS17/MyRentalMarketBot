@@ -216,11 +216,10 @@ class RentalRepository(BaseRepository):
     # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
     async def try_update_status(
             self,
-            *,
             rental_id: int, # какую сделку мы хотим изменить
             new_status: RentalStatus, # переводим в этот статус
             expected_status: RentalStatus, # из какого статуса разрешён переход
-
+            #*,
             # Параметры для уведомлений (на будущее)
             #notify_recipient_role: Optional[str] = None,  # 'renter', 'owner', 'other'
             #notify_message_template: Optional[str] = None,
@@ -239,11 +238,11 @@ class RentalRepository(BaseRepository):
 
     async def try_update_status_if_user(
             self,
-            *,
             rental_id: int,
             user_id: int,
             new_status: RentalStatus,
             expected_status: RentalStatus,
+            #*,
     ) -> bool:
         """Атомарно обновить статус заявки, если она принадлежит клиенту и статус совпадает с ожидаемым."""
         async with self._session() as s:
