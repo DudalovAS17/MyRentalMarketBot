@@ -1,15 +1,33 @@
 import logging
+from enum import StrEnum
 from typing import Optional, FrozenSet
+from dataclasses import dataclass
 from datetime import datetime, timezone
 
 from db.repositories.user import UserRepository
-from services.use_case.user import StartAction, StartEntryResult, can_use_bot
 
 from schemas.user import UserCreate, UserUpdate, UserOut, UserAdminUpdate
 from status.user_status import can_transition, AccountStatus
 from utils.errors import NotFoundError, ServiceError, ConflictError, ForbiddenError, ValidationError
 
 logger = logging.getLogger(__name__)
+
+# ────────────────────────────────────────────────────────
+class StartAction(StrEnum):
+    REGISTER = "register"
+    ACCESS_BLOCKED = "access_blocked"
+    MAIN_MENU = "main_menu"
+
+@dataclass(slots=True)
+class StartEntryResult:
+    action: StartAction
+    user: UserOut | None = None
+
+def can_use_bot(status: AccountStatus) -> bool:
+    """Проверить, может ли пользователь пользоваться ботом"""
+    return status == AccountStatus.ACTIVE
+# ────────────────────────────────────────────────────────
+
 
 class UserService:
     """Сервис для работы с клиентами"""

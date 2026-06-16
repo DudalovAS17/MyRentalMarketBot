@@ -3,7 +3,7 @@ from sqlalchemy import select, func
 
 from db.models.photo import Photo
 from db.repositories.base import BaseRepository
-
+from schemas.photo import PhotoCreate, PhotoUpdate
 
 class PhotoRepository(BaseRepository):
     """Репозиторий фотографий товаров каталога."""
@@ -63,48 +63,28 @@ class PhotoRepository(BaseRepository):
             return int(res.scalar() or 0)
 
     # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-    async def create(
-            self,
-            *,
-            item_id: int,
-            telegram_file_id: Optional[str] = None, # telegram_file_id: str
-            url: Optional[str] = None,
-            order: int = 0,
-            is_main: bool = False,
-    ) -> Photo:
+    async def create(self, photo_data: PhotoCreate) -> Photo:
         """Создать фотографию товара каталога."""
         async with self._session() as s:
-            obj = Photo(item_id=item_id, telegram_file_id=telegram_file_id, url=url, sort_order=order, is_main=is_main)
+            obj = Photo(**photo_data.model_dump())
             return await self._add_commit_refresh(s, obj)
 
-    async def update(
-        self,
-        photo_id: int,
-        *,
-        telegram_file_id: Optional[str] = None,
-        url: Optional[str] = None,
-        sort_order: Optional[int] = None,
-        is_main: Optional[bool] = None,
-    ) -> Optional[Photo]:
+    async def update(self, photo_id: int, update_data: PhotoUpdate) -> Optional[Photo]:
         """Обновить фотографию товара каталога."""
         async with self._session() as s:
             obj: Optional[Photo] = await s.get(Photo, photo_id)
             if not obj:
                 return None
 
+            data = update_data.model_dump(exclude_unset=True)
+            if not data:
+                return obj
+
             changed = False
-            if telegram_file_id is not None and telegram_file_id != obj.telegram_file_id:
-                obj.telegram_file_id = telegram_file_id
-                changed = True
-            if url is not None and url != obj.url:
-                obj.url = url
-                changed = True
-            if sort_order is not None and sort_order != obj.sort_order:
-                obj.sort_order = sort_order
-                changed = True
-            if is_main is not None and is_main != obj.is_main:
-                obj.is_main = is_main
-                changed = True
+            for field_name, value in data.items():
+                if getattr(obj, field_name) != value:
+                    setattr(obj, field_name, value)
+                    changed = True
 
             if not changed:
                 return obj
@@ -119,6 +99,19 @@ class PhotoRepository(BaseRepository):
                 return False
 
             return await self._delete_commit(s, obj)
+
+    async def create_many(self, photos_data: list[PhotoCreate]) -> list[Photo]:
+        """Создать несколько фотографий товара каталога за один commit."""
+        if not photos_data:
+            return []
+
+        async with self._session() as s:
+            photos = [Photo(**photo_data.model_dump()) for photo_data in photos_data]
+            s.add_all(photos)
+            await self._commit_or_rollback(s)
+            for photo in photos:
+                await s.refresh(photo)
+            return photos
 
     # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
     async def reorder(self, item_id: int) -> int:

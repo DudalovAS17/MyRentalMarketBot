@@ -1,4 +1,5 @@
 from typing import Optional
+from datetime import datetime, timezone
 from sqlalchemy import select, update, exists, and_
 from sqlalchemy.orm import selectinload
 
@@ -6,7 +7,7 @@ from db.models.rental import Rental
 from db.repositories.base import BaseRepository
 
 from schemas.rental import RentalCreate, RentalUpdate
-from status.rental_status import RentalStatus, open_statuses
+from status.rental_status import RentalStatus, open_statuses, status_timestamp_fields
 
 """try_set_owner_handover_confirmed
 Владелец отмечает: 'передал вещь' (только если CONFIRMED, и он owner, и флаг ещё False)
@@ -71,6 +72,25 @@ class RentalRepository(BaseRepository):
             selectinload(Rental.user), # клиент
             selectinload(Rental.assigned_admin), # назначенный менеджер
         )
+
+    @staticmethod
+    def _build_status_update(
+            *,
+            status: RentalStatus,
+            changed_at: Optional[datetime] = None,
+            manager_comment: Optional[str] = None,
+    ) -> RentalUpdate:
+        """Собрать схему обновления статуса, включая статусные timestamp-поля."""
+        actual_changed_at = changed_at or datetime.now(timezone.utc)
+        update_data = RentalUpdate(status=status)
+
+        if manager_comment is not None:
+            update_data.manager_comment = manager_comment
+
+        for field_name in status_timestamp_fields(status):
+            setattr(update_data, field_name, actual_changed_at)
+
+        return update_data
 
     # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
     async def list_all(self, *, limit: Optional[int] = None, offset: int = 0) -> list[Rental]:
@@ -219,7 +239,8 @@ class RentalRepository(BaseRepository):
             rental_id: int, # какую сделку мы хотим изменить
             new_status: RentalStatus, # переводим в этот статус
             expected_status: RentalStatus, # из какого статуса разрешён переход
-            #*,
+            *,
+            manager_comment: Optional[str] = None,
             # Параметры для уведомлений (на будущее)
             #notify_recipient_role: Optional[str] = None,  # 'renter', 'owner', 'other'
             #notify_message_template: Optional[str] = None,
@@ -227,12 +248,17 @@ class RentalRepository(BaseRepository):
             #notify_button_callback_action: Optional[str] = None
     ) -> bool:
         """Атомарно обновить статус заявки, если текущий статус совпадает с ожидаемым."""
+        update_data = self._build_status_update(
+            status=new_status,
+            manager_comment=manager_comment,
+        )
+
         async with self._session() as s:
             stmt = (
                 update(Rental)
                 .where(Rental.id == rental_id)
                 .where(Rental.status == expected_status)
-                .values(status=new_status)
+                .values(**update_data.model_dump(exclude_unset=True))
             )
             return await self._execute_update_commit(s, stmt)
 
@@ -242,18 +268,24 @@ class RentalRepository(BaseRepository):
             user_id: int,
             new_status: RentalStatus,
             expected_status: RentalStatus,
-            #*,
     ) -> bool:
         """Атомарно обновить статус заявки, если она принадлежит клиенту и статус совпадает с ожидаемым."""
+        update_data = self._build_status_update(status=new_status)
+
         async with self._session() as s:
             stmt = (
                 update(Rental)
                 .where(Rental.id == rental_id)
                 .where(Rental.user_id == user_id)
                 .where(Rental.status == expected_status)
-                .values(status=new_status)
+                .values(**update_data.model_dump(exclude_unset=True))
             )
             return await self._execute_update_commit(s, stmt)
+
+    """ 1. создаёт RentalUpdate через _build_status_update()
+        2. схема понимает: для CANCELLED_BY_CLIENT нужны cancelled_at и closed_at
+        3. превращает RentalUpdate в patch через model_dump(exclude_unset=True)
+        4. делает один SQL UPDATE"""
 
     # ─────────────────────────────── For item-service: moderate_set_status() ──────────────────────────────────────────
     async def has_open_rentals_for_item(self, item_id: int) -> bool:

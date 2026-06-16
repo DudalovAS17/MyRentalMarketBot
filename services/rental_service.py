@@ -1,13 +1,12 @@
 import logging
 from typing import Optional
-from datetime import datetime, timezone
 
 from db.repositories.rental import RentalRepository
 
 from schemas.rental import RentalCreate, RentalUpdate, RentalOut, RentalDetailsOut
 from schemas.item import ItemOut
 from schemas.user import UserOut
-from status.rental_status import RentalStatus, is_open_status, can_transition, status_timestamp_fields
+from status.rental_status import RentalStatus, is_open_status, can_transition
 from utils.domain_exceptions import ItemNotAvailable
 from utils.errors import NotFoundError, ForbiddenError, ConflictError, ValidationError
 
@@ -61,7 +60,7 @@ class RentalService:
 
     # ────────────────────────────────────────── Read methods ──────────────────────────────────────────────────────────
     async def get_by_id(self, rental_id: int, *, strict: bool = False) -> Optional[RentalOut]:
-        """Вернуть заявку  по ID"""
+        """Вернуть заявку по ID"""
         rental = await self.repo.get_by_id(rental_id)
         if not rental:
             if strict:
@@ -145,12 +144,10 @@ class RentalService:
                 raise ConflictError("Не удалось отменить заявку")
             return False
 
-        await self.repo.update(rental_id, self._build_status_update(new_status))
-
         logger.info("Заявка отменена клиентом: id=%s user_id=%s", rental_id, user_id)
         return True
 
-    # ───────────────────────────────────── Admin-Rental logic 🔧 ──────────────────────────────────────────────────────
+    # ─────────────────────────────────────────────── Availability ─────────────────────────────────────────────────────
     # Внутренний метод — ORM для доменной логики
     async def _get_open_rental_for_item(self, item_id: int):
         """Вернуть первую открытую заявку по товару или None.
@@ -174,7 +171,7 @@ class RentalService:
         return self._to_out(rental)
 
     async def ensure_item_available(self, item_id: int) -> None:
-        """Проверить, что по товару нет открытой заявки.
+        """Гарантия: товар нельзя арендовать, если по нему есть открытая заявка.
 
         Для текущего MVP считаем: один товар = одна активная доступная единица.
         """
@@ -190,5 +187,5 @@ class RentalService:
         )
 
     async def has_open_rentals_for_item(self, item_id: int) -> bool:
-        """Проверить, есть ли у item открытые аренды"""
+        """Проверить, есть ли у товара открытые заявки."""
         return await self.repo.has_open_rentals_for_item(item_id)

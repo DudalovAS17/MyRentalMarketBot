@@ -63,7 +63,7 @@ def build_services(
     notification_service = NotificationService(bot)
     category_service = CategoryService(category_repo)
     photo_service = PhotoService(photo_repo)
-    review_service = ReviewService(review_repo, rental_repo, user_repo)
+    review_service = ReviewService(review_repo, rental_repo)
     admin_service = AdminActionService(admin_repo)
     admin_rental_service = AdminRentalService(rental_repo, admin_service) # item_service, user_service,
     support_service = SupportService(support_repo)

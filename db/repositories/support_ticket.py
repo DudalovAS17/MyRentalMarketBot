@@ -144,29 +144,32 @@ class SupportTicketRepository(BaseRepository):
     # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
     async def close(self, *, ticket_id: int, closed_by_admin_id: int) -> bool:
         """Атомарно закрыть открытое обращение администратором/менеджером."""
+        update_data = SupportTicketAdminUpdate(
+            status=SupportTicketStatus.CLOSED,
+            closed_at=datetime.now(timezone.utc),
+            closed_by_admin_id=closed_by_admin_id
+        )
         async with self._session() as s:
             stmt = update(SupportTicket)
             stmt = self._apply_id_filter(stmt, ticket_id)
             stmt = self._apply_status_filter(stmt, SupportTicketStatus.OPEN)
-            stmt = stmt.values(
-                status=SupportTicketStatus.CLOSED,
-                closed_at=datetime.now(timezone.utc),
-                closed_by_admin_id=closed_by_admin_id,
-            )
+            stmt = stmt.values(**update_data.model_dump(exclude_unset=True))
             return await self._execute_update_commit(s, stmt)
 
     async def touch_admin_reply(self, *, ticket_id: int) -> bool:
-        """Отметить время последнего ответа администратора/менеджера по обращению.
+        """Отметить время последнего ответа администратора/менеджера открытому по обращению.
 
         Зачем:
             чтобы сортировать “тикеты, которым давно не отвечали”
             чтобы видеть “последняя активность админа”
             чтобы не плодить лишние таблицы сообщений в MVP
         """
+        update_data = SupportTicketAdminUpdate(admin_last_reply_at=datetime.now(timezone.utc))
         async with self._session() as s:
             stmt = update(SupportTicket)
             stmt = self._apply_id_filter(stmt, ticket_id)
-            stmt = stmt.values(admin_last_reply_at=datetime.now(timezone.utc))
+            stmt = self._apply_status_filter(stmt, SupportTicketStatus.OPEN)
+            stmt = stmt.values(**update_data.model_dump(exclude_unset=True))
             return await self._execute_update_commit(s, stmt)
 
     # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────

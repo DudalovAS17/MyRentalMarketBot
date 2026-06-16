@@ -10,8 +10,7 @@ from handlers.entries.auth_entry import start_registration
 
 from services.category_service import CategoryService
 from services.item_service import ItemService
-from services.user_service import UserService
-from services.use_case.user import StartAction
+from services.user_service import UserService, StartAction
 
 from keyboards.main_kb import get_main_menu_keyboard
 from texts.base import LEGAL_TEXT, HELP_TEXT, build_unknown_command_text

@@ -5,11 +5,11 @@ from datetime import datetime, timezone
 from db.repositories.rental import RentalRepository
 from services.admin_service import AdminActionService
 
-from schemas.rental import RentalUpdate, RentalOut, RentalAdminDetailsOut
+from schemas.rental import RentalOut, RentalAdminDetailsOut
 from schemas.item import ItemOut
 from schemas.user import UserOut
 from status.admin_status import AdminEntityType, admin_action_for_rental_status
-from status.rental_status import RentalStatus, can_transition, status_timestamp_fields
+from status.rental_status import RentalStatus, can_transition
 from utils.errors import NotFoundError, ConflictError, ValidationError
 
 logger = logging.getLogger(__name__)
@@ -43,21 +43,6 @@ class AdminRentalService:
         # rows: list[RentalAdminDetailsOut] = []
         # for r in rentals:
         #     rows.append(cls._to_admin_details(r))
-
-    @staticmethod
-    def _build_status_update(
-        *,
-        status: RentalStatus,
-        changed_at: datetime,
-        manager_comment: Optional[str] = None,
-    ) -> RentalUpdate:
-        update_data = RentalUpdate(
-            status=status,
-            manager_comment=manager_comment
-        )
-        for field_name in status_timestamp_fields(status):
-            setattr(update_data, field_name, changed_at)
-        return update_data
 
     # ─────────────────────────────────────── Business validation ─────────────────────────────────────────────────────
     @staticmethod
@@ -138,14 +123,12 @@ class AdminRentalService:
         normalized_comment = manager_comment.strip() if manager_comment else None
         self._validate_required_reason(new_status, normalized_comment) # нужно доосмыслить!
 
-        # Собираем RentalUpdate
-        update_data = self._build_status_update(
-            status=new_status,
-            changed_at=datetime.now(timezone.utc),
+        updated = await self.repo.try_update_status(    #.update(rental_id, update_data)
+            rental_id=rental_id,
+            new_status=new_status,
+            expected_status=old_status,
             manager_comment=normalized_comment,
         )
-
-        updated = await self.repo.update(rental_id, update_data)
         if not updated:
             if strict:
                 raise ConflictError("Не удалось обновить статус заявки")

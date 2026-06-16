@@ -119,6 +119,4 @@ OPEN_STATUSES нужен в:
     ensure_item_available()
     list_recent_open_by_item_id()
     open_statuses() для SQL .in_(...)
-
-
 """

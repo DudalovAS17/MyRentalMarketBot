@@ -172,23 +172,11 @@ class ReviewRepository(BaseRepository):
 
     async def set_status(self, review_id: int, status: ReviewStatus, *, admin_note: Optional[str] = None) -> Optional[Review]:
         """Установить статус модерации отзыва."""
-        async with self._session() as s:
-            review: Optional[Review] = await s.get(Review, review_id)
-            if not review:
-                return None
+        update_data = ReviewAdminUpdate(status=status)
+        if admin_note is not None:
+            update_data.admin_note = admin_note
 
-            changed = False
-            if review.status != status:
-                review.status = status
-                changed = True
-            if admin_note is not None and review.admin_note != admin_note:
-                review.admin_note = admin_note
-                changed = True
-
-            if not changed:
-                return review
-
-            return await self._commit_refresh(s, review)
+        return await self.admin_update(review_id, update_data)
 
     async def get_stats_for_item(self,
                             *, item_id: int, status: Optional[ReviewStatus] = ReviewStatus.PUBLISHED) -> tuple[Decimal, int]:
