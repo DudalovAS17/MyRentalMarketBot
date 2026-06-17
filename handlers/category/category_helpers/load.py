@@ -32,7 +32,7 @@ async def resolve_entity(
 
     return entity
 
-async def load_entity_or_notify(
+async def load_list_or_notify(
         callback: CallbackQuery,
         loader: Callable[[int], Awaitable[T | None]],
         entity_id: int | None,
@@ -40,7 +40,7 @@ async def load_entity_or_notify(
         load_error_text: str,
         not_found_text: str
 )  -> T | None:
-
+    """Загрузить данные каталога или отправить пользователю понятное сообщение."""
     if entity_id is None:
         await send_or_edit(callback, invalid_id_text)
         return None

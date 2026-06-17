@@ -37,20 +37,17 @@ def validate_item_price(price_text: str) -> tuple[str | None, Decimal | None]:
 
     return None, price
 
-def validate_item_deposit(deposit_text: str) -> tuple[str | None, Decimal | None]:
-    """Проверить сумму залога и привести её к Decimal"""
+def validate_item_available_quantity(quantity_text: str) -> tuple[str | None, int | None]:
+    """Проверить доступное количество товара и привести его к int."""
     try:
-        deposit = Decimal(deposit_text)
-    except (InvalidOperation, ValueError):
-        return "❌ Некорректное значение. Пожалуйста, введите число.", None
+        quantity = int(quantity_text)
+    except (TypeError, ValueError):
+        return "❌ Некорректное значение. Пожалуйста, введите целое число.", None
 
-    if deposit < 0:
-        return "❌ Сумма залога не может быть отрицательной.", None
+    if quantity < 1:
+        return "❌ Количество товара должно быть не меньше 1.", None
 
-    if not deposit.is_finite():
-        return "❌ Некорректное значение.\nВведите цену — только число, больше 0.", None
-
-    return None, deposit
+    return None, quantity
 
 def validate_item_min_period(rental_period: str) -> tuple[str | None, int | None]:
     """Проверить минимальный срок аренды и привести его к int"""

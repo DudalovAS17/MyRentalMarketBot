@@ -23,7 +23,7 @@ async def start_registration(message: Message, user_service: UserService) -> Non
     )
 
     try:
-        await user_service.create(user_data)
+        await user_service.create(user_data) # .register_or_update_user(user_data)
     except ServiceError:
         await send_reply(message, "⚠️ Не удалось начать регистрацию. Попробуйте позже или используйте /start для входа в меню.")
         return

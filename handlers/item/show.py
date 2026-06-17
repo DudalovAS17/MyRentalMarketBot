@@ -4,7 +4,7 @@ from aiogram.fsm.context import FSMContext
 
 from .router import items_router
 
-from handlers.item import create_helpers as ch
+from ..admin import create_helpers as ch
 from services.item_service import ItemService
 from services.category_service import CategoryService
 from handlers.entries.item_entry import show_my_items
@@ -14,12 +14,9 @@ from utils.validators import parse_callback
 from utils.callbacks import SHOW_ITEM_CB, MY_ITEMS_PREFIX
 
 
-@items_router.message(F.text == "📦 Мои объявления")
-@items_router.callback_query(F.data == MY_ITEMS_PREFIX)
-async def show_my_items_entry(event: Message | CallbackQuery, item_service: ItemService, user) -> None:
-    """Показывает список объявлений пользователя"""
-    await show_my_items(event, item_service, user)
-    return
+#@items_router.message(F.text == "📦 Мои объявления")
+#@items_router.callback_query(F.data == MY_ITEMS_PREFIX)
+#show_my_items_entry - Показывает список объявлений пользователя (show_my_items)
 
 
 @items_router.callback_query(F.data.startswith(SHOW_ITEM_CB))
@@ -29,13 +26,15 @@ async def show_item_details(
         item_service: ItemService,
         category_service: CategoryService
 ) -> None:
-    """Показывает детали объявления"""
+    """Показывает детали товара"""
     await callback.answer()
 
-    item = await ch.load_item(callback, item_service.get_item_by_id,
-                            parse_callback(callback.data, SHOW_ITEM_CB),
-                            invalid_id_text=ch.not_item_id, load_error_text=ch.serv_err_item,
-                            not_found_text=ch.not_item, markup_back=ch.build_back_to_my_items_keyboard())
+    item = await ch.load_item(
+        callback, item_service.get_item_by_id, parse_callback(callback.data, SHOW_ITEM_CB), invalid_id_text=ch.not_item_id,
+        load_error_text=ch.serv_err_item, not_found_text=ch.not_item, markup_back=ch.build_back_to_my_items_keyboard()
+    )
+    if item is None:
+        return
 
     await ch.store_selected_item(state, item.id)
 

@@ -4,8 +4,9 @@ from aiogram.fsm.context import FSMContext
 from services.item_service import ItemService
 
 from keyboards.admin_kb import get_admin_items_list_keyboard, get_admin_item_details_keyboard
-from utils.functions import send_or_edit, format_price
+from utils.functions import send_or_edit, format_price, send_reply
 from status.item_status import ItemStatus
+from utils.errors import ServiceError
 
 # карточка объявления
 def format_item_details(item) -> str:
@@ -35,7 +36,12 @@ async def show_items_list(
 ) -> None:
     """Показать список объявлений по статусу для админ-модерации"""
 
-    items, has_next = await item_service.admin_list_by_status(status=status, page=page)
+    try:
+        items, has_next = await item_service.admin_list_by_status(status=status, page=page)
+    except ServiceError:
+        #await send_reply(event, "⚠️ Не удалось загрузить список товаров. Попробуйте позже.")
+        return
+
     await state.update_data(admin_items_page=page, admin_items_status=status)
 
     lines = [f"📦 <b>Модерация объявлений ({status}), стр. {page}</b>\n"]

@@ -77,7 +77,7 @@ async def load_entity_or_notify(
         invalid_id_text: str,
         load_error_text: str,
         not_found_text: str
-) -> list[T] | None:
+) -> T | None:
     """Загрузить сущность через loader или показать UX-ошибку"""
     if entity_id is None:
         await send_or_edit(callback, invalid_id_text)

@@ -7,27 +7,27 @@ from utils.functions import send_or_edit
 from utils.errors import ServiceError
 
 async def show_my_rentals(event: Message | CallbackQuery, rental_service: RentalService, user) -> None:
-    """Показывает список сделок пользователя (и как владелец, и как арендатор)"""
+    """Показывает список заявок пользователя"""
 
     if isinstance(event, CallbackQuery):
         await event.answer()
 
     try:
-        rentals = await rental_service.list_user_rentals(user.id)
+        rentals = await rental_service.list_rentals_by_user(user.id)
     except ServiceError:
-        await send_or_edit(event, "⚠️ Не удалось загрузить список сделок. Попробуйте позже.")
+        await send_or_edit(event, "⚠️ Не удалось загрузить список заявок. Попробуйте позже.")
         return
 
     if not rentals:
         await send_or_edit(
             event,
-            "📭 У вас пока нет активных или завершённых сделок.",
+            "📭 У вас пока нет активных или завершённых заявок.",
             markup = build_empty_my_rentals_keyboard()
         )
         return
 
     await send_or_edit(
         event,
-        "<b>📋 Ваши сделки</b>\n\n Выберите сделку, чтобы открыть детали:",
+        "<b>📋 Ваши заявки</b>\n\n Выберите заявку, чтобы открыть детали:",
         markup=build_my_rentals_keyboard(rentals, current_user_id=user.id)
     )

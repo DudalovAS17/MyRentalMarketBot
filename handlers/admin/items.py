@@ -144,3 +144,35 @@ async def admin_items_unhide(callback: CallbackQuery, item_service: ItemService)
         return
 
     await apply_item_status_action(callback, item_service, item_id, new_status=ItemStatus.ACTIVE)
+
+
+# ─────────────────────────────────────────────────────────────────────────────────────────────────────
+"""Переписать - см. файл show.py
+@items_router.callback_query(F.data.startswith(SHOW_ITEM_CB))
+async def show_item_details(
+        callback: CallbackQuery,
+        state: FSMContext,
+        item_service: ItemService,
+        category_service: CategoryService
+) -> None:
+    ""Показывает детали товара""
+    await callback.answer()
+
+    item = await ch.load_item(
+        callback, item_service.get_item_by_id, parse_callback(callback.data, SHOW_ITEM_CB), invalid_id_text=ch.not_item_id,
+        load_error_text=ch.serv_err_item, not_found_text=ch.not_item, markup_back=ch.build_back_to_my_items_keyboard()
+    )
+    if item is None:
+        return
+
+    await ch.store_selected_item(state, item.id)
+
+    category_name, subcategory_name = await ch.load_item_category_context(
+        category_service=category_service, item=item)
+
+    await send_or_edit(
+        callback,
+        ch.item_details_text(item, category_name, subcategory_name),
+        markup=build_my_item_details_keyboard(item)
+    )
+"""

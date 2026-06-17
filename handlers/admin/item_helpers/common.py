@@ -32,6 +32,10 @@ def extract_item_money_input(message: Message) -> str:
     """Извлечь денежный ввод пользователя и нормализовать десятичный разделитель"""
     return (message.text or "").strip().replace(",", ".") # Преобразуем введённое значение в число
 
+def extract_item_available_quantity_input(message: Message) -> str:
+    """Извлечь ввод доступного количества товара."""
+    return (message.text or "").strip()
+
 def format_money_value(value: Decimal | int | float | None) -> str:
     """Сформатировать денежное значение для UI"""
     if value is None:

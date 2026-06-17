@@ -53,7 +53,6 @@ ADD_ITEM_CB = "add_item"
 SHOW_ITEM_CB = "show_item:"
 MY_ITEMS_PREFIX = "my_items"
 
-
 CREATE_ITEM_MODE = "create_item"
 
 PUBLISH_ITEM_CB = "publish_item:"
@@ -61,6 +60,16 @@ EDIT_ITEM_CB = "edit_item:"
 CANCEL_ITEM_CB = "cancel_item:"
 
 MAX_PHOTOS = 5
+
+# ADMIN CREATE ITEM
+ADMIN_CAT_FI_PREFIX = "cat_for_item:"
+ADMIN_SUBCAT_FI_PREFIX = "subcat_for_item:"
+ADMIN_ADD_ITEM_CB = "add_item"
+ADMIN_PUBLISH_ITEM_CB = "publish_item:"
+ADMIN_EDIT_ITEM_CB = "edit_item:"
+ADMIN_CANCEL_ITEM_CB = "cancel_item:"
+ADMIN_MAX_PHOTOS = 5
+ADMIN_CREATE_ITEM_MODE = "create_item"
 
 
 # RENTAL HANDLER

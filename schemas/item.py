@@ -143,16 +143,16 @@ class ItemCreateDraft(BaseModel):
 
     title: Optional[str] = Field(default=None, min_length=3, max_length=200)
     description: Optional[str] = None
-    short_description: Optional[str] = Field(None, max_length=300)
+    short_description: Optional[str] = Field(default=None, max_length=300)
 
     price: Optional[Decimal] = Field(default=None, ge=0)
-    price_text: Optional[str] = Field(None, max_length=100)
+    price_text: Optional[str] = Field(default=None, max_length=100)
 
-    available_quantity: int = Field(1, ge=0)
+    available_quantity: int = Field(default=1, ge=0)
 
     min_rental_period: int = Field(default=1, ge=1)
     #min_rental_period: Optional[int] = Field(None, ge=1)
-    max_rental_period: Optional[int] = Field(None, ge=1)
+    max_rental_period: Optional[int] = Field(default=None, ge=1)
 
     is_featured: bool = False
-    sort_order: int = Field(0, ge=0)
+    sort_order: int = Field(default=0, ge=0)

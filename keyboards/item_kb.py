@@ -112,5 +112,3 @@ def build_edit_item_keyboard(item_id: int) -> InlineKeyboardMarkup:
             [InlineKeyboardButton(text="🔙 Назад", callback_data=f"{SHOW_ITEM_CB}{item_id}")],
         ]
     )
-
-

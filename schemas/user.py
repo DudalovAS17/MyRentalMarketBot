@@ -8,25 +8,25 @@ class UserCreate(BaseModel):
 
     telegram_id: int
 
-    username: Optional[str] = Field(None, max_length=100)
-    first_name: Optional[str] = Field(None, max_length=100)
-    last_name: Optional[str] = Field(None, max_length=100)
-    full_name: Optional[str] = Field(None, max_length=200)
-    phone: Optional[str] = Field(None, max_length=20)
-    email: Optional[str] = Field(None, max_length=100)
-    language_code: Optional[str] = Field(None, max_length=10)
+    username: Optional[str] = Field(default=None, max_length=100)
+    first_name: Optional[str] = Field(default=None, max_length=100)
+    last_name: Optional[str] = Field(default=None, max_length=100)
+    full_name: Optional[str] = Field(default=None, max_length=200)
+    phone: Optional[str] = Field(default=None, max_length=20)
+    email: Optional[str] = Field(default=None, max_length=100)
+    language_code: Optional[str] = Field(default=None, max_length=10)
 
 
 class UserUpdate(BaseModel):
     """Схема для обновления профиля клиента."""
 
-    username: Optional[str] = Field(None, max_length=100)
-    first_name: Optional[str] = Field(None, max_length=100)
-    last_name: Optional[str] = Field(None, max_length=100)
-    full_name: Optional[str] = Field(None, max_length=200)
-    phone: Optional[str] = Field(None, max_length=20)
-    email: Optional[str] = Field(None, max_length=100)
-    language_code: Optional[str] = Field(None, max_length=10)
+    username: Optional[str] = Field(default=None, max_length=100)
+    first_name: Optional[str] = Field(default=None, max_length=100)
+    last_name: Optional[str] = Field(default=None, max_length=100)
+    full_name: Optional[str] = Field(default=None, max_length=200)
+    phone: Optional[str] = Field(default=None, max_length=20)
+    email: Optional[str] = Field(default=None, max_length=100)
+    language_code: Optional[str] = Field(default=None, max_length=10)
 
 
 class UserOut(BaseModel):

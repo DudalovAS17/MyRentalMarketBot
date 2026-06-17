@@ -64,8 +64,6 @@ def build_category_keyboard(
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
-
-
 def build_items_keyboard(
     items: Sequence[ItemOut],
     *,
@@ -75,11 +73,11 @@ def build_items_keyboard(
     back_text: str = "🔙 Назад (к подкатегориям)",
 ) -> InlineKeyboardMarkup:
     """
-    Строит клавиатуру списка объявлений внутри подкатегории.
+    Строит клавиатуру списка товаров внутри подкатегории.
 
     items: iterable объектов с полями title, price, id
     parent_category_id: id родительской категории (для кнопки назад)
-    item_details_cb_prefix: префикс callback для деталей объявления (например "show_item_details:")
+    item_details_cb_prefix: префикс callback для деталей товаров (например "show_item_details:")
     cat_cb_prefix: префикс callback для категории (например "cat:")
     """
 
@@ -119,7 +117,7 @@ def build_item_details_kb(
 
     if selected_subcategory_id:
         buttons.append(
-            [InlineKeyboardButton(text="🔙 Назад (к объявлениям)", callback_data=f"{SUBCAT_CB_PREFIX}{selected_subcategory_id}")]
+            [InlineKeyboardButton(text="🔙 Назад (к товарам)", callback_data=f"{SUBCAT_CB_PREFIX}{selected_subcategory_id}")]
         )
     else:
         buttons.append([InlineKeyboardButton(text="🔙 Назад (к категориям)", callback_data=BACK_TO_CAT)])
