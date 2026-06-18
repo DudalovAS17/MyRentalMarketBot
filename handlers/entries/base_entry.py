@@ -11,5 +11,5 @@ async def show_main_menu(event: Message | CallbackQuery, user) -> None:
     await send_reply(
         event,
         build_main_menu_text(user),
-        markup=get_main_menu_keyboard(user)
+        markup=get_main_menu_keyboard()
     )

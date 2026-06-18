@@ -7,7 +7,7 @@ from .router import items_router
 from ..admin import create_helpers as ch
 from services.item_service import ItemService
 from services.category_service import CategoryService
-from handlers.entries.item_entry import show_my_items
+#from handlers.entries.item_entry import show_my_items
 from keyboards.item_kb import build_my_item_details_keyboard
 from utils.functions import send_or_edit
 from utils.validators import parse_callback

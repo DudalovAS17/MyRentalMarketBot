@@ -29,6 +29,12 @@ async def start_registration(message: Message, user_service: UserService) -> Non
         return
 
     # запрашиваем телефон пользователя
+    await request_phone_confirmation(message)
+
+
+async def request_phone_confirmation(message: Message) -> None:
+    """Попросить пользователя подтвердить телефон через Telegram contact."""
+
     await message.answer(
         build_registration_welcome_text(),
         reply_markup=build_registration_contact_keyboard(),

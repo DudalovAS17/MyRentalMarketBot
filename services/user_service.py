@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 # ────────────────────────────────────────────────────────
 class StartAction(StrEnum):
     REGISTER = "register"
+    NEED_PHONE = "need_phone"
     ACCESS_BLOCKED = "access_blocked"
     MAIN_MENU = "main_menu"
 
@@ -262,5 +263,8 @@ class UserService:
 
         if not can_use_bot(user.account_status): #if user.account_status != AccountStatus.ACTIVE:
             return StartEntryResult(action=StartAction.ACCESS_BLOCKED, user=user)
+
+        if not user.phone:
+            return StartEntryResult(action=StartAction.NEED_PHONE, user=user)
 
         return StartEntryResult(action=StartAction.MAIN_MENU, user=user)

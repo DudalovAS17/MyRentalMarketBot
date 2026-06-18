@@ -1,12 +1,13 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from services.rental_service import RentalStatus
-from status.rental_status import RentalActorRole, STATUS_LABELS
+from status.rental_status import STATUS_LABELS
 from schemas.rental import RentalDetailsOut
 from utils.ui_defaults import ui_str, ui_money
 
 
 def format_rental_status(status: RentalStatus) -> str:
     return status.value.replace("_", " ").replace("-", " ").capitalize()
+
 
 def build_rental_details_ui(details: RentalDetailsOut) -> tuple[str, InlineKeyboardMarkup]:
     """
@@ -114,10 +115,10 @@ def build_rental_details_ui(details: RentalDetailsOut) -> tuple[str, InlineKeybo
     # кнопки
     rows = []
 
-    if user_role == RentalActorRole.OWNER:
-        rows.extend(build_owner_actions(status, rental_id, owner_ok, renter_ok))
-    else:
-        rows.extend(build_renter_actions(status, rental_id, owner_ok, renter_ok))
+    # if user_role == RentalActorRole.OWNER:
+    #     rows.extend(build_owner_actions(status, rental_id, owner_ok, renter_ok))
+    # else:
+    #     rows.extend(build_renter_actions(status, rental_id, owner_ok, renter_ok))
 
     rows.append([InlineKeyboardButton(text="🔙 Назад к списку сделок", callback_data="rental_list")])
     # back_to_rentals

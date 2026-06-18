@@ -1,0 +1,4756 @@
+[
+  {
+    "id": 1,
+    "category_id": 1,
+    "subcategory_id": 101,
+    "title": "Виброплита Champion PC9045F",
+    "description": "Глубина уплотнения – до 200 мм Вес – 91 кг Мощность – 5,5 л.с.",
+    "short_description": "Глубина уплотнения – до 200 мм Вес – 91 кг Мощность – 5,5 л.с.",
+    "price": "1100",
+    "price_text": "Аренда от 1100 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/vibroplity",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_uf8ea592cafd3b43d3e0f3d3b944387fb.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "category_id": 1,
+    "subcategory_id": 101,
+    "title": "Виброплита Сплитстоун VS-104",
+    "description": "Глубина уплотнения – 100 мм Вес – 57 кг Мощность – 4,8 л.с.",
+    "short_description": "Глубина уплотнения – 100 мм Вес – 57 кг Мощность – 4,8 л.с.",
+    "price": "1000",
+    "price_text": "Аренда от 1000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 2,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/vibroplity",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_104.png",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "category_id": 1,
+    "subcategory_id": 101,
+    "title": "Виброплита Wacker Neuson MP-15",
+    "description": "Глубина уплотнения – до 200 мм Вес – 81 кг Мощность – 4,7 л.с.",
+    "short_description": "Глубина уплотнения – до 200 мм Вес – 81 кг Мощность – 4,7 л.с.",
+    "price": "1200",
+    "price_text": "Аренда от 1200 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 3,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/vibroplity",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_plita3.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 4,
+    "category_id": 1,
+    "subcategory_id": 101,
+    "title": "Виброплита Сплитстоун VS-244",
+    "description": "Глубина уплотнения – до 200 мм Вес – 95 кг Мощность – 4,8 л.с.",
+    "short_description": "Глубина уплотнения – до 200 мм Вес – 95 кг Мощность – 4,8 л.с.",
+    "price": "1200",
+    "price_text": "Аренда от 1200 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 4,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/vibroplity",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_244-1.png",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 5,
+    "category_id": 1,
+    "subcategory_id": 102,
+    "title": "Вибротрамбовка Wacker Neuson BS 60-2plus",
+    "description": "Вес – 66 кг Мощность – 2,72 л/с Тип двигателя – 2-х тактный",
+    "short_description": "Вес – 66 кг Мощность – 2,72 л/с Тип двигателя – 2-х тактный",
+    "price": "2600",
+    "price_text": "Аренда от 2600 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/vibrotrambovki",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_vibrotrambovka.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 6,
+    "category_id": 1,
+    "subcategory_id": 102,
+    "title": "Вибротрамбовка Diam VN-75/5 5H",
+    "description": "Вес – 75 кг Мощность – 5 л.с. Тип двигателя – Бензиновый",
+    "short_description": "Вес – 75 кг Мощность – 5 л.с. Тип двигателя – Бензиновый",
+    "price": "2200",
+    "price_text": "Аренда от 2200 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 2,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/vibrotrambovki",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_651-original-1.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 7,
+    "category_id": 1,
+    "subcategory_id": 102,
+    "title": "Вибротрамбовка TSS RM-75L",
+    "description": "Вес – 79 кг Мощность – 6,5 л.с Тип двигателя – бензиновый",
+    "short_description": "Вес – 79 кг Мощность – 6,5 л.с Тип двигателя – бензиновый",
+    "price": "2000",
+    "price_text": "Аренда от 2000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 3,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/vibrotrambovki",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_e633e1d3274961af739cdb563ea358fa4889ed41.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 8,
+    "category_id": 1,
+    "subcategory_id": 103,
+    "title": "Резчик швов Сплитстоун CS-146",
+    "description": "Диаметр диска – 400 мм Вес – 74 кг Мощность – 6,5 л.с.",
+    "short_description": "Диаметр диска – 400 мм Вес – 74 кг Мощность – 6,5 л.с.",
+    "price": "1400",
+    "price_text": "Аренда от 1400 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/rezchik-shvov",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_146-2.png",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 9,
+    "category_id": 1,
+    "subcategory_id": 103,
+    "title": "Резчик швов Wacker Neuson MFS-1350CE",
+    "description": "Диаметр диска – 500 мм Вес – 98 кг Расход топлива – 3,2 л/ч",
+    "short_description": "Диаметр диска – 500 мм Вес – 98 кг Расход топлива – 3,2 л/ч",
+    "price": "2000",
+    "price_text": "Аренда от 2000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 2,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/rezchik-shvov",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_rezchik.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 10,
+    "category_id": 1,
+    "subcategory_id": 103,
+    "title": "Резчик швов Сплитстоун CS-1413",
+    "description": "Диаметр диска – 500 мм Вес – 93 кг Мощность – 11,7 л.с.",
+    "short_description": "Диаметр диска – 500 мм Вес – 93 кг Мощность – 11,7 л.с.",
+    "price": "2000",
+    "price_text": "Аренда от 2000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 3,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/rezchik-shvov",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_1413.png",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 11,
+    "category_id": 1,
+    "subcategory_id": 103,
+    "title": "Резчик швов HUSQVARNA FS-524",
+    "description": "Диаметр диска – 600 мм Вес – 231 кг Мощность – 20 л.с.",
+    "short_description": "Диаметр диска – 600 мм Вес – 231 кг Мощность – 20 л.с.",
+    "price": "3500",
+    "price_text": "Аренда 3500 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 4,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/rezchik-shvov",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_u1677e7004aa7d2bb8a9a424461f96796.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 12,
+    "category_id": 1,
+    "subcategory_id": 104,
+    "title": "Бензорез Husqvarna K760 Вес – 9,6 кг Мощность – 3,7 кВт",
+    "description": "Глубина пропила – 125 мм",
+    "short_description": "Глубина пропила – 125 мм",
+    "price": "2000",
+    "price_text": "Аренда от 2000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/benzorez",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_benzorez1.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 13,
+    "category_id": 1,
+    "subcategory_id": 104,
+    "title": "Бензорез Stihl TS800 Вес – 12,7 кг Мощность – 6,8 л.с.",
+    "description": "Глубина пропила – 143 мм",
+    "short_description": "Глубина пропила – 143 мм",
+    "price": "2200",
+    "price_text": "Аренда от 2200 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 2,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/benzorez",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_u3bcc0c36032d3398cbb1dac429e44b0b.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 14,
+    "category_id": 1,
+    "subcategory_id": 104,
+    "title": "Бензорез HUSQVARNA K-760 CUT-N-BREAK EL35",
+    "description": "Диаметр диска – 230 мм Вес – 11,3 кг Мощность – 3,7 кВт",
+    "short_description": "Диаметр диска – 230 мм Вес – 11,3 кг Мощность – 3,7 кВт",
+    "price": "3500",
+    "price_text": "Аренда 3500 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 3,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/benzorez",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_benzorez3.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 15,
+    "category_id": 1,
+    "subcategory_id": 104,
+    "title": "Бензорез цепной STIHL GS461",
+    "description": "Вес – 7,6 кг Мощность – 4,3 кВт Двигатель – 2-х тактный",
+    "short_description": "Вес – 7,6 кг Мощность – 4,3 кВт Двигатель – 2-х тактный",
+    "price": "4000",
+    "price_text": "Аренда 4000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 4,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/benzorez",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_ua42a00291ce7e9b451b1b09f9687e463.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 16,
+    "category_id": 2,
+    "subcategory_id": 201,
+    "title": "Отбойный молоток Hitachi H45MR",
+    "description": "Вес – 5,9 кг Сила удара – 12.5 Дж Мощность – 950 Вт",
+    "short_description": "Вес – 5,9 кг Сила удара – 12.5 Дж Мощность – 950 Вт",
+    "price": "700",
+    "price_text": "Аренда от 700 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/otboynyy-molotok",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_23b2096c8880bd7e5767fd0bdb71f60a.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 17,
+    "category_id": 2,
+    "subcategory_id": 201,
+    "title": "Отбойный молоток Stanley STHM10K",
+    "description": "Вес – 10,5 кг Сила удара – 5-25 Дж Мощность – 1600 Вт",
+    "short_description": "Вес – 10,5 кг Сила удара – 5-25 Дж Мощность – 1600 Вт",
+    "price": "900",
+    "price_text": "Аренда от 900 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 2,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/otboynyy-molotok",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_screenshot-10.png",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 18,
+    "category_id": 2,
+    "subcategory_id": 201,
+    "title": "Отбойный молоток MAKITA HM1203C",
+    "description": "Вес – 9,2 кг Сила удара – 25,5 Дж Мощность – 1510 Вт",
+    "short_description": "Вес – 9,2 кг Сила удара – 25,5 Дж Мощность – 1510 Вт",
+    "price": "1000",
+    "price_text": "Аренда от 1000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 3,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/otboynyy-molotok",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_molotok.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 19,
+    "category_id": 2,
+    "subcategory_id": 201,
+    "title": "Отбойный молоток DeWalt D25902K",
+    "description": "Вес – 10,5 кг Сила удара – 19 Дж Мощность – 1550 Вт",
+    "short_description": "Вес – 10,5 кг Сила удара – 19 Дж Мощность – 1550 Вт",
+    "price": "1000",
+    "price_text": "Аренда от 1000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 4,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/otboynyy-molotok",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_2950-750.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 20,
+    "category_id": 2,
+    "subcategory_id": 202,
+    "title": "Перфоратор Makita HR2450 Сила удара – 2.7 Дж",
+    "description": "Мощность – 780 Вт Макс диаметр бура – 24 мм",
+    "short_description": "Мощность – 780 Вт Макс диаметр бура – 24 мм",
+    "price": "400",
+    "price_text": "Аренда от 400 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/perforator",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_u4e620cbce0b4032dda666193ba7cb927.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 21,
+    "category_id": 2,
+    "subcategory_id": 202,
+    "title": "Перфоратор MAKITA HR 2811 FT",
+    "description": "Вес – 3,4 кг Сила удара – 2,9 Дж Мощность – 800 Вт",
+    "short_description": "Вес – 3,4 кг Сила удара – 2,9 Дж Мощность – 800 Вт",
+    "price": "700",
+    "price_text": "Аренда от 700 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 2,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/perforator",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_hr2811f-1.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 22,
+    "category_id": 2,
+    "subcategory_id": 202,
+    "title": "Аккумуляторный перфоратор Bosch GBH 180-LI",
+    "description": "Вес – 2 кг Мощность – 1,7 Дж Напряжение – 18 В",
+    "short_description": "Вес – 2 кг Мощность – 1,7 Дж Напряжение – 18 В",
+    "price": "700",
+    "price_text": "Аренда от 700 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 3,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/perforator",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_akk-perf.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 23,
+    "category_id": 2,
+    "subcategory_id": 202,
+    "title": "Перфоратор MAKITA HR 4501 С",
+    "description": "Вес – 7,8 кг Сила удара – 13 Дж Мощность – 1350 Вт",
+    "short_description": "Вес – 7,8 кг Сила удара – 13 Дж Мощность – 1350 Вт",
+    "price": "900",
+    "price_text": "Аренда от 900 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 4,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/perforator",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_perf.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 24,
+    "category_id": 2,
+    "subcategory_id": 203,
+    "title": "Штроборез Makita SG1250",
+    "description": "Диаметр диска – 125 мм Вес – 4.1 кг Мощность – 1400 Вт",
+    "short_description": "Диаметр диска – 125 мм Вес – 4.1 кг Мощность – 1400 Вт",
+    "price": "600",
+    "price_text": "Аренда от 600 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/shtroborezy",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_shtroborez.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 25,
+    "category_id": 2,
+    "subcategory_id": 203,
+    "title": "Штроборез BOSCH GNF 35 CA",
+    "description": "Диаметр диска – 150 мм Вес – 4,7 кг Мощность – 1400 Вт",
+    "short_description": "Диаметр диска – 150 мм Вес – 4,7 кг Мощность – 1400 Вт",
+    "price": "700",
+    "price_text": "Аренда от 700 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 2,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/shtroborezy",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_ua914a55c82488dcf4770f334c058e911.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 26,
+    "category_id": 2,
+    "subcategory_id": 203,
+    "title": "Штроборез MAKITA SG180",
+    "description": "Диаметр диска – 180 мм Вес – 6 кг Мощность – 1800 Вт",
+    "short_description": "Диаметр диска – 180 мм Вес – 6 кг Мощность – 1800 Вт",
+    "price": "800",
+    "price_text": "Аренда от 800 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 3,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/shtroborezy",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_u03c39398adabc4e0d3f161981ef55658.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 27,
+    "category_id": 2,
+    "subcategory_id": 203,
+    "title": "Штроборез Bosch GNF65A",
+    "description": "Диаметр диска – 230 мм Вес – 8,4 кг Мощность – 2400 Вт",
+    "short_description": "Диаметр диска – 230 мм Вес – 8,4 кг Мощность – 2400 Вт",
+    "price": "1000",
+    "price_text": "Аренда от 1000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 4,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/shtroborezy",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_shtrob.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 28,
+    "category_id": 2,
+    "subcategory_id": 204,
+    "title": "Торцовочная пила Makita LS1040",
+    "description": "Диаметр диска – 255 мм Вес – 20 кг Мощность – 1650 Вт",
+    "short_description": "Диаметр диска – 255 мм Вес – 20 кг Мощность – 1650 Вт",
+    "price": "600",
+    "price_text": "Аренда от 600 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/torcovochnaya-pila",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_ub20a362f54ea3ceaa9dd8a7f97034526.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 29,
+    "category_id": 2,
+    "subcategory_id": 204,
+    "title": "Торцовочная пила Metabo KGS305M",
+    "description": "Диаметр диска – 305 мм Вес – 19,6 кг Мощность – 2000 Вт",
+    "short_description": "Диаметр диска – 305 мм Вес – 19,6 кг Мощность – 2000 Вт",
+    "price": "900",
+    "price_text": "Аренда от 900 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 2,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/torcovochnaya-pila",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_torsov.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 30,
+    "category_id": 3,
+    "subcategory_id": 302,
+    "title": "Бензиновая электростанция Wacker Neuson MG5",
+    "description": "Вес – 79 кг Мощность – 5,5 кВт Расход топлива – от 2,5 до 3,1 л/ч",
+    "short_description": "Вес – 79 кг Мощность – 5,5 кВт Расход топлива – от 2,5 до 3,1 л/ч",
+    "price": "1000",
+    "price_text": "Аренда от 1000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/benzinovye-elektrostancii",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_gen2.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 31,
+    "category_id": 3,
+    "subcategory_id": 302,
+    "title": "Генератор Champion GG3300E",
+    "description": "Вес – 45 кг Мощность – 2,2 кВт Расход топлива – 1.5 л/ч",
+    "short_description": "Вес – 45 кг Мощность – 2,2 кВт Расход топлива – 1.5 л/ч",
+    "price": "900",
+    "price_text": "Аренда от 900 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 2,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/benzinovye-elektrostancii",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_0899a7920ac011e597d5005056c00008-a8d6eabb608911e797cd005056c00008.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 32,
+    "category_id": 3,
+    "subcategory_id": 302,
+    "title": "Генератор Hyundai HY3000F",
+    "description": "Вес – 47 кг Мощность – 2,8 кВт Напряжение – 220 В",
+    "short_description": "Вес – 47 кг Мощность – 2,8 кВт Напряжение – 220 В",
+    "price": "900",
+    "price_text": "Аренда от 900 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 3,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/benzinovye-elektrostancii",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_u8b4dc67abd538af3964b42528137e942.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 33,
+    "category_id": 3,
+    "subcategory_id": 302,
+    "title": "Генератор Generac GP6000E",
+    "description": "Вес – 90 кг Мощность – 6 кВт Расход топлива – 2,9 л/ч",
+    "short_description": "Вес – 90 кг Мощность – 6 кВт Расход топлива – 2,9 л/ч",
+    "price": "1000",
+    "price_text": "Аренда от 1000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 4,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/benzinovye-elektrostancii",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_gen1.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 34,
+    "category_id": 4,
+    "subcategory_id": 401,
+    "title": "Мотобур Ada Ground Drill-5 Шнеки – 100/150/200 мм",
+    "description": "Вес – 9,5 кг Мощность – 2.45 л.с.",
+    "short_description": "Вес – 9,5 кг Мощность – 2.45 л.с.",
+    "price": "1000",
+    "price_text": "Аренда от 1000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/benzobur",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_drill-5.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 35,
+    "category_id": 4,
+    "subcategory_id": 401,
+    "title": "Мотобур Ada Ground Drill-10 Шнеки – 150-300 мм",
+    "description": "Вес – 9.5 кг Мощность – 3.26 л.с.",
+    "short_description": "Вес – 9.5 кг Мощность – 3.26 л.с.",
+    "price": "1300",
+    "price_text": "Аренда от 1300 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 2,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/benzobur",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_drill-10.png",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 36,
+    "category_id": 4,
+    "subcategory_id": 401,
+    "title": "Бензобур ADA Ground Drill-15 Шнеки – 150-300 мм",
+    "description": "Вес – 30 кг Мощность – 5,5 л.с.",
+    "short_description": "Вес – 30 кг Мощность – 5,5 л.с.",
+    "price": "1600",
+    "price_text": "Аренда от 1600 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 3,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/benzobur",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_shop815-6.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 37,
+    "category_id": 4,
+    "subcategory_id": 401,
+    "title": "Бензобур Stihl BT-121 Шнеки – 150/200 мм",
+    "description": "Вес – 9.4 кг Мощность – 1,8 л.с.",
+    "short_description": "Вес – 9.4 кг Мощность – 1,8 л.с.",
+    "price": "1400",
+    "price_text": "Аренда от 1400 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 4,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/benzobur",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_benzobur.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 38,
+    "category_id": 4,
+    "subcategory_id": 402,
+    "title": "Триммер Stihl FS250",
+    "description": "Вес – 6,3 кг Мощность – 2,15 л.с Режущий элемент – леска/нож",
+    "short_description": "Вес – 6,3 кг Мощность – 2,15 л.с Режущий элемент – леска/нож",
+    "price": "1200",
+    "price_text": "Аренда 1200 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/trimmer",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_1-627.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 39,
+    "category_id": 4,
+    "subcategory_id": 402,
+    "title": "Триммер STIHL FS55",
+    "description": "Вес – 5,1 кг Мощность – 1 л.с. Режущий элемент – нож",
+    "short_description": "Вес – 5,1 кг Мощность – 1 л.с. Режущий элемент – нож",
+    "price": "1000",
+    "price_text": "Аренда 1000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 2,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/trimmer",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_u342a747ca2f43d917774da9d3d1cc151.png",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 40,
+    "category_id": 4,
+    "subcategory_id": 402,
+    "title": "Триммер Stihl FS38",
+    "description": "Вес – 4,1 кг Мощность – 0,9 л.с. Ширина стрижки – 380 мм",
+    "short_description": "Вес – 4,1 кг Мощность – 0,9 л.с. Ширина стрижки – 380 мм",
+    "price": "800",
+    "price_text": "Аренда 800 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 3,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/trimmer",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_201-original-1.png",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 41,
+    "category_id": 4,
+    "subcategory_id": 402,
+    "title": "Триммер аккумуляторный MAKITA DUR361URF2",
+    "description": "Вес – 5,6 кг Напряжение питания – 18 В Ширина стрижки – 230 мм",
+    "short_description": "Вес – 5,6 кг Напряжение питания – 18 В Ширина стрижки – 230 мм",
+    "price": "1000",
+    "price_text": "Аренда 1000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 4,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/trimmer",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_u6bb155b4b5f02c527c5cf39eeefc7560.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 42,
+    "category_id": 4,
+    "subcategory_id": 403,
+    "title": "Бензопила Patriot 4016",
+    "description": "Вес – 5 кг Мощность – 2 л.с. Обьем бака – 0,31 л",
+    "short_description": "Вес – 5 кг Мощность – 2 л.с. Обьем бака – 0,31 л",
+    "price": "900",
+    "price_text": "Аренда 900 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/benzopila",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_u7a4e2189f908ef4b76e2f3d880eb37a5.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 43,
+    "category_id": 4,
+    "subcategory_id": 403,
+    "title": "Бензопила STIHL MS180",
+    "description": "Вес – 5 кг Мощность – 1500 Вт Обьем бака – 0,31 л",
+    "short_description": "Вес – 5 кг Мощность – 1500 Вт Обьем бака – 0,31 л",
+    "price": "1100",
+    "price_text": "Аренда 1100 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 2,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/benzopila",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_u6f7ace2338741689cd32a2a0d2fdc49f.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 44,
+    "category_id": 4,
+    "subcategory_id": 403,
+    "title": "Бензопила Husqvarna 435",
+    "description": "Вес – 5 кг Мощность – 1600 Вт Обьем бака – 0,37 л",
+    "short_description": "Вес – 5 кг Мощность – 1600 Вт Обьем бака – 0,37 л",
+    "price": "1300",
+    "price_text": "Аренда 1300 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 3,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/benzopila",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_u5cbbe96110755713fc9450ecab348c0e.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 45,
+    "category_id": 4,
+    "subcategory_id": 403,
+    "title": "Бензопила Makita DCS430-45",
+    "description": "Вес – 4,5 кг Мощность – 2000 Вт Обьем бака – 0,56 л",
+    "short_description": "Вес – 4,5 кг Мощность – 2000 Вт Обьем бака – 0,56 л",
+    "price": "1400",
+    "price_text": "Аренда 1400 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 4,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/benzopila",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_u1bc8631e48409dc50088a12a12d4c48e.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 46,
+    "category_id": 4,
+    "subcategory_id": 404,
+    "title": "Культиватор Champion BC 6712",
+    "description": "Вес – 52 кг Мощность – 6,5 л.с. Ширина обработки – 850 мм",
+    "short_description": "Вес – 52 кг Мощность – 6,5 л.с. Ширина обработки – 850 мм",
+    "price": "2000",
+    "price_text": "Аренда 2000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/kultivatory-i-motobloki",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_kult2.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 47,
+    "category_id": 4,
+    "subcategory_id": 404,
+    "title": "Культиватор Daewoo DAT5560R",
+    "description": "Вес – 44 кг Мощность – 6,5 л/с Ширина обработки – 30-60 см",
+    "short_description": "Вес – 44 кг Мощность – 6,5 л/с Ширина обработки – 30-60 см",
+    "price": "2200",
+    "price_text": "Аренда 2200 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 2,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/kultivatory-i-motobloki",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_kult.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 48,
+    "category_id": 4,
+    "subcategory_id": 404,
+    "title": "Мотоблок НЕВА МБ-2Б-6.5RS",
+    "description": "Вес – 98 кг Мощность – 6,5 л.с. Ширина обработки – от 86 до 127 см",
+    "short_description": "Вес – 98 кг Мощность – 6,5 л.с. Ширина обработки – от 86 до 127 см",
+    "price": "2500",
+    "price_text": "Аренда 2500 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 3,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/kultivatory-i-motobloki",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_landing-17608.png",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 49,
+    "category_id": 5,
+    "subcategory_id": 501,
+    "title": "Шлифовальная машина МИСОМ СО-313.1М",
+    "description": "Вес – 82 кг Мощность – 2,2 кВт Число оборотов – 460 об/мин об/мин",
+    "short_description": "Вес – 82 кг Мощность – 2,2 кВт Число оборотов – 460 об/мин об/мин",
+    "price": "1500",
+    "price_text": "Аренда от 1500 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/mozaichno-shlifovalnye-mashiny",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_ued88aa0c74be0b72cccbfe1745e31306.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 50,
+    "category_id": 5,
+    "subcategory_id": 501,
+    "title": "Шлифовальная машина МИСОМ СО-300",
+    "description": "Вес – 130 кг Мощность – 4 кВт Напряжение – 380 В",
+    "short_description": "Вес – 130 кг Мощность – 4 кВт Напряжение – 380 В",
+    "price": "1600",
+    "price_text": "Аренда от 1600 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 2,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/mozaichno-shlifovalnye-mashiny",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_300.png",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 51,
+    "category_id": 5,
+    "subcategory_id": 501,
+    "title": "Шлифовальная машина Сплитстоун GM-122",
+    "description": "Вес – 120 кг Мощность – 2,2 кВт Напряжение – 220 В",
+    "short_description": "Вес – 120 кг Мощность – 2,2 кВт Напряжение – 220 В",
+    "price": "1500",
+    "price_text": "Аренда от 1500 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 3,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/mozaichno-shlifovalnye-mashiny",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_122.png",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 52,
+    "category_id": 5,
+    "subcategory_id": 501,
+    "title": "Шлифовальная машина Сплитстоун GM-245",
+    "description": "Вес – 155 кг Ширина обработки – 600 мм Напряжение питания – 380 В",
+    "short_description": "Вес – 155 кг Ширина обработки – 600 мм Напряжение питания – 380 В",
+    "price": "2000",
+    "price_text": "Аренда от 2000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 4,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/mozaichno-shlifovalnye-mashiny",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_245.png",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 53,
+    "category_id": 5,
+    "subcategory_id": 502,
+    "title": "Шлифовальная машина МИСОМ СО-206.1А",
+    "description": "Вес – 82 кг Мощность – 2200 Вт Число оборотов – 460 об/мин об/мин",
+    "short_description": "Вес – 82 кг Мощность – 2200 Вт Число оборотов – 460 об/мин об/мин",
+    "price": "1800",
+    "price_text": "Аренда от 1800 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/parketo-shlifovalnaya-mashina",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_parketka.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 54,
+    "category_id": 5,
+    "subcategory_id": 502,
+    "title": "Шлифовальная машина по паркету МИСОМ СО-318",
+    "description": "Вес – 8 2 кг Мощность – 2200 Вт Число оборотов – 460 об/мин об/мин",
+    "short_description": "Вес – 8 2 кг Мощность – 2200 Вт Число оборотов – 460 об/мин об/мин",
+    "price": "3000",
+    "price_text": "Аренда 3000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 2,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/parketo-shlifovalnaya-mashina",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_ud7db140af514f39b29c9f612a220eb4d.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 55,
+    "category_id": 5,
+    "subcategory_id": 502,
+    "title": "Шлифовальная машина Level 300",
+    "description": "Вес – 47 кг Мощность – 2,2 кВт Ширина обработки – 300 мм",
+    "short_description": "Вес – 47 кг Мощность – 2,2 кВт Ширина обработки – 300 мм",
+    "price": "2000",
+    "price_text": "Аренда 2000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 3,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/parketo-shlifovalnaya-mashina",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_level2-2.png",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 56,
+    "category_id": 5,
+    "subcategory_id": 503,
+    "title": "Затирочная машина Masalta MT36-4",
+    "description": "Диаметр диска – 900 мм Вес – 75 кг Мощность – 5,6 л.с.",
+    "short_description": "Диаметр диска – 900 мм Вес – 75 кг Мощность – 5,6 л.с.",
+    "price": "2000",
+    "price_text": "Аренда от 2000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/zatirochnaya-mashina-po-betonu",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_vert2.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 57,
+    "category_id": 5,
+    "subcategory_id": 503,
+    "title": "Затирочная машина по бетону Masalta MT24-4",
+    "description": "Диаметр диска – 600 мм Вес – 63 кг Мощность – 5,5 л.с.",
+    "short_description": "Диаметр диска – 600 мм Вес – 63 кг Мощность – 5,5 л.с.",
+    "price": "2000",
+    "price_text": "Аренда от 2000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 2,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/zatirochnaya-mashina-po-betonu",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_vert3.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 58,
+    "category_id": 5,
+    "subcategory_id": 503,
+    "title": "Затирочная машина Wacker Neuson CT 36-400E",
+    "description": "Вес – 104 кг Мощность – 4.2 кВт Габариты – 2005×915×1040 мм",
+    "short_description": "Вес – 104 кг Мощность – 4.2 кВт Габариты – 2005×915×1040 мм",
+    "price": "3000",
+    "price_text": "Аренда 3000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 3,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/zatirochnaya-mashina-po-betonu",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_ct36e.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 59,
+    "category_id": 5,
+    "subcategory_id": 503,
+    "title": "Двухроторная затирочная машина Kreber К 436 2-Т",
+    "description": "Диаметр диска – 930 мм Вес – 350 кг Мощность – 24 л.с.",
+    "short_description": "Диаметр диска – 930 мм Вес – 350 кг Мощность – 24 л.с.",
+    "price": "6000",
+    "price_text": "Аренда 6000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 4,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/zatirochnaya-mashina-po-betonu",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_30b63d10fed011e88c60b8975a5109ff-30b63d14fed011e88c60b8975a5109ff.png",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 60,
+    "category_id": 5,
+    "subcategory_id": 504,
+    "title": "Эксцентриковая шлифмашина Makita BO 5031 Вес – 1,3 кг Мощность – 300 Вт",
+    "description": "Диаметр – 125 мм",
+    "short_description": "Диаметр – 125 мм",
+    "price": "500",
+    "price_text": "Аренда 500 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/ekscentrichno-shlifovalnaya-mashina",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_u32cb4ae27d12b84fa98ce04e2ea04cf9.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 61,
+    "category_id": 6,
+    "subcategory_id": 601,
+    "title": "Виброрейка Wacker Neuson P35A",
+    "description": "Вес – 15,5 кг Тип двигателя – Honda Длина профиля – до 4900 мм",
+    "short_description": "Вес – 15,5 кг Тип двигателя – Honda Длина профиля – до 4900 мм",
+    "price": "2200",
+    "price_text": "Аренда 2200 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/vibroreyka",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_vibrating-screed-p35a-power-unit-3317-grande.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 62,
+    "category_id": 6,
+    "subcategory_id": 601,
+    "title": "Виброрейка Aztec GX35",
+    "description": "Вес – 12.9 кг Тип двигателя – Honda GX35 Длина профиля – 1,2-4,9 м",
+    "short_description": "Вес – 12.9 кг Тип двигателя – Honda GX35 Длина профиля – 1,2-4,9 м",
+    "price": "2000",
+    "price_text": "Аренда 2000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 2,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/vibroreyka",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_d30ed9b195e3e1aec50e91283e4533fb.jpeg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 63,
+    "category_id": 6,
+    "subcategory_id": 601,
+    "title": "Виброрейка Красный Маяк ЭВ-270А",
+    "description": "Вес – 48 кг Тип двигателя – электрический Напряжение питания – 230 В",
+    "short_description": "Вес – 48 кг Тип двигателя – электрический Напряжение питания – 230 В",
+    "price": "1000",
+    "price_text": "Аренда 1000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 3,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/vibroreyka",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_u41fa47a1a346002e67bed4ef1364e6f3.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 64,
+    "category_id": 6,
+    "subcategory_id": 602,
+    "title": "Бетономешалка Лебедянь СБР-132Н",
+    "description": "Вес – 47 кг Напряжение – 220 Вольт Объем готовой смеси – 64 литров",
+    "short_description": "Вес – 47 кг Напряжение – 220 Вольт Объем готовой смеси – 64 литров",
+    "price": "450",
+    "price_text": "Аренда от 450 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/betonomeshalka",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_u3e1c708a12ae09b052c636f0f60768fb.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 65,
+    "category_id": 6,
+    "subcategory_id": 602,
+    "title": "Бетономешалка ЛЕБЕДЯНЬ СБР-150",
+    "description": "Вес – 71 кг Напряжение – 220 Вольт Объем готовой смеси – 80 литров",
+    "short_description": "Вес – 71 кг Напряжение – 220 Вольт Объем готовой смеси – 80 литров",
+    "price": "550",
+    "price_text": "Аренда от 550 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 2,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/betonomeshalka",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_ub8e6b9a7ab180fda3c2cdbe3f2e01421.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 66,
+    "category_id": 6,
+    "subcategory_id": 602,
+    "title": "Бетоносмеситель Профмаш Б-180",
+    "description": "Вес – 57 кг Напряжение – 220 Вольт Объем готовой смеси – 135 литров",
+    "short_description": "Вес – 57 кг Напряжение – 220 Вольт Объем готовой смеси – 135 литров",
+    "price": "700",
+    "price_text": "Аренда от 700 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 3,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/betonomeshalka",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_uaf7e2d1f82b2c2d02810b432fee9a854.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 67,
+    "category_id": 6,
+    "subcategory_id": 602,
+    "title": "Бетономешалка ПРОФМАШ Б-04Т",
+    "description": "Вес – 149 кг Напряжение – 400 Вольт Объем готовой смеси – 150 литров",
+    "short_description": "Вес – 149 кг Напряжение – 400 Вольт Объем готовой смеси – 150 литров",
+    "price": "1000",
+    "price_text": "Аренда 1000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 4,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/betonomeshalka",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_ucc65dd54e8707a8f7718512741b313c2.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 68,
+    "category_id": 6,
+    "subcategory_id": 603,
+    "title": "Глубинный вибратор WACKER NEUSON IRFU 57/230 Масса – 20,5 кг",
+    "description": "Напряжение питания – 230 В Потребляемая мощность – 1,3 кВт",
+    "short_description": "Напряжение питания – 230 В Потребляемая мощность – 1,3 кВт",
+    "price": "900",
+    "price_text": "Аренда от 900 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/glubinnyy-vibrator",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_u1dda16674ed9290255f63f3ab3a6955f.jpeg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 69,
+    "category_id": 6,
+    "subcategory_id": 603,
+    "title": "Глубинный вибратор Wacker Neuson M2500",
+    "description": "Мощность – 1800 Вт Масса – 5,9 кг (без вала) Напряжение питания – 230В",
+    "short_description": "Мощность – 1800 Вт Масса – 5,9 кг (без вала) Напряжение питания – 230В",
+    "price": "700",
+    "price_text": "Аренда от 700 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 2,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/glubinnyy-vibrator",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_hms.png",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 70,
+    "category_id": 6,
+    "subcategory_id": 603,
+    "title": "Глубинный вибратор Красный Маяк ЭПК-1300",
+    "description": "Мощность – 1300 Вт Частота вибрации – 17100 вибр/мин Длина гибкого вала – 3 м",
+    "short_description": "Мощность – 1300 Вт Частота вибрации – 17100 вибр/мин Длина гибкого вала – 3 м",
+    "price": "600",
+    "price_text": "Аренда от 600 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 3,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/glubinnyy-vibrator",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_u9c46eb02c06fa82e6a897740052435e4.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 71,
+    "category_id": 6,
+    "subcategory_id": 603,
+    "title": "Глубинный вибратор Zitrek Z-35-1,5",
+    "description": "Мощность – 900 Вт Масса – 6 кг Частота вибрации – 13000 вибр/мин",
+    "short_description": "Мощность – 900 Вт Масса – 6 кг Частота вибрации – 13000 вибр/мин",
+    "price": "400",
+    "price_text": "Аренда от 400 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 4,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/glubinnyy-vibrator",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_screenshot-9.png",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 72,
+    "category_id": 6,
+    "subcategory_id": 604,
+    "title": "Миксер строительный BOSCH GRW 11 Е",
+    "description": "Вес – 4,2 кг Мощность – 1150 Вт Число оборотов на холостом ходу – 280 об/мин",
+    "short_description": "Вес – 4,2 кг Мощность – 1150 Вт Число оборотов на холостом ходу – 280 об/мин",
+    "price": "1000",
+    "price_text": "Аренда 1000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/mikser",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_u1b138a95dd63c2e8f75a3cff1b79c0a3.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 73,
+    "category_id": 6,
+    "subcategory_id": 604,
+    "title": "Миксер Фиолент МД1-11Э",
+    "description": "Вес – 4,6 кг Мощность – 1100 Вт Число оборотов на холостом ходу – 600 об/мин",
+    "short_description": "Вес – 4,6 кг Мощность – 1100 Вт Число оборотов на холостом ходу – 600 об/мин",
+    "price": "600",
+    "price_text": "Аренда 600 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 2,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/mikser",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_img115946.png",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 74,
+    "category_id": 7,
+    "subcategory_id": 701,
+    "title": "Строительные леса ЛРП-40 Нормативная нагрузка – 200 кг/м2 Максимальная высота – 40 м Шаг яруса вдоль стены – 3 м",
+    "description": null,
+    "short_description": null,
+    "price": "80",
+    "price_text": "Аренда 80 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/stroitelnye-lesa",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_lesa-stroitelnye.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 75,
+    "category_id": 7,
+    "subcategory_id": 701,
+    "title": "Вышка-тура ВСРП-19900 Нормативная нагрузка – 250 кг/м2 Максимальная высота – до 20 метров",
+    "description": "Высота яруса – 1 метр",
+    "short_description": "Высота яруса – 1 метр",
+    "price": "600",
+    "price_text": "Аренда 600 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 2,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/stroitelnye-lesa",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_vishka.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 76,
+    "category_id": 7,
+    "subcategory_id": 701,
+    "title": "Клиновые леса Layher Нормативная нагрузка – от 250 кг/м2 Максимальная высота – 60 м Шаг яруса вдоль стены – 1; 2; 3 м",
+    "description": null,
+    "short_description": null,
+    "price": "0",
+    "price_text": "Стройка-Аренда на карте Казани — Яндекс Карты",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 3,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/stroitelnye-lesa",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_dd359235276232fcf65a60ff49b9fef3ccd5537d.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 77,
+    "category_id": 7,
+    "subcategory_id": 702,
+    "title": "Вышка-тура ВСП 250/1.2",
+    "description": "Высота – до 18,4 метров Нагрузка – 250 кг/м2 Ширина секции – 1,2 метра",
+    "short_description": "Высота – до 18,4 метров Нагрузка – 250 кг/м2 Ширина секции – 1,2 метра",
+    "price": "600",
+    "price_text": "Аренда от 600 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/vyshki-tura",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_u912ebe6c159e77b397589a9128c4bced.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 78,
+    "category_id": 7,
+    "subcategory_id": 702,
+    "title": "Вышка-тура ПСРВ 21",
+    "description": "Высота – 20,69 м Нагрузка – 200 кгс/м2 Ширина секции – 1,2 м",
+    "short_description": "Высота – 20,69 м Нагрузка – 200 кгс/м2 Ширина секции – 1,2 м",
+    "price": "600",
+    "price_text": "Аренда от 600 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 2,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/vyshki-tura",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_unnamed-10.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 79,
+    "category_id": 7,
+    "subcategory_id": 702,
+    "title": "Вышка-тура ВСРП 19900",
+    "description": "Высота – до 20 метров Нагрузка – 250 кг/м2 Ширина секции – 2 метра",
+    "short_description": "Высота – до 20 метров Нагрузка – 250 кг/м2 Ширина секции – 2 метра",
+    "price": "600",
+    "price_text": "Аренда от 600 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 3,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/vyshki-tura",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_vishka.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 80,
+    "category_id": 7,
+    "subcategory_id": 703,
+    "title": "Лестница стремянка Nika СМ3 Высота – до 2,82 м",
+    "description": "Вес – 4,7 кг Нагрузка – 150 кг",
+    "short_description": "Вес – 4,7 кг Нагрузка – 150 кг",
+    "price": "400",
+    "price_text": "Аренда 400 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/lestnicy-i-stremyanki",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_u91453084deb3e3b2a50bc3d9f9081db2.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 81,
+    "category_id": 7,
+    "subcategory_id": 703,
+    "title": "Лестница Эйфель Простор 2х5+2х6 Высота – 7,11 м",
+    "description": "Вес – 20,24 кг Нагрузка – 150 кг",
+    "short_description": "Вес – 20,24 кг Нагрузка – 150 кг",
+    "price": "900",
+    "price_text": "Аренда 900 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 2,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/lestnicy-i-stremyanki",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_674-original.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 82,
+    "category_id": 7,
+    "subcategory_id": 703,
+    "title": "Лестница трехсекционная Высота – до 7,5 м",
+    "description": "Вес – 10 кг Длина секции – 3 м",
+    "short_description": "Вес – 10 кг Длина секции – 3 м",
+    "price": "800",
+    "price_text": "Аренда 800 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 3,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/lestnicy-i-stremyanki",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_ua5ab5f7b0c910e3e755f2889b4ee7eb3.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 83,
+    "category_id": 7,
+    "subcategory_id": 703,
+    "title": "Лестница Промышленник Алюм 3х17 м Высота – 11,95 м",
+    "description": "Вес – 29,9 кг Нагрузка – 150 кг",
+    "short_description": "Вес – 29,9 кг Нагрузка – 150 кг",
+    "price": "1000",
+    "price_text": "Аренда 1000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 4,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/lestnicy-i-stremyanki",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_9dcad9cce374341ca84dca71eacb2868.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 84,
+    "category_id": 8,
+    "subcategory_id": 801,
+    "title": "Пароочиститель Karcher SC 2",
+    "description": "Вес – 2,9 кг Мощность – 1500 Вт Габариты – 380*254*260",
+    "short_description": "Вес – 2,9 кг Мощность – 1500 Вт Габариты – 380*254*260",
+    "price": "1000",
+    "price_text": "Аренда 1000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/paroochistitel",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_u1e801c97daa5736aea52e566eab97eb3.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 85,
+    "category_id": 8,
+    "subcategory_id": 802,
+    "title": "Пылесос Karcher WD3 Premium",
+    "description": "Вес – 5,8 кг Мощность – 1400 Вт Бак – 17 л",
+    "short_description": "Вес – 5,8 кг Мощность – 1400 Вт Бак – 17 л",
+    "price": "600",
+    "price_text": "Аренда от 600 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/promyshlennyy-pylesos",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_11777813381150.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 86,
+    "category_id": 8,
+    "subcategory_id": 802,
+    "title": "Промышленный пылесос Makita VC2012L",
+    "description": "Вес – 8,5 кг Мощность – 1000 Вт Бак – 20 л",
+    "short_description": "Вес – 8,5 кг Мощность – 1000 Вт Бак – 20 л",
+    "price": "1000",
+    "price_text": "Аренда 1000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 2,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/promyshlennyy-pylesos",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_5733large-vc2012l.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 87,
+    "category_id": 8,
+    "subcategory_id": 802,
+    "title": "Промышленный пылесос RedVerg RD-VC7260",
+    "description": "Вес – 20 кг Мощность – 2400 Вт Бак – 60 л",
+    "short_description": "Вес – 20 кг Мощность – 2400 Вт Бак – 60 л",
+    "price": "1500",
+    "price_text": "Аренда 1500 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 3,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/promyshlennyy-pylesos",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_rd-vc7260.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 88,
+    "category_id": 8,
+    "subcategory_id": 802,
+    "title": "Моющий пылесос Ghibli Power Extra 7P UFS",
+    "description": "Вес – 11 кг Мощность – 1350 Вт Бак – 7/11 л",
+    "short_description": "Вес – 11 кг Мощность – 1350 Вт Бак – 7/11 л",
+    "price": "1500",
+    "price_text": "Аренда 1500 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 4,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/promyshlennyy-pylesos",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_14321-big.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 89,
+    "category_id": 8,
+    "subcategory_id": 803,
+    "title": "Минимойка Karcher K4 Compact",
+    "description": "Вес – 11,8 кг Мощность – 1800 Вт Длина шланга – 6 м",
+    "short_description": "Вес – 11,8 кг Мощность – 1800 Вт Длина шланга – 6 м",
+    "price": "900",
+    "price_text": "Аренда 900 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/minimoyka",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_u4a0461c2047dff7aa29e1ebeffe27fe5.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 90,
+    "category_id": 8,
+    "subcategory_id": 803,
+    "title": "Минимойка Karcher K5 Premium",
+    "description": "Вес – 12,8 кг Мощность – 2100 Вт Длина шланга – 8 м",
+    "short_description": "Вес – 12,8 кг Мощность – 2100 Вт Длина шланга – 8 м",
+    "price": "1200",
+    "price_text": "Аренда 1200 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 2,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/minimoyka",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_uad10711a8f9615a81543efe95148d0f5.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 91,
+    "category_id": 8,
+    "subcategory_id": 803,
+    "title": "Мойка высокого давления Karcher K7",
+    "description": "Мощность – 3000 Вт Производительность – 600 л/ч Тип двигателя – 220В",
+    "short_description": "Мощность – 3000 Вт Производительность – 600 л/ч Тип двигателя – 220В",
+    "price": "1700",
+    "price_text": "Аренда 1700 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 3,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/minimoyka",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_original-400x400-fit.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 92,
+    "category_id": 8,
+    "subcategory_id": 803,
+    "title": "Мойка высокого давления Karcher G4.10M",
+    "description": "Вес – 24 кг Производительность – 420 л/мин Тип двигателя – Бензиновый",
+    "short_description": "Вес – 24 кг Производительность – 420 л/мин Тип двигателя – Бензиновый",
+    "price": "2000",
+    "price_text": "Аренда 2000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 4,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/minimoyka",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_d0-1.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 93,
+    "category_id": 8,
+    "subcategory_id": 804,
+    "title": "Робот пылесос iRobot Roomba 760 Высота – 9 см",
+    "description": "Мощность – 33 Вт Время автономной работы – 240 мин (S~80 м2)",
+    "short_description": "Мощность – 33 Вт Время автономной работы – 240 мин (S~80 м2)",
+    "price": "1000",
+    "price_text": "Аренда 1000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/robot-dlya-moyki-okon",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_irobot-roomba-760-3.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 94,
+    "category_id": 8,
+    "subcategory_id": 804,
+    "title": "Робот для мойки окон Hobot 188",
+    "description": "Мощность – 80 Вт Производительность – 4 м²/мин Время автономной работы – 20 мин",
+    "short_description": "Мощность – 80 Вт Производительность – 4 м²/мин Время автономной работы – 20 мин",
+    "price": "1000",
+    "price_text": "Аренда 1000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 2,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/robot-dlya-moyki-okon",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_s1200.jpeg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 95,
+    "category_id": 9,
+    "subcategory_id": 901,
+    "title": "Кран Пионер КСП-320 \"Мастер\"",
+    "description": "Вес – 650 кг Мощность – 2,2 кВт Напряжение – 380 В",
+    "short_description": "Вес – 650 кг Мощность – 2,2 кВт Напряжение – 380 В",
+    "price": "1000",
+    "price_text": "Аренда 1000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/kran-pioner",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_kran-master-1000.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 96,
+    "category_id": 9,
+    "subcategory_id": 901,
+    "title": "Кран КСП-500",
+    "description": "Вес – 400 кг Мощность – 4 кВт Напряжение – 380 В",
+    "short_description": "Вес – 400 кг Мощность – 4 кВт Напряжение – 380 В",
+    "price": "1500",
+    "price_text": "Аренда 1500 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 2,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/kran-pioner",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_500.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 97,
+    "category_id": 9,
+    "subcategory_id": 901,
+    "title": "Кран КСП-1000",
+    "description": "Вес – 1070 кг Мощность – 4,75 кВт Напряжение – 380 В",
+    "short_description": "Вес – 1070 кг Мощность – 4,75 кВт Напряжение – 380 В",
+    "price": "2500",
+    "price_text": "Аренда 2500 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 3,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/kran-pioner",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_1000-1.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 98,
+    "category_id": 9,
+    "subcategory_id": 902,
+    "title": "Кран Умелец 320 кг Грузоподъемность – 320 кг",
+    "description": "Мощность – 2,2 кВт Напряжение – 380 В",
+    "short_description": "Мощность – 2,2 кВт Напряжение – 380 В",
+    "price": "1000",
+    "price_text": "Аренда 1000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/kran-umelec",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_umelec-11.png",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 99,
+    "category_id": 9,
+    "subcategory_id": 903,
+    "title": "Ножничный подъемник Sinoboom 1414 Plus Грузоподъемность – 350 кг",
+    "description": "Вес – 3560 кг Двигатель – Электрический/АКБ",
+    "short_description": "Вес – 3560 кг Двигатель – Электрический/АКБ",
+    "price": "2800",
+    "price_text": "Аренда от 2800 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/nozhnichnyy-podemnik",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_1414.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 100,
+    "category_id": 9,
+    "subcategory_id": 903,
+    "title": "Ножничный подъемник Sinoboom 1012N Грузоподъемность – 320 кг",
+    "description": "Вес – 2610 кг Двигатель – Электрический/АКБ",
+    "short_description": "Вес – 2610 кг Двигатель – Электрический/АКБ",
+    "price": "2200",
+    "price_text": "Аренда от 2200 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 2,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/nozhnichnyy-podemnik",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_1012.png",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 101,
+    "category_id": 9,
+    "subcategory_id": 903,
+    "title": "Ножничный подъемник Sinoboom 0608S Грузоподъемность – 230 кг",
+    "description": "Вес – 1550 кг Двигатель – Электрический/АКБ",
+    "short_description": "Вес – 1550 кг Двигатель – Электрический/АКБ",
+    "price": "2000",
+    "price_text": "Аренда от 2000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 3,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/nozhnichnyy-podemnik",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_1744791076605070.png",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 102,
+    "category_id": 9,
+    "subcategory_id": 903,
+    "title": "Ножничный подъемник (Дизельный) Sinoboom 1623RD Грузоподъемность – 680 кг",
+    "description": "Вес – 8210 кг Мощность – 48.3 л.с.",
+    "short_description": "Вес – 8210 кг Мощность – 48.3 л.с.",
+    "price": "5000",
+    "price_text": "Аренда от 5000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 4,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/nozhnichnyy-podemnik",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_1623rd.png",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 103,
+    "category_id": 9,
+    "subcategory_id": 904,
+    "title": "Коленчатый подъемник Sinoboom AB14J Грузоподъемность – 230 кг Двигатель – Электрический Максимальная высота – 16 м",
+    "description": null,
+    "short_description": null,
+    "price": "5000",
+    "price_text": "Аренда от 5000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/kolenchatyy-podemnik",
+    "photos": []
+  },
+  {
+    "id": 104,
+    "category_id": 9,
+    "subcategory_id": 904,
+    "title": "Коленчатый подъемник Sinoboom AB22J Plus Грузоподъемность – 454 кг Двигатель – Дизельный Максимальная высота – 21.6 м",
+    "description": null,
+    "short_description": null,
+    "price": "13000",
+    "price_text": "Аренда от 13000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 2,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/kolenchatyy-podemnik",
+    "photos": []
+  },
+  {
+    "id": 105,
+    "category_id": 9,
+    "subcategory_id": 904,
+    "title": "Коленчатый подъемник Sinoboom AB26J Plus Грузоподъемность – 230 кг Двигатель – Дизельный Максимальная высота – 27.65 м",
+    "description": null,
+    "short_description": null,
+    "price": "16000",
+    "price_text": "Аренда от 16000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 3,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/kolenchatyy-podemnik",
+    "photos": []
+  },
+  {
+    "id": 106,
+    "category_id": 10,
+    "subcategory_id": 1001,
+    "title": "Дизельный компрессор Atlas Copco XAS 186 Мощность – 83 (кВт) Производительность – 11,1 (м3/мин)",
+    "description": "Вес с шасси – 1900 кг",
+    "short_description": "Вес с шасси – 1900 кг",
+    "price": "6000",
+    "price_text": "Аренда 6000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/dizelnye-kompressory",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_ub57074a6af71f31131ed2a2942ab1d8c.jpeg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 107,
+    "category_id": 10,
+    "subcategory_id": 1001,
+    "title": "Дизельный компрессор Atlas Copco XAS 97 Мощность – 36 кВт Производительность – 5,3 м3/мин",
+    "description": "Вес с шасси – 885 кг",
+    "short_description": "Вес с шасси – 885 кг",
+    "price": "4000",
+    "price_text": "Аренда 4000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 2,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/dizelnye-kompressory",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_unnamed.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 108,
+    "category_id": 10,
+    "subcategory_id": 1002,
+    "title": "Компрессор Wester W 024-180 OLC",
+    "description": "Вес – 24 кг Мощность – 1800 Вт Напряжение – 220 В",
+    "short_description": "Вес – 24 кг Мощность – 1800 Вт Напряжение – 220 В",
+    "price": "700",
+    "price_text": "Аренда от 700 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/elektricheskie-kompressory",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_kompressor.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 109,
+    "category_id": 10,
+    "subcategory_id": 1002,
+    "title": "Компрессор Ergus DV 370-50",
+    "description": "Вес – 46 кг Мощность – 2200 Вт Производительность – 400 л/мин",
+    "short_description": "Вес – 46 кг Мощность – 2200 Вт Производительность – 400 л/мин",
+    "price": "800",
+    "price_text": "Аренда от 800 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 2,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/elektricheskie-kompressory",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_u170160a6c73883e245d2a2208933e1b3.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 110,
+    "category_id": 10,
+    "subcategory_id": 1002,
+    "title": "Компрессор Wester W 100-220 OLC",
+    "description": "Вес – 65 кг Мощность – 2200 Вт Производительность – 400 л/мин",
+    "short_description": "Вес – 65 кг Мощность – 2200 Вт Производительность – 400 л/мин",
+    "price": "900",
+    "price_text": "Аренда от 900 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 3,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/elektricheskie-kompressory",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_kompr.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 111,
+    "category_id": 10,
+    "subcategory_id": 1002,
+    "title": "Компрессор поршневой REMEZA СБ4/Ф-270 LB50",
+    "description": "Вес – 180 кг Мощность – 4000 Вт Напряжение – 400 В",
+    "short_description": "Вес – 180 кг Мощность – 4000 Вт Напряжение – 400 В",
+    "price": "1800",
+    "price_text": "Аренда 1800 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 4,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/elektricheskie-kompressory",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_u7a125717f6eb7706f40e04db895d1304.png",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 112,
+    "category_id": 10,
+    "subcategory_id": 1003,
+    "title": "Мотопомпа Wacker Neuson MDP-3",
+    "description": "Вес – 64 кг Мощность – 5,8 кВт Производительность – 1150 л/мин",
+    "short_description": "Вес – 64 кг Мощность – 5,8 кВт Производительность – 1150 л/мин",
+    "price": "1800",
+    "price_text": "Аренда от 1800 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/motopompy",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_mdp3-1-jpg-600x600-q88.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 113,
+    "category_id": 10,
+    "subcategory_id": 1003,
+    "title": "Мотопомпа Koshin KTH-50X",
+    "description": "Вес – 47 кг Мощность – 4,8 л.с. Габариты – 660х500х520 мм",
+    "short_description": "Вес – 47 кг Мощность – 4,8 л.с. Габариты – 660х500х520 мм",
+    "price": "1800",
+    "price_text": "Аренда от 1800 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 2,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/motopompy",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_udd0f716b93374a3b454a58b3f6174722.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 114,
+    "category_id": 10,
+    "subcategory_id": 1003,
+    "title": "Мотопомпа Champion GTP80",
+    "description": "Вес – 37 кг Мощность – 6,5 л.с. Обьем бака – 3,6",
+    "short_description": "Вес – 37 кг Мощность – 6,5 л.с. Обьем бака – 3,6",
+    "price": "1500",
+    "price_text": "Аренда от 1500 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 3,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/motopompy",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_7c53b7cf90fb5eed150167ee5fabdd5ef8531171.png",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 115,
+    "category_id": 10,
+    "subcategory_id": 1003,
+    "title": "Мотопомпа Makita EW1050HX",
+    "description": "Вес – 11 кг Мощность – 0,95 л.с. Габариты – 410*375*355 мм",
+    "short_description": "Вес – 11 кг Мощность – 0,95 л.с. Габариты – 410*375*355 мм",
+    "price": "800",
+    "price_text": "Аренда 800 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 4,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/motopompy",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_ueb895941011ed36e1ea556f00773dbf4.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 116,
+    "category_id": 10,
+    "subcategory_id": 1004,
+    "title": "Насос погружной Калибр НПЦ-750/35Н",
+    "description": "Мощность – 750 Вт Производительность – 12960 л/ч Высота подъема – 8 м",
+    "short_description": "Мощность – 750 Вт Производительность – 12960 л/ч Высота подъема – 8 м",
+    "price": "800",
+    "price_text": "Аренда 800 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/pogruzhnye-nasosy",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_ufdacf431f61a1a8728b554aa71394997.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 117,
+    "category_id": 10,
+    "subcategory_id": 1004,
+    "title": "Погружной насос QUATTRO ELEMENTI DRENAGGIO 400 F Мощность – 400 Вт Производительность – 7500 л/ч",
+    "description": "Диаметр твердых частиц – до 35 мм",
+    "short_description": "Диаметр твердых частиц – до 35 мм",
+    "price": "600",
+    "price_text": "Аренда 600 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 2,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/pogruzhnye-nasosy",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_u24d6c1b3f0c871386b60276a84008ae5.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 118,
+    "category_id": 11,
+    "subcategory_id": 1101,
+    "title": "Сварочный полуавтомат AURORA PRO OVERMAN 160 Mosfet",
+    "description": "Вес – 15 кг Мощность – 4 кВт Напряжение – 220 В",
+    "short_description": "Вес – 15 кг Мощность – 4 кВт Напряжение – 220 В",
+    "price": "1200",
+    "price_text": "Аренда 1200 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/svarochnye-apparaty",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_u30e69d3e12ca4ea94da9a4b868692dae.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 119,
+    "category_id": 11,
+    "subcategory_id": 1101,
+    "title": "Сварочный аппарат Ресанта САИ 220А",
+    "description": "Напряжение питания – 220 В Максимальный ток – 220 А Тип сварки – дуговая",
+    "short_description": "Напряжение питания – 220 В Максимальный ток – 220 А Тип сварки – дуговая",
+    "price": "500",
+    "price_text": "Аренда от 500 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 2,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/svarochnye-apparaty",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_svarka.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 120,
+    "category_id": 11,
+    "subcategory_id": 1102,
+    "title": "Паяльник Калибр СВА-900Т",
+    "description": "Вес – 3,8 кг Мощность – 900 Вт Мин диаметр сварки – 20 мм",
+    "short_description": "Вес – 3,8 кг Мощность – 900 Вт Мин диаметр сварки – 20 мм",
+    "price": "500",
+    "price_text": "Аренда 500 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/payalnik-dlya-polipropilenovyh-trub",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_u4d137da020c598c149926f99fcd83383.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 121,
+    "category_id": 11,
+    "subcategory_id": 1103,
+    "title": "Набор для сварки линолеума Gerat 30150",
+    "description": "Мощность – 1600 Вт Защита от перегрева – есть Длина кабеля – 3 м",
+    "short_description": "Мощность – 1600 Вт Защита от перегрева – есть Длина кабеля – 3 м",
+    "price": "1000",
+    "price_text": "Аренда 1000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/payalnik-dlya-linoleuma",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_u64b60154d2939bacb1e1db2dec55091b.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 122,
+    "category_id": 11,
+    "subcategory_id": 1104,
+    "title": "Сварочный аппарат для ПНД труб KDL 40-200-4",
+    "description": "Вес – 51,7 кг Напряжение питания – 220V±10 ％ Тип сварки – Стыковая",
+    "short_description": "Вес – 51,7 кг Напряжение питания – 220V±10 ％ Тип сварки – Стыковая",
+    "price": "2000",
+    "price_text": "Аренда от 2000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/apparat-dlya-stykovki-trub",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_unnamed-9.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 123,
+    "category_id": 11,
+    "subcategory_id": 1104,
+    "title": "Сварочный аппарат для полиэтиленовых труб МСПТУ-315",
+    "description": "Вес – 200 кг Напряжение питания – 220 В Тип сварки – стыковая",
+    "short_description": "Вес – 200 кг Напряжение питания – 220 В Тип сварки – стыковая",
+    "price": "4000",
+    "price_text": "Аренда 4000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 2,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/apparat-dlya-stykovki-trub",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_u99baa7158d1201f8e42fc89cd71a5015.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 124,
+    "category_id": 11,
+    "subcategory_id": 1104,
+    "title": "Сварочный аппарат для полиэтиленовых труб МСПТУ-450",
+    "description": "Вес – 350 кг Напряжение питания – 380 В Тип сварки – стыковая",
+    "short_description": "Вес – 350 кг Напряжение питания – 380 В Тип сварки – стыковая",
+    "price": "5000",
+    "price_text": "Аренда 5000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 3,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/apparat-dlya-stykovki-trub",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_u31017a6356ed467d7e6c2f57b428f350.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 125,
+    "category_id": 12,
+    "subcategory_id": 1201,
+    "title": "Рейсмусовый станок Jet JWP-12",
+    "description": "Мощность – 1800 Вт Макс. высота среза – 2.5 мм Обороты – 9000 об/мин",
+    "short_description": "Мощность – 1800 Вт Макс. высота среза – 2.5 мм Обороты – 9000 об/мин",
+    "price": "0",
+    "price_text": "Стройка-Аренда на карте Казани — Яндекс Карты",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/reysmusovyy-stanok",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_reismus.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 126,
+    "category_id": 12,
+    "subcategory_id": 1202,
+    "title": "Дрель на магнитной подошве Metabo MAG 32",
+    "description": "Мощность – 1 кВт Max диаметр коронки – 32 мм Крепление – Weldon 19",
+    "short_description": "Мощность – 1 кВт Max диаметр коронки – 32 мм Крепление – Weldon 19",
+    "price": "2000",
+    "price_text": "Аренда 2000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/drel-na-magnitnoy-podoshve",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_magnitka.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 127,
+    "category_id": 12,
+    "subcategory_id": 1202,
+    "title": "Магнитный сверлильный станок Alfra Rotabest 60",
+    "description": "Мощность – 1800 Вт Max диаметр коронки – 80 мм Крепление – Магнит",
+    "short_description": "Мощность – 1800 Вт Max диаметр коронки – 80 мм Крепление – Магнит",
+    "price": "2500",
+    "price_text": "Аренда 2500 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 2,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/drel-na-magnitnoy-podoshve",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_unnamed-1.png",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 128,
+    "category_id": 12,
+    "subcategory_id": 1203,
+    "title": "Плиткорез электрический HAMMER PLR900",
+    "description": "Диаметр диска – 200 мм Длина реза – 630 мм Вес – 31 кг",
+    "short_description": "Диаметр диска – 200 мм Длина реза – 630 мм Вес – 31 кг",
+    "price": "700",
+    "price_text": "Аренда от 700 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/plitkorez",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_4246963208.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 129,
+    "category_id": 12,
+    "subcategory_id": 1203,
+    "title": "Электрический плиткорез Helmut FS250H",
+    "description": "Диаметр диска – 250 мм Длина реза – 1200 мм Вес – 64 кг",
+    "short_description": "Диаметр диска – 250 мм Длина реза – 1200 мм Вес – 64 кг",
+    "price": "2000",
+    "price_text": "Аренда 2000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 2,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/plitkorez",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_363-2002x.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 130,
+    "category_id": 12,
+    "subcategory_id": 1203,
+    "title": "Плиткорез ручной MTX 600",
+    "description": "Диаметр диска – 22 мм Длина реза – 600 мм Вес – 7,35 кг",
+    "short_description": "Диаметр диска – 22 мм Длина реза – 600 мм Вес – 7,35 кг",
+    "price": "500",
+    "price_text": "Аренда 500 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 3,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/plitkorez",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_51084577.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 131,
+    "category_id": 12,
+    "subcategory_id": 1203,
+    "title": "Плиткорез ручной MTX 900",
+    "description": "Диаметр диска – 22 мм Длина реза – 900 мм Вес – 9 кг",
+    "short_description": "Диаметр диска – 22 мм Длина реза – 900 мм Вес – 9 кг",
+    "price": "900",
+    "price_text": "Аренда 900 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 4,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/plitkorez",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_51688965.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 132,
+    "category_id": 12,
+    "subcategory_id": 1204,
+    "title": "Пила монтажная маятниковая MAKITA LC1230 Мощность – 1750 Вт Обороты – 1300 об/мин",
+    "description": "Глубина пропила – 115 мм",
+    "short_description": "Глубина пропила – 115 мм",
+    "price": "800",
+    "price_text": "Аренда 800 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/otreznoy-stanok",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_u65a7197f6bff3bb18f46990928733704.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 133,
+    "category_id": 13,
+    "subcategory_id": 1301,
+    "title": "Установка алмазного бурения Husqvarna DMS 240",
+    "description": "Вес – 24 кг Мощность – 2400 Вт Диапазон – до 250 мм",
+    "short_description": "Вес – 24 кг Мощность – 2400 Вт Диапазон – до 250 мм",
+    "price": "2500",
+    "price_text": "Аренда 2500 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/ustanovka-almaznogo-bureniya",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_u78151ef3b47590c34ac16ee204a91777.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 134,
+    "category_id": 13,
+    "subcategory_id": 1301,
+    "title": "Установка алмазного бурения Cayken SCY-2550C",
+    "description": "Вес – 24 кг Мощность – 4,3 кВт Диапазон – до 255 мм",
+    "short_description": "Вес – 24 кг Мощность – 4,3 кВт Диапазон – до 255 мм",
+    "price": "2000",
+    "price_text": "Аренда 2000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 2,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/ustanovka-almaznogo-bureniya",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_3888924.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 135,
+    "category_id": 13,
+    "subcategory_id": 1302,
+    "title": "Насос для опрессовки труб Rothenberger RP30",
+    "description": "Вес – 4,5 кг Макс. температура – 60 °С Давление – 30 бар",
+    "short_description": "Вес – 4,5 кг Макс. температура – 60 °С Давление – 30 бар",
+    "price": "600",
+    "price_text": "Аренда 600 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/santehnicheskoe-oborudovanie",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_screenshot-8.png",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 136,
+    "category_id": 13,
+    "subcategory_id": 1302,
+    "title": "Насос для опрессовки труб Rothenberger RP-50S",
+    "description": "Вес – 8 кг Производительность – 0,045 л/мин Макс. температура – 50 °С",
+    "short_description": "Вес – 8 кг Производительность – 0,045 л/мин Макс. температура – 50 °С",
+    "price": "800",
+    "price_text": "Аренда 800 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 2,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/santehnicheskoe-oborudovanie",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_b1a0f160347a01d403fff4e63c2eecef76824513.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 137,
+    "category_id": 13,
+    "subcategory_id": 1302,
+    "title": "Насос для опрессовки труб MGF Компакт-60",
+    "description": "Вес – 12,8 кг Мощность – 1750 Вт Производительность – 7 л/мин",
+    "short_description": "Вес – 12,8 кг Мощность – 1750 Вт Производительность – 7 л/мин",
+    "price": "1200",
+    "price_text": "Аренда 1200 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 3,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/santehnicheskoe-oborudovanie",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_kompakt-60-elektro.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 138,
+    "category_id": 13,
+    "subcategory_id": 1302,
+    "title": "Пресс-клещи VALTEC VTm.293",
+    "description": "Вес – 3,1 кг Привод – ручной Макс. диаметр трубы – 32 мм",
+    "short_description": "Вес – 3,1 кг Привод – ручной Макс. диаметр трубы – 32 мм",
+    "price": "600",
+    "price_text": "Аренда 600 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 4,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/santehnicheskoe-oborudovanie",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_u31c38ae1ac487ea70704c70677a783b2.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 139,
+    "category_id": 13,
+    "subcategory_id": 1303,
+    "title": "Окрасочный аппарат Aspro 1800",
+    "description": "Вес – 10 кг Мощность – 900 Вт Производительность – 1,8 л/мин",
+    "short_description": "Вес – 10 кг Мощность – 900 Вт Производительность – 1,8 л/мин",
+    "price": "2000",
+    "price_text": "Аренда от 2000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/okrasochnyy-apparat",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_aspro-1800.png",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 140,
+    "category_id": 13,
+    "subcategory_id": 1303,
+    "title": "Окрасочный аппарат Aspro 4100",
+    "description": "Вес – 36,5 кг Мощность – 1500 Вт Производительность – 4,0 л/мин",
+    "short_description": "Вес – 36,5 кг Мощность – 1500 Вт Производительность – 4,0 л/мин",
+    "price": "3000",
+    "price_text": "Аренда 3000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 2,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/okrasochnyy-apparat",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_aspro-4100.png",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 141,
+    "category_id": 13,
+    "subcategory_id": 1303,
+    "title": "Окрасочный аппарат Aspro 6000",
+    "description": "Вес – 55 кг Мощность – 3000 Вт Производительность – 6,0 л/мин",
+    "short_description": "Вес – 55 кг Мощность – 3000 Вт Производительность – 6,0 л/мин",
+    "price": "4000",
+    "price_text": "Аренда 4000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 3,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/okrasochnyy-apparat",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_aspro-6000.png",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 142,
+    "category_id": 13,
+    "subcategory_id": 1303,
+    "title": "Окрасочный аппарат Graco Mark V",
+    "description": "Вес – 55 кг Мощность – 2800 Вт Производительность – 4,7 л/мин",
+    "short_description": "Вес – 55 кг Мощность – 2800 Вт Производительность – 4,7 л/мин",
+    "price": "5000",
+    "price_text": "Аренда 5000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 4,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/okrasochnyy-apparat",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_graco-texspray-mark-v-procontractor-top.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 143,
+    "category_id": 13,
+    "subcategory_id": 1304,
+    "title": "Резчик кровли CR-146",
+    "description": "Диаметр диска – 310 мм Вес – 70 кг Мощность – 6,0 л.с.",
+    "short_description": "Диаметр диска – 310 мм Вес – 70 кг Мощность – 6,0 л.с.",
+    "price": "2000",
+    "price_text": "Аренда 2000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/krovelnoe-oborudovanie",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_u8c7378a2653676ce08cac26a815e6bd6.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 144,
+    "category_id": 13,
+    "subcategory_id": 1304,
+    "title": "Кровельная горелка Сварис ГВ6-Р",
+    "description": "Вес – 1,3 кг Длина – 108 см Сопло – 2 шт",
+    "short_description": "Вес – 1,3 кг Длина – 108 см Сопло – 2 шт",
+    "price": "500",
+    "price_text": "Аренда 500 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 2,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/krovelnoe-oborudovanie",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_706000988-02x.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 145,
+    "category_id": 13,
+    "subcategory_id": 1304,
+    "title": "Сварочный аппарат для кровли Meltplast WP-1",
+    "description": "Вес – 37 кг Мощность – 4200 Вт",
+    "short_description": "Вес – 37 кг Мощность – 4200 Вт",
+    "price": "4000",
+    "price_text": "Аренда 4000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 3,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/krovelnoe-oborudovanie",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_svarka.png",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 146,
+    "category_id": 14,
+    "subcategory_id": 1401,
+    "title": "Детектор скрытой проводки ADA Wall Scaner 80",
+    "description": "Вес – 120 г Дерева – 20 мм Провода под напряжением – 50 мм",
+    "short_description": "Вес – 120 г Дерева – 20 мм Провода под напряжением – 50 мм",
+    "price": "500",
+    "price_text": "Аренда 500 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/detektor-provodki",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_screenshot-5.png",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 147,
+    "category_id": 14,
+    "subcategory_id": 1402,
+    "title": "Нивелир оптический ADA Ruber X-32",
+    "description": "Вес – 2,5 кг Увеличение – 20х Погрешность – 2,5 мм на 1 км",
+    "short_description": "Вес – 2,5 кг Увеличение – 20х Погрешность – 2,5 мм на 1 км",
+    "price": "700",
+    "price_text": "Аренда 700 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/opticheskiy-nivelir",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_ucec6a1b1649435fefb55bd50d421b9a9.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 148,
+    "category_id": 14,
+    "subcategory_id": 1403,
+    "title": "Ротационный нивелир Bosch GRL 250 HV PROF",
+    "description": "Вес – 3 Количество лучей – 1 Максимальное расстояние – 30 м (250 м)",
+    "short_description": "Вес – 3 Количество лучей – 1 Максимальное расстояние – 30 м (250 м)",
+    "price": "1500",
+    "price_text": "Аренда 1500 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/lazernyy-nivelir",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_0601061600.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 149,
+    "category_id": 14,
+    "subcategory_id": 1403,
+    "title": "Лазерный нивелир RGK SP-310",
+    "description": "Вес – 2 кг Количество лучей – 1 Максимальное расстояние – 300 м",
+    "short_description": "Вес – 2 кг Количество лучей – 1 Максимальное расстояние – 300 м",
+    "price": "1500",
+    "price_text": "Аренда 1500 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 2,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/lazernyy-nivelir",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_1036783770.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 150,
+    "category_id": 14,
+    "subcategory_id": 1404,
+    "title": "Лазерный уровень X-Line helper 2D Количество лучей – 2 Максимальное расстояние – 70 м Направление лучей – вертикальное, горизонтальное, перекрестие",
+    "description": null,
+    "short_description": null,
+    "price": "500",
+    "price_text": "Аренда 500 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/lazernyy-uroven",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_u76b5f6993b4c745e54d4cce62313da4e.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 151,
+    "category_id": 14,
+    "subcategory_id": 1404,
+    "title": "Лазерный уровень Bosch PLL 360",
+    "description": "Вес – 500 г Количество лучей – 2 Максимальное расстояние – 20 м",
+    "short_description": "Вес – 500 г Количество лучей – 2 Максимальное расстояние – 20 м",
+    "price": "700",
+    "price_text": "Аренда 700 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 2,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/lazernyy-uroven",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_uc61f6499f196d838d798207f4f71b67f.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 152,
+    "category_id": 15,
+    "subcategory_id": 1501,
+    "title": "Электрическая тепловая пушка Daire TB-3/4CT Тепловая мощность – 1-3 КВт",
+    "description": "Вес – 3,5 кг Поток воздуха – 230 м3/час",
+    "short_description": "Вес – 3,5 кг Поток воздуха – 230 м3/час",
+    "price": "200",
+    "price_text": "Аренда от 200 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/elektricheskie-teplovye-pushki",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_u97047e1c9475b4595ee51a377157d4f6.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 153,
+    "category_id": 15,
+    "subcategory_id": 1501,
+    "title": "Конвектор Ballu Camino BEC/M-1500 Тепловая мощность – 1,5 КВт",
+    "description": "Вес – 4,2 кг Напряжение питания – 220 Вольт",
+    "short_description": "Вес – 4,2 кг Напряжение питания – 220 Вольт",
+    "price": "150",
+    "price_text": "Аренда от 150 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 2,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/elektricheskie-teplovye-pushki",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_u4c8b901461cbaaee07ac20eceb90c0f3.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 154,
+    "category_id": 15,
+    "subcategory_id": 1501,
+    "title": "Электрическая тепловая пушка Akvilon TP 50S Тепловая мощность – 5 КВт",
+    "description": "Вес – 5,7 кг Поток воздуха – 510 м3/час",
+    "short_description": "Вес – 5,7 кг Поток воздуха – 510 м3/час",
+    "price": "400",
+    "price_text": "Аренда от 400 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 3,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/elektricheskie-teplovye-pushki",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_u39110af3b8238ce823cf78e7e3512e94.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 155,
+    "category_id": 15,
+    "subcategory_id": 1501,
+    "title": "Электрическая тепловая пушка Timberk TIH Q2",
+    "description": "Вес – 12 кг Мощность – 9000 Вт Напряжение – 380 В",
+    "short_description": "Вес – 12 кг Мощность – 9000 Вт Напряжение – 380 В",
+    "price": "500",
+    "price_text": "Аренда от 500 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 4,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/elektricheskie-teplovye-pushki",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_ufc9fb4cb323d198b914501e7ec825392.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 156,
+    "category_id": 15,
+    "subcategory_id": 1502,
+    "title": "Газовая тепловая пушка SIAL KID 60 A Тепловая мощность – 58 кВт",
+    "description": "Вес – 15 кг Расход топлива – 4 л/час",
+    "short_description": "Вес – 15 кг Расход топлива – 4 л/час",
+    "price": "700",
+    "price_text": "Аренда от 700 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/gazovye-teplovye-pushki",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_uc7475508862cb6ee33edfb7c49b7e421.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 157,
+    "category_id": 15,
+    "subcategory_id": 1502,
+    "title": "Газовая тепловая пушка PRORAB LPG 50 Тепловая мощность – 50 кВт",
+    "description": "Вес – 14 кг Расход топлива – 3,6 л/час",
+    "short_description": "Вес – 14 кг Расход топлива – 3,6 л/час",
+    "price": "600",
+    "price_text": "Аренда от 600 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 2,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/gazovye-teplovye-pushki",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_u12a318fd1328a9f8d255c69813d5757c.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 158,
+    "category_id": 15,
+    "subcategory_id": 1502,
+    "title": "Газовая тепловая пушка Ballu BHG-40 Тепловая мощность – 38 КВт",
+    "description": "Вес – 12,6 кг Расход топлива – 2,6 л/час",
+    "short_description": "Вес – 12,6 кг Расход топлива – 2,6 л/час",
+    "price": "600",
+    "price_text": "Аренда от 600 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 3,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/gazovye-teplovye-pushki",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_ballu-bhg-40.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 159,
+    "category_id": 15,
+    "subcategory_id": 1502,
+    "title": "Газовая тепловая пушка Master BLP-10M Тепловая мощность – 10 КВт",
+    "description": "Вес – 4,3 кг Расход топлива – 0.75 л/час",
+    "short_description": "Вес – 4,3 кг Расход топлива – 0.75 л/час",
+    "price": "400",
+    "price_text": "Аренда от 400 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 4,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/gazovye-teplovye-pushki",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_j70zgcuu82okc80gokgw0gg4gkgso0.png",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 160,
+    "category_id": 15,
+    "subcategory_id": 1503,
+    "title": "Дизельная тепловая пушка Master B-150CED Тепловая мощность – 44 КВт",
+    "description": "Вес – 25 кг Расход топлива – 3,5 л/час",
+    "short_description": "Вес – 25 кг Расход топлива – 3,5 л/час",
+    "price": "900",
+    "price_text": "Аренда от 900 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/dizelnye-teplovye-pushki",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_teplovaya-pushka.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 161,
+    "category_id": 15,
+    "subcategory_id": 1503,
+    "title": "Дизельная тепловая пушка Master B-70CED Тепловая мощность – 20 КВт",
+    "description": "Вес – 17 кг Расход топлива – 1,6 л/час",
+    "short_description": "Вес – 17 кг Расход топлива – 1,6 л/час",
+    "price": "700",
+    "price_text": "Аренда от 700 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 2,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/dizelnye-teplovye-pushki",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_landing-2738.png",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 162,
+    "category_id": 15,
+    "subcategory_id": 1503,
+    "title": "Дизельная тепловая пушка Master B360CEA Тепловая мощность – 105 КВт",
+    "description": "Вес – 87 кг Расход топлива – 8,9 кг/час",
+    "short_description": "Вес – 87 кг Расход топлива – 8,9 кг/час",
+    "price": "1400",
+    "price_text": "Аренда от 1400 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 3,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/dizelnye-teplovye-pushki",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_1506719177-b-230-360.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 163,
+    "category_id": 15,
+    "subcategory_id": 1503,
+    "title": "Дизельная тепловая пушка Grost DHI-60",
+    "description": "Вес – 70 кг Мощность – 60 кВт Расход топлива – 4,84 л/час",
+    "short_description": "Вес – 70 кг Мощность – 60 кВт Расход топлива – 4,84 л/час",
+    "price": "1200",
+    "price_text": "Аренда от 1200 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 4,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/dizelnye-teplovye-pushki",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_ubaf1e6068f61ac77f3718e8f9bf0f5fd.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 164,
+    "category_id": 15,
+    "subcategory_id": 1504,
+    "title": "Теплогенератор Master BV690FS Тепловая мощность – 220 КВт",
+    "description": "Вес – 325 кг Расход топлива – 21,46 кг/час",
+    "short_description": "Вес – 325 кг Расход топлива – 21,46 кг/час",
+    "price": "7000",
+    "price_text": "Аренда 7000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/teplogeneratory",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_678895.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 165,
+    "category_id": 17,
+    "subcategory_id": 1701,
+    "title": "Экскаватор JCB 3CX Грузоподъемность – 3300 кг База – колесный Максимальная скорость – 35 км/час",
+    "description": null,
+    "short_description": null,
+    "price": "1200",
+    "price_text": "Аренда 1200 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/ekskavatory",
+    "photos": []
+  },
+  {
+    "id": 166,
+    "category_id": 17,
+    "subcategory_id": 1701,
+    "title": "Мини экскаватор",
+    "description": null,
+    "short_description": null,
+    "price": "800",
+    "price_text": "Аренда 800 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 2,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/ekskavatory",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_u2abad46bcad4848079f22a6176eabbad.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 167,
+    "category_id": 17,
+    "subcategory_id": 1702,
+    "title": "Фронтальный погрузчик Амкадор 333В Грузоподъемность – 3,4 т База – колесный Вырывное усилие – 10500 кг",
+    "description": null,
+    "short_description": null,
+    "price": "1400",
+    "price_text": "Аренда 1400 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/pogruzchik",
+    "photos": []
+  },
+  {
+    "id": 168,
+    "category_id": 17,
+    "subcategory_id": 1702,
+    "title": "Мини погрузчик Bobcat S530 Скорость – 11,8 км/час",
+    "description": "Мощность двигателя – 49,5 л.с. Номинальная грузоподъемность – 869 кг",
+    "short_description": "Мощность двигателя – 49,5 л.с. Номинальная грузоподъемность – 869 кг",
+    "price": "1100",
+    "price_text": "Аренда 1100 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 2,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/pogruzchik",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_uf034464a6cc505185cba0a66a8fd6839.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 169,
+    "category_id": 17,
+    "subcategory_id": 1703,
+    "title": "Манипулятор Грузоподъемность – 12 т",
+    "description": "Длина борта – 7,8 м Вылет стрелы – 12 м",
+    "short_description": "Длина борта – 7,8 м Вылет стрелы – 12 м",
+    "price": "2000",
+    "price_text": "Аренда 2000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/manipulyator",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_u15a8443c37ed88f3b5849ce8fe9542d0.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 170,
+    "category_id": 17,
+    "subcategory_id": 1704,
+    "title": "Вибрационный каток Ammann ASC150 Тип – одновальцевый Масса – 17 т",
+    "description": "Ширина вальца – 2200 мм",
+    "short_description": "Ширина вальца – 2200 мм",
+    "price": "2000",
+    "price_text": "Аренда 2000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/dorozhnye-katki",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_ud279e0c746ff781c07d0d607d00b6664.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 171,
+    "category_id": 17,
+    "subcategory_id": 1704,
+    "title": "Двухвальцовый каток Dynapac CC1300 Тип – двухвальцовый Масса – 3,9 т",
+    "description": "Ширина вальца – 1300 мм",
+    "short_description": "Ширина вальца – 1300 мм",
+    "price": "1500",
+    "price_text": "Аренда 1500 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 2,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/dorozhnye-katki",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_u3cea05d7e770c20d930a32270ef47667.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 172,
+    "category_id": 18,
+    "subcategory_id": 1801,
+    "title": "Канистра металлическая",
+    "description": null,
+    "short_description": null,
+    "price": "200",
+    "price_text": "Аренда 200 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/kanistra",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_u3cfa4e11d7d9e10c698cae738b1c1a08.jpeg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 173,
+    "category_id": 18,
+    "subcategory_id": 1802,
+    "title": "Монтажный пистолет Toua GSN50E",
+    "description": "Вес – 4,3 кг Мощность – 100 Дж Длина дюбелей – 15-40 мм",
+    "short_description": "Вес – 4,3 кг Мощность – 100 Дж Длина дюбелей – 15-40 мм",
+    "price": "1500",
+    "price_text": "Аренда 1500 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/montazhnyy-pistolet",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_toua-gsn50e-gas-nailer.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 174,
+    "category_id": 18,
+    "subcategory_id": 1802,
+    "title": "Монтажный пистолет Hilti GX120",
+    "description": "Вес – 4 Мощность – 100 Дж Длина дюбелей – 14 - 39 мм",
+    "short_description": "Вес – 4 Мощность – 100 Дж Длина дюбелей – 14 - 39 мм",
+    "price": "1200",
+    "price_text": "Аренда 1200 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 2,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/montazhnyy-pistolet",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_pistolet.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 175,
+    "category_id": 18,
+    "subcategory_id": 1802,
+    "title": "Монтажный пистолет Hilti DX E72",
+    "description": "Вес – 2 кг Мощность – 362 Дж Длина дюбелей – 14-72 мм",
+    "short_description": "Вес – 2 кг Мощность – 362 Дж Длина дюбелей – 14-72 мм",
+    "price": "1200",
+    "price_text": "Аренда 1200 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 3,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/montazhnyy-pistolet",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_u3cee77990c827a8d17d433d65f5fd53d.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 176,
+    "category_id": 18,
+    "subcategory_id": 1802,
+    "title": "Монтажный пистолет Hilti BX3",
+    "description": "Вес – 3.3 кг Длина дюбелей – 14 - 24 мм",
+    "short_description": "Вес – 3.3 кг Длина дюбелей – 14 - 24 мм",
+    "price": "1200",
+    "price_text": "Аренда 1200 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 4,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/montazhnyy-pistolet",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_pistolet1.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 177,
+    "category_id": 18,
+    "subcategory_id": 1803,
+    "title": "Когти монтерские КМ-1 Раствор когтя – 245+/-10 мм",
+    "description": "Диаметр опор – 140-245 мм Масса когтей с ремнями – не более 3,6 кг",
+    "short_description": "Диаметр опор – 140-245 мм Масса когтей с ремнями – не более 3,6 кг",
+    "price": "350",
+    "price_text": "Аренда 350 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/kogti-monterskie",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_uea8c5db89a45e690f340f84c931af0a6.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 178,
+    "category_id": 18,
+    "subcategory_id": 1803,
+    "title": "Когти монтерские КМ-2 Раствор когтя – 315+/-10 мм",
+    "description": "Диаметр опор – 220-315 мм Масса когтей с ремнями – не более 4,1 кг",
+    "short_description": "Диаметр опор – 220-315 мм Масса когтей с ремнями – не более 4,1 кг",
+    "price": "350",
+    "price_text": "Аренда 350 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 2,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/kogti-monterskie",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_u1688522a7f7c9bb06f99fa602760ea99.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 179,
+    "category_id": 18,
+    "subcategory_id": 1803,
+    "title": "Лазы универсальные ЛУ-1 Раствор когтя – 415+/-10 мм Раствор лаз – 310-415 мм",
+    "description": null,
+    "short_description": null,
+    "price": "350",
+    "price_text": "Аренда 350 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 3,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/kogti-monterskie",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_u59962fdd4da74e2a72d94f085300913d.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 180,
+    "category_id": 18,
+    "subcategory_id": 1803,
+    "title": "Когти монтерские КМ-3 Раствор когтя – 415+/-10 мм",
+    "description": "Диаметр опор – 310-415 мм Масса когтей с ремнями – не более 4,5 кг",
+    "short_description": "Диаметр опор – 310-415 мм Масса когтей с ремнями – не более 4,5 кг",
+    "price": "350",
+    "price_text": "Аренда 350 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 4,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/kogti-monterskie",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_u8bba41d5156478095806d1d43676d596.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 181,
+    "category_id": 18,
+    "subcategory_id": 1804,
+    "title": "Прицеп Уралец Габариты – 2500х1500х1500 мм",
+    "description": null,
+    "short_description": null,
+    "price": "1000",
+    "price_text": "Аренда от 1000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 1,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/pricepy",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in714xin358_274dbacb-6a40-43b3-91cc-d3ca79bbcd8c.jpeg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 182,
+    "category_id": 18,
+    "subcategory_id": 1804,
+    "title": "Прицеп Тавиалс старт А2512 Габариты – 2000х1230х1000 мм",
+    "description": null,
+    "short_description": null,
+    "price": "900",
+    "price_text": "Аренда от 900 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 2,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/pricepy",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_saaaagocvoa-1920.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 183,
+    "category_id": 18,
+    "subcategory_id": 1804,
+    "title": "Тавиалс старт А2515 Габариты – 2500х1500х1500 мм",
+    "description": null,
+    "short_description": null,
+    "price": "1000",
+    "price_text": "Аренда от 1000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 3,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/pricepy",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_tgaaagkphua-1920.jpg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  },
+  {
+    "id": 184,
+    "category_id": 18,
+    "subcategory_id": 1804,
+    "title": "Прицеп КМЗ Оптима 3м Габариты – 3000х1500х350 мм",
+    "description": null,
+    "short_description": null,
+    "price": "1000",
+    "price_text": "Аренда от 1000 р.",
+    "available_quantity": 1,
+    "is_featured": false,
+    "sort_order": 4,
+    "status": "ACTIVE",
+    "min_rental_period": 1,
+    "max_rental_period": null,
+    "views_count": 0,
+    "orders_count": 0,
+    "source_url": "https://stroika-arenda.ru/arenda/pricepy",
+    "photos": [
+      {
+        "url": "https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_i.jpeg",
+        "sort_order": 0,
+        "is_main": true
+      }
+    ]
+  }
+]

@@ -4,7 +4,7 @@ from status.rental_status import RentalStatus
 from status.user_status import AccountStatus
 from status.support_ticket_status import SupportTicketStatus
 from schemas.rental import RentalAdminDetailsOut
-
+from utils.callbacks import ADMIN_ADD_ITEM_CB
 
 def get_admin_menu_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
@@ -20,6 +20,9 @@ def get_admin_menu_keyboard() -> InlineKeyboardMarkup:
             [
                 InlineKeyboardButton(text="🆘 Поддержка", callback_data="admin:support"),
                 InlineKeyboardButton(text="📚 Контент/FAQ", callback_data="admin:content"),
+            ],
+            [
+                InlineKeyboardButton(text="➕ Создать объявление", callback_data=ADMIN_ADD_ITEM_CB),
             ],
             [
                 InlineKeyboardButton(text="🔙 Назад в меню", callback_data="admin:exit"),

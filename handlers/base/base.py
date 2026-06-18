@@ -6,10 +6,9 @@ from aiogram.filters import CommandStart
 from handlers.base.helpers_base import (resolve_main_menu_action, normalize_menu_text, safe_answer_for_blocked,
                                         CANCELLED_TO_MAIN_MENU_TEXT, UNKNOWN_MAIN_MENU_TEXT)
 from handlers.entries.base_entry import show_main_menu
-from handlers.entries.auth_entry import start_registration
-
+from handlers.entries.auth_entry import start_registration, request_phone_confirmation
 from services.category_service import CategoryService
-from services.item_service import ItemService
+from services.rental_service import RentalService
 from services.user_service import UserService, StartAction
 
 from keyboards.main_kb import get_main_menu_keyboard
@@ -17,14 +16,18 @@ from texts.base import LEGAL_TEXT, HELP_TEXT, build_unknown_command_text
 
 base_router = Router()
 
-# ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+# TODO: Если у пользователя есть непрочитанные уведомления - сообщаем/показываем
+
+# ─────────────────────────────────────────────── /start ───────────────────────────────────────────────────────────────
 @base_router.message(CommandStart())
 @base_router.message(F.text == "🏠 Главное меню")
 async def start(message: Message, state: FSMContext, user_service: UserService) -> None:
     """Универсальная точка входа.
 
-    - Если пользователя нет — запускает регистрацию.
-    - Если есть — приветствует и показывает главное меню"""
+    - если клиента нет в базе — запускаем регистрацию;
+    - если клиент заблокирован — показываем блокировку;
+    - если клиент не подтвердил телефон — просим контакт;
+    - если всё хорошо — показываем главное меню клиента."""
 
     await state.clear()
 
@@ -34,6 +37,10 @@ async def start(message: Message, state: FSMContext, user_service: UserService) 
     # Если новый — регистрируем
     if result.action == StartAction.REGISTER:
         return await start_registration(message, user_service)
+
+    # Если пользователь уже есть, но телефон ещё не подтверждён — повторно показываем кнопку контакта
+    if result.action == StartAction.NEED_PHONE:
+        return await request_phone_confirmation(message)
 
     # Проверяем блокировку
     if result.action == StartAction.ACCESS_BLOCKED:
@@ -73,10 +80,10 @@ async def cancel(message: Message, state: FSMContext, user) -> None:
     return await show_main_menu(message, user)
 
 @base_router.message(F.text.startswith("/"))
-async def unknown_command(message: Message, user) -> None:
+async def unknown_command(message: Message) -> None:
     """Отвечает на неизвестную команду."""
     command = message.text
-    await message.answer(build_unknown_command_text(command), reply_markup=get_main_menu_keyboard(user))
+    await message.answer(build_unknown_command_text(command), reply_markup=get_main_menu_keyboard())
 
 @base_router.callback_query(F.data == "noop")
 async def noop(callback) -> None:
@@ -90,16 +97,16 @@ async def text_message_handler(
         message: Message,
         state: FSMContext,
         category_service: CategoryService,
-        item_service: ItemService,
+        rental_service: RentalService,
         user
 ) -> None:
-    """Обрабатывает текстовые сообщения от пользователя в главном меню.
+    """Обрабатывает текстовые сообщения от клиента в главном меню.
 
-    - определяет по тексту (или по ID кнопки), что пользователь хотел
+    - определяет по тексту, что пользователь хотел
     - вызывает нужный сценарий (handler-функцию)
     """
     text = normalize_menu_text(message.text)
-    action = resolve_main_menu_action(message, state, category_service, item_service, user=user, text=text)
+    action = resolve_main_menu_action(message, state, category_service, rental_service, user=user, text=text)
 
     # Если текст не соответствует ни одной кнопке
     if action is None:

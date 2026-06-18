@@ -29,7 +29,6 @@ async def admin_deals_list(callback: CallbackQuery, admin_rental_service: AdminR
     #await state.clear()
     await show_deals_list(callback, admin_rental_service, page=1)
 
-
 @admin_deals_router.callback_query(F.data.startswith(DEALS_PAGE_PREFIX))
 async def admin_deals_page(callback: CallbackQuery, admin_rental_service: AdminRentalService) -> None:
     """Пагинация списка сделок"""
@@ -37,7 +36,6 @@ async def admin_deals_page(callback: CallbackQuery, admin_rental_service: AdminR
 
     page = parse_admin_page(callback.data)
     await show_deals_list(callback, admin_rental_service, page=page)
-
 
 @admin_deals_router.callback_query(F.data.startswith(DEALS_VIEW_PREFIX))
 async def admin_deals_view(callback: CallbackQuery, admin_rental_service: AdminRentalService) -> None:
@@ -59,6 +57,7 @@ async def admin_deals_view(callback: CallbackQuery, admin_rental_service: AdminR
         format_deal_details(details),
         get_admin_deal_details_keyboard(rental_id=rental_id, status=details.rental.status)
     )
+
 
 # ─────────────────────────────────────────── 🔎 Открыть сделку по ID ──────────────────────────────────────────────────
 @admin_deals_router.callback_query(F.data == DEALS_BY_ID_PREFIX)
@@ -103,12 +102,12 @@ async def admin_deals_cancel_ask(callback: CallbackQuery, state: FSMContext) -> 
         #await callback.answer("Некорректный ID", show_alert=True)
         return
 
-    await state.set_state(AdminStates.waiting_cancel_reason)
+    await state.set_state(AdminStates.waiting_rental_cancel_reason) # .waiting_cancel_reason
     await state.update_data(rental_id=rental_id)
 
     await send_or_edit(callback, f"🚫 Укажите причину отмены сделки #{rental_id}:", None)
 
-@admin_deals_router.message(AdminStates.waiting_cancel_reason)
+@admin_deals_router.message(AdminStates.waiting_rental_cancel_reason) # .waiting_cancel_reason
 async def admin_deals_cancel_apply(message: Message,state: FSMContext, admin_rental_service: AdminRentalService) -> None:
     """Применить отмену сделки с причиной"""
     data = await state.get_data()
@@ -160,8 +159,7 @@ async def admin_deals_resolve_ask(callback: CallbackQuery, state: FSMContext) ->
 
     await send_or_edit(callback, f"✅ Введите решение по спору сделки #{rental_id} (кратко):", None)
 
-
-@admin_deals_router.message(AdminStates.waiting_dispute_resolution)
+@admin_deals_router.message(AdminStates.waiting_rental_resolution) # .waiting_dispute_resolution
 async def admin_deals_resolve_collect_resolution(message: Message, state: FSMContext) -> None:
     """Сохранить текст решения по спору и запросить итоговый статус"""
     data = await state.get_data()
@@ -178,7 +176,7 @@ async def admin_deals_resolve_collect_resolution(message: Message, state: FSMCon
         await message.answer("❌ Решение не может быть пустым. Введите текст:")
         return
 
-    await state.set_state(AdminStates.waiting_dispute_target)
+    await state.set_state(AdminStates.waiting_rental_resolution)  # .waiting_dispute_resolution
     await state.update_data(resolution=resolution)
 
     await send_or_edit(
@@ -186,6 +184,7 @@ async def admin_deals_resolve_collect_resolution(message: Message, state: FSMCon
         f"Выберите исход закрытия спора по сделке #{rental_id}.\n\n 📝 Решение:\n{resolution}",
         get_admin_dispute_target_keyboard(rental_id)
     )
+
 
 # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 @admin_deals_router.callback_query(F.data.startswith(DEALS_RESOLVE_TARGET_PREFIX))

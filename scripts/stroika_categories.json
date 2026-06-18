@@ -1,0 +1,758 @@
+[
+  {
+    "id": 1,
+    "name": "Дорожно-строительная техника",
+    "emoji": "🚧",
+    "parent_id": null,
+    "slug": "dorozhno-stroitelnaya-tehnika",
+    "sort_order": 1,
+    "is_active": true
+  },
+  {
+    "id": 101,
+    "name": "Виброплиты",
+    "emoji": "▫️",
+    "parent_id": 1,
+    "slug": "vibroplity",
+    "sort_order": 1,
+    "is_active": true
+  },
+  {
+    "id": 102,
+    "name": "Вибротрамбовки",
+    "emoji": "▫️",
+    "parent_id": 1,
+    "slug": "vibrotrambovki",
+    "sort_order": 2,
+    "is_active": true
+  },
+  {
+    "id": 103,
+    "name": "Резчики швов",
+    "emoji": "▫️",
+    "parent_id": 1,
+    "slug": "rezchiki-shvov",
+    "sort_order": 3,
+    "is_active": true
+  },
+  {
+    "id": 104,
+    "name": "Бензорезы",
+    "emoji": "▫️",
+    "parent_id": 1,
+    "slug": "benzorezy",
+    "sort_order": 4,
+    "is_active": true
+  },
+  {
+    "id": 2,
+    "name": "Электро инструменты",
+    "emoji": "🛠",
+    "parent_id": null,
+    "slug": "elektro-instrumenty",
+    "sort_order": 2,
+    "is_active": true
+  },
+  {
+    "id": 201,
+    "name": "Отбойные молотки",
+    "emoji": "▫️",
+    "parent_id": 2,
+    "slug": "otboynye-molotki",
+    "sort_order": 1,
+    "is_active": true
+  },
+  {
+    "id": 202,
+    "name": "Перфораторы",
+    "emoji": "▫️",
+    "parent_id": 2,
+    "slug": "perforatory",
+    "sort_order": 2,
+    "is_active": true
+  },
+  {
+    "id": 203,
+    "name": "Штроборезы",
+    "emoji": "▫️",
+    "parent_id": 2,
+    "slug": "shtroborezy",
+    "sort_order": 3,
+    "is_active": true
+  },
+  {
+    "id": 204,
+    "name": "Торцовочные пилы",
+    "emoji": "▫️",
+    "parent_id": 2,
+    "slug": "tortsovochnye-pily",
+    "sort_order": 4,
+    "is_active": true
+  },
+  {
+    "id": 3,
+    "name": "Генераторы",
+    "emoji": "⚡",
+    "parent_id": null,
+    "slug": "generatory",
+    "sort_order": 3,
+    "is_active": true
+  },
+  {
+    "id": 301,
+    "name": "Дизельные генераторы",
+    "emoji": "▫️",
+    "parent_id": 3,
+    "slug": "dizelnye-generatory",
+    "sort_order": 1,
+    "is_active": true
+  },
+  {
+    "id": 302,
+    "name": "Бензиновые генераторы",
+    "emoji": "▫️",
+    "parent_id": 3,
+    "slug": "benzinovye-generatory",
+    "sort_order": 2,
+    "is_active": true
+  },
+  {
+    "id": 4,
+    "name": "Садовая техника",
+    "emoji": "🌿",
+    "parent_id": null,
+    "slug": "sadovaya-tehnika",
+    "sort_order": 4,
+    "is_active": true
+  },
+  {
+    "id": 401,
+    "name": "Бензобур",
+    "emoji": "▫️",
+    "parent_id": 4,
+    "slug": "benzobur",
+    "sort_order": 1,
+    "is_active": true
+  },
+  {
+    "id": 402,
+    "name": "Триммер",
+    "emoji": "▫️",
+    "parent_id": 4,
+    "slug": "trimmer",
+    "sort_order": 2,
+    "is_active": true
+  },
+  {
+    "id": 403,
+    "name": "Бензопила",
+    "emoji": "▫️",
+    "parent_id": 4,
+    "slug": "benzopila",
+    "sort_order": 3,
+    "is_active": true
+  },
+  {
+    "id": 404,
+    "name": "Культиваторы и мотоблоки",
+    "emoji": "▫️",
+    "parent_id": 4,
+    "slug": "kultivatory-i-motobloki",
+    "sort_order": 4,
+    "is_active": true
+  },
+  {
+    "id": 5,
+    "name": "Шлифовальное оборудование",
+    "emoji": "🪚",
+    "parent_id": null,
+    "slug": "shlifovalnoe-oborudovanie",
+    "sort_order": 5,
+    "is_active": true
+  },
+  {
+    "id": 501,
+    "name": "Мозаично-шлифовальные машины",
+    "emoji": "▫️",
+    "parent_id": 5,
+    "slug": "mozaichno-shlifovalnye-mashiny",
+    "sort_order": 1,
+    "is_active": true
+  },
+  {
+    "id": 502,
+    "name": "Паркето-шлифовальные машины",
+    "emoji": "▫️",
+    "parent_id": 5,
+    "slug": "parketo-shlifovalnye-mashiny",
+    "sort_order": 2,
+    "is_active": true
+  },
+  {
+    "id": 503,
+    "name": "Затирочные машины по бетону",
+    "emoji": "▫️",
+    "parent_id": 5,
+    "slug": "zatirochnye-mashiny-po-betonu",
+    "sort_order": 3,
+    "is_active": true
+  },
+  {
+    "id": 504,
+    "name": "Эксцентриковые шлифовальные машины",
+    "emoji": "▫️",
+    "parent_id": 5,
+    "slug": "ekstsentrikovye-shlifovalnye-mashiny",
+    "sort_order": 4,
+    "is_active": true
+  },
+  {
+    "id": 6,
+    "name": "Оборудование для бетона",
+    "emoji": "🧱",
+    "parent_id": null,
+    "slug": "oborudovanie-dlya-betona",
+    "sort_order": 6,
+    "is_active": true
+  },
+  {
+    "id": 601,
+    "name": "Виброрейка",
+    "emoji": "▫️",
+    "parent_id": 6,
+    "slug": "vibroreyka",
+    "sort_order": 1,
+    "is_active": true
+  },
+  {
+    "id": 602,
+    "name": "Бетономешалка",
+    "emoji": "▫️",
+    "parent_id": 6,
+    "slug": "betonomeshalka",
+    "sort_order": 2,
+    "is_active": true
+  },
+  {
+    "id": 603,
+    "name": "Глубинный вибратор",
+    "emoji": "▫️",
+    "parent_id": 6,
+    "slug": "glubinnyy-vibrator",
+    "sort_order": 3,
+    "is_active": true
+  },
+  {
+    "id": 604,
+    "name": "Миксер",
+    "emoji": "▫️",
+    "parent_id": 6,
+    "slug": "mikser",
+    "sort_order": 4,
+    "is_active": true
+  },
+  {
+    "id": 7,
+    "name": "Леса и опалубка",
+    "emoji": "🏗",
+    "parent_id": null,
+    "slug": "lesa-i-opalubka",
+    "sort_order": 7,
+    "is_active": true
+  },
+  {
+    "id": 701,
+    "name": "Строительные леса",
+    "emoji": "▫️",
+    "parent_id": 7,
+    "slug": "stroitelnye-lesa",
+    "sort_order": 1,
+    "is_active": true
+  },
+  {
+    "id": 702,
+    "name": "Вышки тура",
+    "emoji": "▫️",
+    "parent_id": 7,
+    "slug": "vyshki-tura",
+    "sort_order": 2,
+    "is_active": true
+  },
+  {
+    "id": 703,
+    "name": "Лестницы и стремянки",
+    "emoji": "▫️",
+    "parent_id": 7,
+    "slug": "lestnitsy-i-stremyanki",
+    "sort_order": 3,
+    "is_active": true
+  },
+  {
+    "id": 704,
+    "name": "Опалубка",
+    "emoji": "▫️",
+    "parent_id": 7,
+    "slug": "opalubka",
+    "sort_order": 4,
+    "is_active": true
+  },
+  {
+    "id": 8,
+    "name": "Мойка и уборка",
+    "emoji": "🧽",
+    "parent_id": null,
+    "slug": "moyka-i-uborka",
+    "sort_order": 8,
+    "is_active": true
+  },
+  {
+    "id": 801,
+    "name": "Пароочиститель",
+    "emoji": "▫️",
+    "parent_id": 8,
+    "slug": "paroochistitel",
+    "sort_order": 1,
+    "is_active": true
+  },
+  {
+    "id": 802,
+    "name": "Промышленный пылесос",
+    "emoji": "▫️",
+    "parent_id": 8,
+    "slug": "promyshlennyy-pylesos",
+    "sort_order": 2,
+    "is_active": true
+  },
+  {
+    "id": 803,
+    "name": "Минимойка",
+    "emoji": "▫️",
+    "parent_id": 8,
+    "slug": "minimoyka",
+    "sort_order": 3,
+    "is_active": true
+  },
+  {
+    "id": 804,
+    "name": "Роботы для уборки",
+    "emoji": "▫️",
+    "parent_id": 8,
+    "slug": "roboty-dlya-uborki",
+    "sort_order": 4,
+    "is_active": true
+  },
+  {
+    "id": 9,
+    "name": "Подъёмное оборудование",
+    "emoji": "⬆️",
+    "parent_id": null,
+    "slug": "podemnoe-oborudovanie",
+    "sort_order": 9,
+    "is_active": true
+  },
+  {
+    "id": 901,
+    "name": "Кран Пионер",
+    "emoji": "▫️",
+    "parent_id": 9,
+    "slug": "kran-pioner",
+    "sort_order": 1,
+    "is_active": true
+  },
+  {
+    "id": 902,
+    "name": "Кран Умелец",
+    "emoji": "▫️",
+    "parent_id": 9,
+    "slug": "kran-umelets",
+    "sort_order": 2,
+    "is_active": true
+  },
+  {
+    "id": 903,
+    "name": "Ножничный подъемник",
+    "emoji": "▫️",
+    "parent_id": 9,
+    "slug": "nozhnichnyy-podemnik",
+    "sort_order": 3,
+    "is_active": true
+  },
+  {
+    "id": 904,
+    "name": "Коленчатый подъемник",
+    "emoji": "▫️",
+    "parent_id": 9,
+    "slug": "kolenchatyy-podemnik",
+    "sort_order": 4,
+    "is_active": true
+  },
+  {
+    "id": 10,
+    "name": "Компрессоры и насосы",
+    "emoji": "💨",
+    "parent_id": null,
+    "slug": "kompressory-i-nasosy",
+    "sort_order": 10,
+    "is_active": true
+  },
+  {
+    "id": 1001,
+    "name": "Дизельные компрессоры",
+    "emoji": "▫️",
+    "parent_id": 10,
+    "slug": "dizelnye-kompressory",
+    "sort_order": 1,
+    "is_active": true
+  },
+  {
+    "id": 1002,
+    "name": "Электрические компрессоры",
+    "emoji": "▫️",
+    "parent_id": 10,
+    "slug": "elektricheskie-kompressory",
+    "sort_order": 2,
+    "is_active": true
+  },
+  {
+    "id": 1003,
+    "name": "Мотопомпы",
+    "emoji": "▫️",
+    "parent_id": 10,
+    "slug": "motopompy",
+    "sort_order": 3,
+    "is_active": true
+  },
+  {
+    "id": 1004,
+    "name": "Погружные насосы",
+    "emoji": "▫️",
+    "parent_id": 10,
+    "slug": "pogruzhnye-nasosy",
+    "sort_order": 4,
+    "is_active": true
+  },
+  {
+    "id": 11,
+    "name": "Сварка и пайка",
+    "emoji": "🔥",
+    "parent_id": null,
+    "slug": "svarka-i-payka",
+    "sort_order": 11,
+    "is_active": true
+  },
+  {
+    "id": 1101,
+    "name": "Сварочный аппарат",
+    "emoji": "▫️",
+    "parent_id": 11,
+    "slug": "svarochnyy-apparat",
+    "sort_order": 1,
+    "is_active": true
+  },
+  {
+    "id": 1102,
+    "name": "Паяльник для полипропиленовых труб",
+    "emoji": "▫️",
+    "parent_id": 11,
+    "slug": "payalnik-dlya-polipropilenovyh-trub",
+    "sort_order": 2,
+    "is_active": true
+  },
+  {
+    "id": 1103,
+    "name": "Паяльник для линолеума",
+    "emoji": "▫️",
+    "parent_id": 11,
+    "slug": "payalnik-dlya-linoleuma",
+    "sort_order": 3,
+    "is_active": true
+  },
+  {
+    "id": 1104,
+    "name": "Аппарат для стыковки труб большого диаметра",
+    "emoji": "▫️",
+    "parent_id": 11,
+    "slug": "apparat-dlya-stykovki-trub-bolshogo-diametra",
+    "sort_order": 4,
+    "is_active": true
+  },
+  {
+    "id": 12,
+    "name": "Станки",
+    "emoji": "⚙️",
+    "parent_id": null,
+    "slug": "stanki",
+    "sort_order": 12,
+    "is_active": true
+  },
+  {
+    "id": 1201,
+    "name": "Рейсмусовый станок",
+    "emoji": "▫️",
+    "parent_id": 12,
+    "slug": "reysmusovyy-stanok",
+    "sort_order": 1,
+    "is_active": true
+  },
+  {
+    "id": 1202,
+    "name": "Дрель на магнитной подошве",
+    "emoji": "▫️",
+    "parent_id": 12,
+    "slug": "drel-na-magnitnoy-podoshve",
+    "sort_order": 2,
+    "is_active": true
+  },
+  {
+    "id": 1203,
+    "name": "Плиткорезы",
+    "emoji": "▫️",
+    "parent_id": 12,
+    "slug": "plitkorezy",
+    "sort_order": 3,
+    "is_active": true
+  },
+  {
+    "id": 1204,
+    "name": "Отрезной станок",
+    "emoji": "▫️",
+    "parent_id": 12,
+    "slug": "otreznoy-stanok",
+    "sort_order": 4,
+    "is_active": true
+  },
+  {
+    "id": 13,
+    "name": "Специализированное оборудование",
+    "emoji": "🧰",
+    "parent_id": null,
+    "slug": "spetsializirovannoe-oborudovanie",
+    "sort_order": 13,
+    "is_active": true
+  },
+  {
+    "id": 1301,
+    "name": "Установка алмазного бурения",
+    "emoji": "▫️",
+    "parent_id": 13,
+    "slug": "ustanovka-almaznogo-bureniya",
+    "sort_order": 1,
+    "is_active": true
+  },
+  {
+    "id": 1302,
+    "name": "Сантехническое оборудование",
+    "emoji": "▫️",
+    "parent_id": 13,
+    "slug": "santehnicheskoe-oborudovanie",
+    "sort_order": 2,
+    "is_active": true
+  },
+  {
+    "id": 1303,
+    "name": "Окрасочный аппарат",
+    "emoji": "▫️",
+    "parent_id": 13,
+    "slug": "okrasochnyy-apparat",
+    "sort_order": 3,
+    "is_active": true
+  },
+  {
+    "id": 1304,
+    "name": "Кровельное оборудование",
+    "emoji": "▫️",
+    "parent_id": 13,
+    "slug": "krovelnoe-oborudovanie",
+    "sort_order": 4,
+    "is_active": true
+  },
+  {
+    "id": 14,
+    "name": "Измерительные инструменты",
+    "emoji": "📏",
+    "parent_id": null,
+    "slug": "izmeritelnye-instrumenty",
+    "sort_order": 14,
+    "is_active": true
+  },
+  {
+    "id": 1401,
+    "name": "Детектор проводки",
+    "emoji": "▫️",
+    "parent_id": 14,
+    "slug": "detektor-provodki",
+    "sort_order": 1,
+    "is_active": true
+  },
+  {
+    "id": 1402,
+    "name": "Оптический нивелир",
+    "emoji": "▫️",
+    "parent_id": 14,
+    "slug": "opticheskiy-nivelir",
+    "sort_order": 2,
+    "is_active": true
+  },
+  {
+    "id": 1403,
+    "name": "Лазерный нивелир",
+    "emoji": "▫️",
+    "parent_id": 14,
+    "slug": "lazernyy-nivelir",
+    "sort_order": 3,
+    "is_active": true
+  },
+  {
+    "id": 1404,
+    "name": "Лазерный уровень",
+    "emoji": "▫️",
+    "parent_id": 14,
+    "slug": "lazernyy-uroven",
+    "sort_order": 4,
+    "is_active": true
+  },
+  {
+    "id": 15,
+    "name": "Тепловые пушки",
+    "emoji": "♨️",
+    "parent_id": null,
+    "slug": "teplovye-pushki",
+    "sort_order": 15,
+    "is_active": true
+  },
+  {
+    "id": 1501,
+    "name": "Электрические тепловые пушки",
+    "emoji": "▫️",
+    "parent_id": 15,
+    "slug": "elektricheskie-teplovye-pushki",
+    "sort_order": 1,
+    "is_active": true
+  },
+  {
+    "id": 1502,
+    "name": "Газовые тепловые пушки",
+    "emoji": "▫️",
+    "parent_id": 15,
+    "slug": "gazovye-teplovye-pushki",
+    "sort_order": 2,
+    "is_active": true
+  },
+  {
+    "id": 1503,
+    "name": "Дизельные тепловые пушки",
+    "emoji": "▫️",
+    "parent_id": 15,
+    "slug": "dizelnye-teplovye-pushki",
+    "sort_order": 3,
+    "is_active": true
+  },
+  {
+    "id": 1504,
+    "name": "Теплогенераторы",
+    "emoji": "▫️",
+    "parent_id": 15,
+    "slug": "teplogeneratory",
+    "sort_order": 4,
+    "is_active": true
+  },
+  {
+    "id": 16,
+    "name": "Бытовки",
+    "emoji": "🏠",
+    "parent_id": null,
+    "slug": "bytovki",
+    "sort_order": 16,
+    "is_active": true
+  },
+  {
+    "id": 17,
+    "name": "Спецтехника",
+    "emoji": "🚜",
+    "parent_id": null,
+    "slug": "spetstehnika",
+    "sort_order": 17,
+    "is_active": true
+  },
+  {
+    "id": 1701,
+    "name": "Экскаваторы",
+    "emoji": "▫️",
+    "parent_id": 17,
+    "slug": "ekskavatory",
+    "sort_order": 1,
+    "is_active": true
+  },
+  {
+    "id": 1702,
+    "name": "Погрузчик",
+    "emoji": "▫️",
+    "parent_id": 17,
+    "slug": "pogruzchik",
+    "sort_order": 2,
+    "is_active": true
+  },
+  {
+    "id": 1703,
+    "name": "Манипулятор",
+    "emoji": "▫️",
+    "parent_id": 17,
+    "slug": "manipulyator",
+    "sort_order": 3,
+    "is_active": true
+  },
+  {
+    "id": 1704,
+    "name": "Дорожные катки",
+    "emoji": "▫️",
+    "parent_id": 17,
+    "slug": "dorozhnye-katki",
+    "sort_order": 4,
+    "is_active": true
+  },
+  {
+    "id": 18,
+    "name": "Прочее",
+    "emoji": "📦",
+    "parent_id": null,
+    "slug": "prochee",
+    "sort_order": 18,
+    "is_active": true
+  },
+  {
+    "id": 1801,
+    "name": "Канистра",
+    "emoji": "▫️",
+    "parent_id": 18,
+    "slug": "kanistra",
+    "sort_order": 1,
+    "is_active": true
+  },
+  {
+    "id": 1802,
+    "name": "Монтажный пистолет",
+    "emoji": "▫️",
+    "parent_id": 18,
+    "slug": "montazhnyy-pistolet",
+    "sort_order": 2,
+    "is_active": true
+  },
+  {
+    "id": 1803,
+    "name": "Когти монтерские",
+    "emoji": "▫️",
+    "parent_id": 18,
+    "slug": "kogti-monterskie",
+    "sort_order": 3,
+    "is_active": true
+  },
+  {
+    "id": 1804,
+    "name": "Прицепы",
+    "emoji": "▫️",
+    "parent_id": 18,
+    "slug": "pritsepy",
+    "sort_order": 4,
+    "is_active": true
+  }
+]

@@ -159,7 +159,11 @@ async def show_all_photos(callback: CallbackQuery, photo_service: PhotoService) 
     # Отправляем альбом (это всегда новое сообщение)
     media = build_photo_media(photos)
     if not media:
-        await send_or_edit(callback, not_photos)
+        await send_or_edit(
+            callback,
+            "⚠️ У этого товара пока нет доступных фото.",
+            markup=build_back_to_item_details_keyboard(item_id),
+        )
         return
 
     if callback.message is None:
