@@ -12,13 +12,22 @@ def busy_until_text(open_rental: RentalOut | None) -> str | None:
 
 def get_photo_source(photo: PhotoOut) -> str | None:
     """Вернуть источник фото: telegram_file_id или внешний URL."""
+    if photo is None:
+        return None
+
     return photo.telegram_file_id or photo.url
 
 def build_photo_media(photos: Sequence[PhotoOut]) -> list[InputMediaPhoto]:
     """Собрать media group для отправки фотографий товара"""
-    return [
-        InputMediaPhoto(media=photo.telegram_file_id)
-        for photo in photos
-        if (photo_source := get_photo_source(photo))
-    ]
+    media: list[InputMediaPhoto] = []
+
+    for photo in photos:
+        photo_source = get_photo_source(photo)
+
+        if not photo_source:
+            continue
+
+        media.append(InputMediaPhoto(media=photo_source))
+
+    return media
 

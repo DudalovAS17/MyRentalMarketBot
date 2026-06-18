@@ -1,0 +1,642 @@
+#1
+URL: https://stroika-arenda.ru/images/auth-icon.png
+TAG: img
+ALT: None
+CLASS: 
+PARENT_CLASS: auth
+PARENT_TEXT: 
+INFO: {'ok': True, 'final_url': 'https://stroika-arenda.ru/images/auth-icon.png', 'content_type': 'image/png', 'bytes': 828}
+HTML: <a class="auth" href="" style="display:none"><img src="/images/auth-icon.png"/></a>
+----------------------------------------------------------------------------------------------------
+
+#2
+URL: https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in781xin362_uf8ea592cafd3b43d3e0f3d3b944387fb.jpg
+TAG: img
+ALT: Виброплита Champion PC9045F в прокат в Казани. У нас лучшая цена за сутки! Возможность взять в аренду с выгодной скидкой до 40% при экспресс доставке 24/7. И помните, ночью стоимость еще дешевле на 30%! #арендапрокат #виброплита #выгодно
+CLASS: 
+PARENT_CLASS: flick-gpic-item
+PARENT_TEXT: 
+INFO: {'ok': True, 'final_url': 'https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in781xin362_uf8ea592cafd3b43d3e0f3d3b944387fb.jpg', 'content_type': 'image/jpeg', 'bytes': 60877}
+HTML: <div class="flick-gpic-item">
+<img alt="Виброплита Champion PC9045F в прокат в Казани. У нас лучшая цена за сутки! Возможность взять в аренду с выгодной скидкой до 40% при экспресс доставке 24/7. И помните, ночью стоимость еще дешевле на 30%! #арендапрокат #виброплита #выгодно" itemprop="image" src="/storage/.thumbs/preview_nrs_in781xin362_uf8ea592cafd3b43d3e0f3d3b944387fb.jpg" title="Виброплита Champion PC9045F | Взять в аренду со скидкой в Казани"/>
+</div>
+----------------------------------------------------------------------------------------------------
+
+#3
+URL: https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in781xin362_vibroplita-champion-pc9045f-1.jpg
+TAG: img
+ALT:  в прокат в Казани. У нас лучшая цена за сутки! Возможность взять в аренду с выгодной скидкой до 40% при экспресс доставке 24/7. И помните, ночью стоимость еще дешевле на 30%! #арендапрокат #виброплита #выгодно
+CLASS: 
+PARENT_CLASS: flick-gpic-item
+PARENT_TEXT: 
+INFO: {'ok': True, 'final_url': 'https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in781xin362_vibroplita-champion-pc9045f-1.jpg', 'content_type': 'image/jpeg', 'bytes': 138981}
+HTML: <div class="flick-gpic-item">
+<img alt=" в прокат в Казани. У нас лучшая цена за сутки! Возможность взять в аренду с выгодной скидкой до 40% при экспресс доставке 24/7. И помните, ночью стоимость еще дешевле на 30%! #арендапрокат #виброплита #выгодно" itemprop="image" src="/storage/.thumbs/preview_nrs_in781xin362_vibroplita-champion-pc9045f-1.jpg" title=" | Взять в аренду со скидкой в Казани"/>
+</div>
+----------------------------------------------------------------------------------------------------
+
+#4
+URL: https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in781xin362_vibroplita-champion-pc9045f-2.jpg
+TAG: img
+ALT:  в прокат в Казани. У нас лучшая цена за сутки! Возможность взять в аренду с выгодной скидкой до 40% при экспресс доставке 24/7. И помните, ночью стоимость еще дешевле на 30%! #арендапрокат #виброплита #выгодно
+CLASS: 
+PARENT_CLASS: flick-gpic-item
+PARENT_TEXT: 
+INFO: {'ok': True, 'final_url': 'https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in781xin362_vibroplita-champion-pc9045f-2.jpg', 'content_type': 'image/jpeg', 'bytes': 155434}
+HTML: <div class="flick-gpic-item">
+<img alt=" в прокат в Казани. У нас лучшая цена за сутки! Возможность взять в аренду с выгодной скидкой до 40% при экспресс доставке 24/7. И помните, ночью стоимость еще дешевле на 30%! #арендапрокат #виброплита #выгодно" itemprop="image" src="/storage/.thumbs/preview_nrs_in781xin362_vibroplita-champion-pc9045f-2.jpg" title=" | Взять в аренду со скидкой в Казани"/>
+</div>
+----------------------------------------------------------------------------------------------------
+
+#5
+URL: https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in781xin362_vibroplita-champion-pc9045f-3.jpg
+TAG: img
+ALT:  в прокат в Казани. У нас лучшая цена за сутки! Возможность взять в аренду с выгодной скидкой до 40% при экспресс доставке 24/7. И помните, ночью стоимость еще дешевле на 30%! #арендапрокат #виброплита #выгодно
+CLASS: 
+PARENT_CLASS: flick-gpic-item
+PARENT_TEXT: 
+INFO: {'ok': True, 'final_url': 'https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in781xin362_vibroplita-champion-pc9045f-3.jpg', 'content_type': 'image/jpeg', 'bytes': 160600}
+HTML: <div class="flick-gpic-item">
+<img alt=" в прокат в Казани. У нас лучшая цена за сутки! Возможность взять в аренду с выгодной скидкой до 40% при экспресс доставке 24/7. И помните, ночью стоимость еще дешевле на 30%! #арендапрокат #виброплита #выгодно" itemprop="image" src="/storage/.thumbs/preview_nrs_in781xin362_vibroplita-champion-pc9045f-3.jpg" title=" | Взять в аренду со скидкой в Казани"/>
+</div>
+----------------------------------------------------------------------------------------------------
+
+#6
+URL: https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in781xin362_vibroplita-champion-pc9045f-4.jpg
+TAG: img
+ALT:  в прокат в Казани. У нас лучшая цена за сутки! Возможность взять в аренду с выгодной скидкой до 40% при экспресс доставке 24/7. И помните, ночью стоимость еще дешевле на 30%! #арендапрокат #виброплита #выгодно
+CLASS: 
+PARENT_CLASS: flick-gpic-item
+PARENT_TEXT: 
+INFO: {'ok': True, 'final_url': 'https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in781xin362_vibroplita-champion-pc9045f-4.jpg', 'content_type': 'image/jpeg', 'bytes': 145446}
+HTML: <div class="flick-gpic-item">
+<img alt=" в прокат в Казани. У нас лучшая цена за сутки! Возможность взять в аренду с выгодной скидкой до 40% при экспресс доставке 24/7. И помните, ночью стоимость еще дешевле на 30%! #арендапрокат #виброплита #выгодно" itemprop="image" src="/storage/.thumbs/preview_nrs_in781xin362_vibroplita-champion-pc9045f-4.jpg" title=" | Взять в аренду со скидкой в Казани"/>
+</div>
+----------------------------------------------------------------------------------------------------
+
+#7
+URL: https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in781xin362_vibroplita-champion-pc9045f-5.jpg
+TAG: img
+ALT:  в прокат в Казани. У нас лучшая цена за сутки! Возможность взять в аренду с выгодной скидкой до 40% при экспресс доставке 24/7. И помните, ночью стоимость еще дешевле на 30%! #арендапрокат #виброплита #выгодно
+CLASS: 
+PARENT_CLASS: flick-gpic-item
+PARENT_TEXT: 
+INFO: {'ok': True, 'final_url': 'https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in781xin362_vibroplita-champion-pc9045f-5.jpg', 'content_type': 'image/jpeg', 'bytes': 152105}
+HTML: <div class="flick-gpic-item">
+<img alt=" в прокат в Казани. У нас лучшая цена за сутки! Возможность взять в аренду с выгодной скидкой до 40% при экспресс доставке 24/7. И помните, ночью стоимость еще дешевле на 30%! #арендапрокат #виброплита #выгодно" itemprop="image" src="/storage/.thumbs/preview_nrs_in781xin362_vibroplita-champion-pc9045f-5.jpg" title=" | Взять в аренду со скидкой в Казани"/>
+</div>
+----------------------------------------------------------------------------------------------------
+
+#8
+URL: https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in80xin80_uf8ea592cafd3b43d3e0f3d3b944387fb.jpg
+TAG: img
+ALT: Виброплита Champion PC9045F
+CLASS: 
+PARENT_CLASS: flick-gpic-thumb active
+PARENT_TEXT: 
+INFO: {'ok': True, 'final_url': 'https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in80xin80_uf8ea592cafd3b43d3e0f3d3b944387fb.jpg', 'content_type': 'image/jpeg', 'bytes': 8477}
+HTML: <div class="flick-gpic-thumb active" data-index="0">
+<img alt="Виброплита Champion PC9045F" src="/storage/.thumbs/preview_nrs_in80xin80_uf8ea592cafd3b43d3e0f3d3b944387fb.jpg"/>
+</div>
+----------------------------------------------------------------------------------------------------
+
+#9
+URL: https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in80xin80_vibroplita-champion-pc9045f-1.jpg
+TAG: img
+ALT: 
+CLASS: 
+PARENT_CLASS: flick-gpic-thumb
+PARENT_TEXT: 
+INFO: {'ok': True, 'final_url': 'https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in80xin80_vibroplita-champion-pc9045f-1.jpg', 'content_type': 'image/jpeg', 'bytes': 10618}
+HTML: <div class="flick-gpic-thumb">
+<img alt="" src="/storage/.thumbs/preview_nrs_in80xin80_vibroplita-champion-pc9045f-1.jpg"/>
+</div>
+----------------------------------------------------------------------------------------------------
+
+#10
+URL: https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in80xin80_vibroplita-champion-pc9045f-2.jpg
+TAG: img
+ALT: 
+CLASS: 
+PARENT_CLASS: flick-gpic-thumb
+PARENT_TEXT: 
+INFO: {'ok': True, 'final_url': 'https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in80xin80_vibroplita-champion-pc9045f-2.jpg', 'content_type': 'image/jpeg', 'bytes': 11740}
+HTML: <div class="flick-gpic-thumb">
+<img alt="" src="/storage/.thumbs/preview_nrs_in80xin80_vibroplita-champion-pc9045f-2.jpg"/>
+</div>
+----------------------------------------------------------------------------------------------------
+
+#11
+URL: https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in80xin80_vibroplita-champion-pc9045f-3.jpg
+TAG: img
+ALT: 
+CLASS: 
+PARENT_CLASS: flick-gpic-thumb
+PARENT_TEXT: 
+INFO: {'ok': True, 'final_url': 'https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in80xin80_vibroplita-champion-pc9045f-3.jpg', 'content_type': 'image/jpeg', 'bytes': 12022}
+HTML: <div class="flick-gpic-thumb">
+<img alt="" src="/storage/.thumbs/preview_nrs_in80xin80_vibroplita-champion-pc9045f-3.jpg"/>
+</div>
+----------------------------------------------------------------------------------------------------
+
+#12
+URL: https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in80xin80_vibroplita-champion-pc9045f-4.jpg
+TAG: img
+ALT: 
+CLASS: 
+PARENT_CLASS: flick-gpic-thumb
+PARENT_TEXT: 
+INFO: {'ok': True, 'final_url': 'https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in80xin80_vibroplita-champion-pc9045f-4.jpg', 'content_type': 'image/jpeg', 'bytes': 11111}
+HTML: <div class="flick-gpic-thumb">
+<img alt="" src="/storage/.thumbs/preview_nrs_in80xin80_vibroplita-champion-pc9045f-4.jpg"/>
+</div>
+----------------------------------------------------------------------------------------------------
+
+#13
+URL: https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in80xin80_vibroplita-champion-pc9045f-5.jpg
+TAG: img
+ALT: 
+CLASS: 
+PARENT_CLASS: flick-gpic-thumb
+PARENT_TEXT: 
+INFO: {'ok': True, 'final_url': 'https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in80xin80_vibroplita-champion-pc9045f-5.jpg', 'content_type': 'image/jpeg', 'bytes': 10877}
+HTML: <div class="flick-gpic-thumb">
+<img alt="" src="/storage/.thumbs/preview_nrs_in80xin80_vibroplita-champion-pc9045f-5.jpg"/>
+</div>
+----------------------------------------------------------------------------------------------------
+
+#14
+URL: https://stroika-arenda.ru/storage/pervyy-zakaz.png
+TAG: img
+ALT: 
+CLASS: js-lazyload
+PARENT_CLASS: img
+PARENT_TEXT: 
+INFO: {'ok': True, 'final_url': 'https://stroika-arenda.ru/storage/pervyy-zakaz.png', 'content_type': 'image/png', 'bytes': 5699}
+HTML: <div class="img">
+<img alt="" class="js-lazyload" data-src="/storage/pervyy-zakaz.png"/>
+</div>
+----------------------------------------------------------------------------------------------------
+
+#15
+URL: https://stroika-arenda.ru/storage/ikonka-bez-zaloga.png
+TAG: img
+ALT: 
+CLASS: js-lazyload
+PARENT_CLASS: img
+PARENT_TEXT: 
+INFO: {'ok': True, 'final_url': 'https://stroika-arenda.ru/storage/ikonka-bez-zaloga.png', 'content_type': 'image/png', 'bytes': 5951}
+HTML: <div class="img">
+<img alt="" class="js-lazyload" data-src="/storage/ikonka-bez-zaloga.png"/>
+</div>
+----------------------------------------------------------------------------------------------------
+
+#16
+URL: https://stroika-arenda.ru/storage/ikonka-dostavka50.png
+TAG: img
+ALT: 
+CLASS: js-lazyload
+PARENT_CLASS: img
+PARENT_TEXT: 
+INFO: {'ok': True, 'final_url': 'https://stroika-arenda.ru/storage/ikonka-dostavka50.png', 'content_type': 'image/png', 'bytes': 5462}
+HTML: <div class="img">
+<img alt="" class="js-lazyload" data-src="/storage/ikonka-dostavka50.png"/>
+</div>
+----------------------------------------------------------------------------------------------------
+
+#17
+URL: https://stroika-arenda.ru/storage/ikonka-nds.png
+TAG: img
+ALT: 
+CLASS: js-lazyload
+PARENT_CLASS: img
+PARENT_TEXT: 
+INFO: {'ok': True, 'final_url': 'https://stroika-arenda.ru/storage/ikonka-nds.png', 'content_type': 'image/png', 'bytes': 4616}
+HTML: <div class="img">
+<img alt="" class="js-lazyload" data-src="/storage/ikonka-nds.png"/>
+</div>
+----------------------------------------------------------------------------------------------------
+
+#18
+URL: https://stroika-arenda.ru/storage/skidka-noch.png
+TAG: img
+ALT: 
+CLASS: js-lazyload
+PARENT_CLASS: img
+PARENT_TEXT: 
+INFO: {'ok': True, 'final_url': 'https://stroika-arenda.ru/storage/skidka-noch.png', 'content_type': 'image/png', 'bytes': 6462}
+HTML: <div class="img">
+<img alt="" class="js-lazyload" data-src="/storage/skidka-noch.png"/>
+</div>
+----------------------------------------------------------------------------------------------------
+
+#19
+URL: https://stroika-arenda.ru/images/cash.png
+TAG: img
+ALT: 
+CLASS: lazyload
+PARENT_CLASS: payment-delivery__item-image d-flex
+PARENT_TEXT: 
+INFO: {'ok': True, 'final_url': 'https://stroika-arenda.ru/images/cash.png', 'content_type': 'image/png', 'bytes': 763}
+HTML: <div class="payment-delivery__item-image d-flex"><img alt="" class="lazyload" src="/images/cash.png"/></div>
+----------------------------------------------------------------------------------------------------
+
+#20
+URL: https://stroika-arenda.ru/images/card.png
+TAG: img
+ALT: 
+CLASS: lazyload
+PARENT_CLASS: payment-delivery__item-image d-flex
+PARENT_TEXT: 
+INFO: {'ok': True, 'final_url': 'https://stroika-arenda.ru/images/card.png', 'content_type': 'image/png', 'bytes': 632}
+HTML: <div class="payment-delivery__item-image d-flex"><img alt="" class="lazyload" src="/images/card.png"/></div>
+----------------------------------------------------------------------------------------------------
+
+#21
+URL: https://stroika-arenda.ru/images/cashless.png
+TAG: img
+ALT: 
+CLASS: lazyload
+PARENT_CLASS: payment-delivery__item-image d-flex
+PARENT_TEXT: 
+INFO: {'ok': True, 'final_url': 'https://stroika-arenda.ru/images/cashless.png', 'content_type': 'image/png', 'bytes': 909}
+HTML: <div class="payment-delivery__item-image d-flex"><img alt="" class="lazyload" src="/images/cashless.png"/></div>
+----------------------------------------------------------------------------------------------------
+
+#22
+URL: https://stroika-arenda.ru/images/delivery.png
+TAG: img
+ALT: 
+CLASS: lazyload
+PARENT_CLASS: payment-delivery__item-image d-flex
+PARENT_TEXT: 
+INFO: {'ok': True, 'final_url': 'https://stroika-arenda.ru/images/delivery.png', 'content_type': 'image/png', 'bytes': 554}
+HTML: <div class="payment-delivery__item-image d-flex"><img alt="" class="lazyload" src="/images/delivery.png"/></div>
+----------------------------------------------------------------------------------------------------
+
+#23
+URL: https://stroika-arenda.ru/images/delivery1.png
+TAG: img
+ALT: 
+CLASS: lazyload
+PARENT_CLASS: payment-delivery__item-image d-flex
+PARENT_TEXT: 
+INFO: {'ok': True, 'final_url': 'https://stroika-arenda.ru/images/delivery1.png', 'content_type': 'image/png', 'bytes': 743}
+HTML: <div class="payment-delivery__item-image d-flex"><img alt="" class="lazyload" src="/images/delivery1.png"/></div>
+----------------------------------------------------------------------------------------------------
+
+#24
+URL: https://stroika-arenda.ru/images/pickup.png
+TAG: img
+ALT: 
+CLASS: lazyload
+PARENT_CLASS: payment-delivery__item-image d-flex
+PARENT_TEXT: 
+INFO: {'ok': True, 'final_url': 'https://stroika-arenda.ru/images/pickup.png', 'content_type': 'image/png', 'bytes': 859}
+HTML: <div class="payment-delivery__item-image d-flex"><img alt="" class="lazyload" src="/images/pickup.png"/></div>
+----------------------------------------------------------------------------------------------------
+
+#25
+URL: https://stroika-arenda.ru/images/advantage1.png
+TAG: img
+ALT: advantage image
+CLASS: 
+PARENT_CLASS: about-advantages__item-img
+PARENT_TEXT: 
+INFO: {'ok': True, 'final_url': 'https://stroika-arenda.ru/images/advantage1.png', 'content_type': 'image/png', 'bytes': 14649}
+HTML: <div class="about-advantages__item-img"><img alt="advantage image" loading="lazy" src="/images/advantage1.png"/></div>
+----------------------------------------------------------------------------------------------------
+
+#26
+URL: https://stroika-arenda.ru/images/advantage2.png
+TAG: img
+ALT: advantage image
+CLASS: 
+PARENT_CLASS: about-advantages__item-img
+PARENT_TEXT: 
+INFO: {'ok': True, 'final_url': 'https://stroika-arenda.ru/images/advantage2.png', 'content_type': 'image/png', 'bytes': 11401}
+HTML: <div class="about-advantages__item-img"><img alt="advantage image" loading="lazy" src="/images/advantage2.png"/></div>
+----------------------------------------------------------------------------------------------------
+
+#27
+URL: https://stroika-arenda.ru/images/advantage3.png
+TAG: img
+ALT: advantage image
+CLASS: 
+PARENT_CLASS: about-advantages__item-img
+PARENT_TEXT: 
+INFO: {'ok': True, 'final_url': 'https://stroika-arenda.ru/images/advantage3.png', 'content_type': 'image/png', 'bytes': 11489}
+HTML: <div class="about-advantages__item-img"><img alt="advantage image" loading="lazy" src="/images/advantage3.png"/></div>
+----------------------------------------------------------------------------------------------------
+
+#28
+URL: https://stroika-arenda.ru/images/advantage4.png
+TAG: img
+ALT: advantage image
+CLASS: 
+PARENT_CLASS: about-advantages__item-img
+PARENT_TEXT: 
+INFO: {'ok': True, 'final_url': 'https://stroika-arenda.ru/images/advantage4.png', 'content_type': 'image/png', 'bytes': 13098}
+HTML: <div class="about-advantages__item-img"><img alt="advantage image" loading="lazy" src="/images/advantage4.png"/></div>
+----------------------------------------------------------------------------------------------------
+
+#29
+URL: https://stroika-arenda.ru/images/advantage5.png
+TAG: img
+ALT: advantage image
+CLASS: 
+PARENT_CLASS: about-advantages__item-img
+PARENT_TEXT: 
+INFO: {'ok': True, 'final_url': 'https://stroika-arenda.ru/images/advantage5.png', 'content_type': 'image/png', 'bytes': 1904}
+HTML: <div class="about-advantages__item-img"><img alt="advantage image" loading="lazy" src="/images/advantage5.png"/></div>
+----------------------------------------------------------------------------------------------------
+
+#30
+URL: https://stroika-arenda.ru/images/advantage6.png
+TAG: img
+ALT: advantage image
+CLASS: 
+PARENT_CLASS: about-advantages__item-img
+PARENT_TEXT: 
+INFO: {'ok': True, 'final_url': 'https://stroika-arenda.ru/images/advantage6.png', 'content_type': 'image/png', 'bytes': 12650}
+HTML: <div class="about-advantages__item-img"><img alt="advantage image" loading="lazy" src="/images/advantage6.png"/></div>
+----------------------------------------------------------------------------------------------------
+
+#31
+URL: https://stroika-arenda.ru/images/advantage7.png
+TAG: img
+ALT: advantage image
+CLASS: 
+PARENT_CLASS: about-advantages__item-img
+PARENT_TEXT: 
+INFO: {'ok': True, 'final_url': 'https://stroika-arenda.ru/images/advantage7.png', 'content_type': 'image/png', 'bytes': 11372}
+HTML: <div class="about-advantages__item-img"><img alt="advantage image" loading="lazy" src="/images/advantage7.png"/></div>
+----------------------------------------------------------------------------------------------------
+
+#32
+URL: https://stroika-arenda.ru/images/advantage8.png
+TAG: img
+ALT: advantage image
+CLASS: 
+PARENT_CLASS: about-advantages__item-img
+PARENT_TEXT: 
+INFO: {'ok': True, 'final_url': 'https://stroika-arenda.ru/images/advantage8.png', 'content_type': 'image/png', 'bytes': 10555}
+HTML: <div class="about-advantages__item-img"><img alt="advantage image" loading="lazy" src="/images/advantage8.png"/></div>
+----------------------------------------------------------------------------------------------------
+
+#33
+URL: https://stroika-arenda.ru/images/advantage9.png
+TAG: img
+ALT: advantage image
+CLASS: 
+PARENT_CLASS: about-advantages__item-img
+PARENT_TEXT: 
+INFO: {'ok': True, 'final_url': 'https://stroika-arenda.ru/images/advantage9.png', 'content_type': 'image/png', 'bytes': 9777}
+HTML: <div class="about-advantages__item-img"><img alt="advantage image" loading="lazy" src="/images/advantage9.png"/></div>
+----------------------------------------------------------------------------------------------------
+
+#34
+URL: https://stroika-arenda.ru/images/advantage10.png
+TAG: img
+ALT: advantage image
+CLASS: 
+PARENT_CLASS: about-advantages__item-img
+PARENT_TEXT: 
+INFO: {'ok': True, 'final_url': 'https://stroika-arenda.ru/images/advantage10.png', 'content_type': 'image/png', 'bytes': 12101}
+HTML: <div class="about-advantages__item-img"><img alt="advantage image" loading="lazy" src="/images/advantage10.png"/></div>
+----------------------------------------------------------------------------------------------------
+
+#35
+URL: https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_246.jpg
+TAG: img
+ALT: 
+CLASS: 
+PARENT_CLASS: 
+PARENT_TEXT: 
+INFO: {'ok': True, 'final_url': 'https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_246.jpg', 'content_type': 'image/jpeg', 'bytes': 76806}
+HTML: <b>
+<img alt="" src="/storage/.thumbs/preview_nrs_in500xin500_246.jpg"/>
+</b>
+----------------------------------------------------------------------------------------------------
+
+#36
+URL: https://stroika-arenda.ru/images/cart-icon.png
+TAG: img
+ALT: None
+CLASS: cart-item
+PARENT_CLASS: btn btn-small btn-block js-modal-feedback btn-active
+PARENT_TEXT: Аренда от 2000 р.
+INFO: {'ok': True, 'final_url': 'https://stroika-arenda.ru/images/cart-icon.png', 'content_type': 'image/png', 'bytes': 441}
+HTML: <a class="btn btn-small btn-block js-modal-feedback btn-active" data-feedback-params='{"lease_period_id":"2"}' data-goods="submit" data-izimodal-params='{"overlayClose":true,"width":930,"autoOpen":false,"overlayColor":"rgba(0, 0, 0, 0.8)","radius":0,"bodyOverflow":true,"fullscreen":false,"openFullscreen":false,"history":false,"zindex":1500,"transitionIn":"fadeInUp","transitionOut":"fadeOutUp"}' href="/feedback/order_lease?lease_product_id=160" rel="canonical" style="font-size: 13px">
+<img class="cart-item" src="/images/cart-icon.png"/>
+<img class="cart-item-white" src="/images/cart-icon-w.png"
+----------------------------------------------------------------------------------------------------
+
+#37
+URL: https://stroika-arenda.ru/images/cart-icon-w.png
+TAG: img
+ALT: None
+CLASS: cart-item-white
+PARENT_CLASS: btn btn-small btn-block js-modal-feedback btn-active
+PARENT_TEXT: Аренда от 2000 р.
+INFO: {'ok': True, 'final_url': 'https://stroika-arenda.ru/images/cart-icon-w.png', 'content_type': 'image/png', 'bytes': 167}
+HTML: <a class="btn btn-small btn-block js-modal-feedback btn-active" data-feedback-params='{"lease_period_id":"2"}' data-goods="submit" data-izimodal-params='{"overlayClose":true,"width":930,"autoOpen":false,"overlayColor":"rgba(0, 0, 0, 0.8)","radius":0,"bodyOverflow":true,"fullscreen":false,"openFullscreen":false,"history":false,"zindex":1500,"transitionIn":"fadeInUp","transitionOut":"fadeOutUp"}' href="/feedback/order_lease?lease_product_id=160" rel="canonical" style="font-size: 13px">
+<img class="cart-item" src="/images/cart-icon.png"/>
+<img class="cart-item-white" src="/images/cart-icon-w.png"
+----------------------------------------------------------------------------------------------------
+
+#38
+URL: https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_husqvarna-3504520025-6666521.jpg
+TAG: img
+ALT: 
+CLASS: 
+PARENT_CLASS: 
+PARENT_TEXT: 
+INFO: {'ok': True, 'final_url': 'https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_husqvarna-3504520025-6666521.jpg', 'content_type': 'image/jpeg', 'bytes': 113809}
+HTML: <b>
+<img alt="" src="/storage/.thumbs/preview_nrs_in500xin500_husqvarna-3504520025-6666521.jpg"/>
+</b>
+----------------------------------------------------------------------------------------------------
+
+#39
+URL: https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_plita4.jpg
+TAG: img
+ALT: 
+CLASS: 
+PARENT_CLASS: 
+PARENT_TEXT: 
+INFO: {'ok': True, 'final_url': 'https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_plita4.jpg', 'content_type': 'image/jpeg', 'bytes': 50429}
+HTML: <b>
+<img alt="" src="/storage/.thumbs/preview_nrs_in500xin500_plita4.jpg"/>
+</b>
+----------------------------------------------------------------------------------------------------
+
+#40
+URL: https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_vibroplita-6555.jpg
+TAG: img
+ALT: 
+CLASS: 
+PARENT_CLASS: 
+PARENT_TEXT: 
+INFO: {'ok': True, 'final_url': 'https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_vibroplita-6555.jpg', 'content_type': 'image/jpeg', 'bytes': 72571}
+HTML: <b>
+<img alt="" src="/storage/.thumbs/preview_nrs_in500xin500_vibroplita-6555.jpg"/>
+</b>
+----------------------------------------------------------------------------------------------------
+
+#41
+URL: https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_plita.jpg
+TAG: img
+ALT: 
+CLASS: 
+PARENT_CLASS: 
+PARENT_TEXT: 
+INFO: {'ok': True, 'final_url': 'https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_plita.jpg', 'content_type': 'image/jpeg', 'bytes': 65601}
+HTML: <b>
+<img alt="" src="/storage/.thumbs/preview_nrs_in500xin500_plita.jpg"/>
+</b>
+----------------------------------------------------------------------------------------------------
+
+#42
+URL: https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_plita3.jpg
+TAG: img
+ALT: 
+CLASS: 
+PARENT_CLASS: 
+PARENT_TEXT: 
+INFO: {'ok': True, 'final_url': 'https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_plita3.jpg', 'content_type': 'image/jpeg', 'bytes': 51752}
+HTML: <b>
+<img alt="" src="/storage/.thumbs/preview_nrs_in500xin500_plita3.jpg"/>
+</b>
+----------------------------------------------------------------------------------------------------
+
+#43
+URL: https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_104.png
+TAG: img
+ALT: 
+CLASS: 
+PARENT_CLASS: 
+PARENT_TEXT: 
+INFO: {'ok': True, 'final_url': 'https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_104.png', 'content_type': 'image/png', 'bytes': 201013}
+HTML: <b>
+<img alt="" src="/storage/.thumbs/preview_nrs_in500xin500_104.png"/>
+</b>
+----------------------------------------------------------------------------------------------------
+
+#44
+URL: https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_244-1.png
+TAG: img
+ALT: 
+CLASS: 
+PARENT_CLASS: 
+PARENT_TEXT: 
+INFO: {'ok': True, 'final_url': 'https://stroika-arenda.ru/storage/.thumbs/preview_nrs_in500xin500_244-1.png', 'content_type': 'image/png', 'bytes': 200682}
+HTML: <b>
+<img alt="" src="/storage/.thumbs/preview_nrs_in500xin500_244-1.png"/>
+</b>
+----------------------------------------------------------------------------------------------------
+
+#45
+URL: https://stroika-arenda.ru/storage/.thumbs/preview50x50_tsbzjmltxwg.jpg
+TAG: img
+ALT: 
+CLASS: 
+PARENT_CLASS: 
+PARENT_TEXT: 
+INFO: {'ok': True, 'final_url': 'https://stroika-arenda.ru/storage/.thumbs/preview50x50_tsbzjmltxwg.jpg', 'content_type': 'image/jpeg', 'bytes': 5908}
+HTML: <i>
+<img alt="" src="/storage/.thumbs/preview50x50_tsbzjmltxwg.jpg"/>
+</i>
+----------------------------------------------------------------------------------------------------
+
+#46
+URL: https://stroika-arenda.ru/storage/.thumbs/preview50x50_26tozaamusu.jpg
+TAG: img
+ALT: 
+CLASS: 
+PARENT_CLASS: 
+PARENT_TEXT: 
+INFO: {'ok': True, 'final_url': 'https://stroika-arenda.ru/storage/.thumbs/preview50x50_26tozaamusu.jpg', 'content_type': 'image/jpeg', 'bytes': 4498}
+HTML: <i>
+<img alt="" src="/storage/.thumbs/preview50x50_26tozaamusu.jpg"/>
+</i>
+----------------------------------------------------------------------------------------------------
+
+#47
+URL: https://stroika-arenda.ru/storage/.thumbs/preview50x50_dumzj4dvxak.jpg
+TAG: img
+ALT: 
+CLASS: 
+PARENT_CLASS: 
+PARENT_TEXT: 
+INFO: {'ok': True, 'final_url': 'https://stroika-arenda.ru/storage/.thumbs/preview50x50_dumzj4dvxak.jpg', 'content_type': 'image/jpeg', 'bytes': 5531}
+HTML: <i>
+<img alt="" src="/storage/.thumbs/preview50x50_dumzj4dvxak.jpg"/>
+</i>
+----------------------------------------------------------------------------------------------------
+
+#48
+URL: https://stroika-arenda.ru/storage/186407_arrow_up_icon.png
+TAG: img
+ALT: None
+CLASS: 
+PARENT_CLASS: 
+PARENT_TEXT: 
+INFO: {'ok': True, 'final_url': 'https://stroika-arenda.ru/storage/186407_arrow_up_icon.png', 'content_type': 'image/png', 'bytes': 205}
+HTML: <span><img src="/storage/186407_arrow_up_icon.png"/></span>
+----------------------------------------------------------------------------------------------------
+
+#49
+URL: https://stroika-arenda.ru/images/iphone-retina-120x120.png
+TAG: regex
+ALT: None
+CLASS: 
+PARENT_CLASS: 
+PARENT_TEXT: 
+INFO: {'ok': True, 'final_url': 'https://stroika-arenda.ru/images/iphone-retina-120x120.png', 'content_type': 'image/png', 'bytes': 10817}
+HTML: 
+----------------------------------------------------------------------------------------------------
+
+#50
+URL: https://stroika-arenda.ru/images/ipad-retina-152x152.png
+TAG: regex
+ALT: None
+CLASS: 
+PARENT_CLASS: 
+PARENT_TEXT: 
+INFO: {'ok': True, 'final_url': 'https://stroika-arenda.ru/images/ipad-retina-152x152.png', 'content_type': 'image/png', 'bytes': 14961}
+HTML: 
+----------------------------------------------------------------------------------------------------
+
+#51
+URL: https://stroika-arenda.ru/images/ipad-standard-76x76.png
+TAG: regex
+ALT: None
+CLASS: 
+PARENT_CLASS: 
+PARENT_TEXT: 
+INFO: {'ok': True, 'final_url': 'https://stroika-arenda.ru/images/ipad-standard-76x76.png', 'content_type': 'image/png', 'bytes': 6098}
+HTML: 
+----------------------------------------------------------------------------------------------------
+
+#52
+URL: https://stroika-arenda.ru/images/default-60x60.png
+TAG: regex
+ALT: None
+CLASS: 
+PARENT_CLASS: 
+PARENT_TEXT: 
+INFO: {'ok': True, 'final_url': 'https://stroika-arenda.ru/images/default-60x60.png', 'content_type': 'image/png', 'bytes': 4052}
+HTML: 
+----------------------------------------------------------------------------------------------------
+
+#53
+URL: https://stroika-arenda.ru/images/man.png
+TAG: regex
+ALT: None
+CLASS: 
+PARENT_CLASS: 
+PARENT_TEXT: 
+INFO: {'ok': True, 'final_url': 'https://stroika-arenda.ru/images/man.png', 'content_type': 'image/png', 'bytes': 28151}
+HTML: 
+----------------------------------------------------------------------------------------------------

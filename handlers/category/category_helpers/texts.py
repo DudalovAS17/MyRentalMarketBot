@@ -18,22 +18,23 @@ serv_err_photo = "⚠️ Не удалось загрузить фото. Поп
 not_photos = "⚠️ Фото для этого товара не найдены." # 📭 У этого товара нет фотографий
 
 def item_details_text(item: ItemOut, category_name: str, subcategory_name: str) -> str:
-    """Сформировать текст карточки товара для category-flow"""
-    description = item.description or "Описание не указано"
-    min_rental_period = item.min_rental_period or 1
-    quantity_text = item.available_quantity
+    """Сформировать текст карточки товара для карусели подкатегории."""
+
+    description = item.short_description or item.description or "Описание пока не добавлено."
+    if len(description) > 180:
+        description = description[:177].rstrip() + "..."
 
     return (
         f"📦 <b>{item.title}</b>\n\n"
         f"📝 <b>Описание:</b>\n{description}\n\n"
         f"🏷️ <b>Категория:</b> {category_name} > {subcategory_name}\n"
         f"💰 <b>Цена:</b> {format_price(item.price)} ₽/день\n"
-        f"🕒 <b>Минимальный срок аренды:</b> {min_rental_period} {format_days(min_rental_period)}\n"
+        f"🕒 <b>Минимальный срок аренды:</b> {item.min_rental_period} \n" # {format_days(min_rental_period)}
         # f"🔐 <b>Залог:</b> {deposit_text}\n"
         # f"📍 <b>Местоположение:</b> {location}\n"
         #f"👤 <b>Владелец:</b> {item.user_id}\n"
         #f"⭐ <b>Рейтинг:</b> ... ({item.views_count} отзывов)\n"
-        f"✅ <b>Доступное количество:</b> {quantity_text}\n"
+        f"✅ <b>Доступное количество:</b> {item.available_quantity}\n"
     )
 # location = item.location or "Не указано"
 # deposit_text = f"{format_price(item.deposit)} ₽" if item.deposit else "Без залога"

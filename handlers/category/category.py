@@ -11,13 +11,14 @@ from handlers.category.category_helpers.texts import (item_details_text, not_cat
                                                       serv_err_subcat, not_subcat, not_item_id, not_item, serv_err_item,
                                                       serv_err_photo, not_photos,  subcategory_item_card_text) # serv_err_items
 
-from handlers.category.category_helpers.formatters import busy_until_text, build_photo_media
+from handlers.category.category_helpers.formatters import busy_until_text, build_photo_media, get_photo_source
 from handlers.entries.category_entry import show_categories
 from services.item_service import ItemService
 from services.category_service import CategoryService
 from services.photo_service import PhotoService
 from services.rental_service import RentalService
 
+from schemas.photo import PhotoOut
 from keyboards.category_kb import build_item_details_kb
 from utils.functions import send_or_edit, send_reply
 from utils.errors import ServiceError
@@ -65,6 +66,7 @@ async def show_items_in_subcategory(
     state: FSMContext,
     item_service: ItemService,
     category_service: CategoryService,
+    photo_service: PhotoService,
 ) -> None:
     """Показывает список товаров в выбранной подкатегории"""
     await callback.answer()
@@ -100,7 +102,16 @@ async def show_items_in_subcategory(
         cat_cb_prefix=CAT_CB_PREFIX,
     )
 
-    await send_or_edit(callback, subcategory_item_card_text(current_item, current_index, len(items)), markup=keyboard)
+    photos = await photo_service.get_photos_by_item_id(current_item.id)
+
+    await send_or_edit_item_card(
+        callback=callback,
+        photos=photos,
+        text=subcategory_item_card_text(current_item, current_index, len(items)),
+        markup=keyboard,
+    )
+
+    #await send_or_edit(callback, subcategory_item_card_text(current_item, current_index, len(items)), markup=keyboard)
 
 
 @category_router.callback_query(F.data.startswith(ITEM_DETAILS_CB))
@@ -191,6 +202,7 @@ async def navigate_items_carousel(
     callback: CallbackQuery,
     item_service: ItemService,
     category_service: CategoryService,
+    photo_service: PhotoService
 ) -> None:
     """Навигация по карточкам товаров внутри подкатегории."""
     await callback.answer()
@@ -240,4 +252,68 @@ async def navigate_items_carousel(
         subcat_cb_prefix=SUBCAT_CB_PREFIX,
         cat_cb_prefix=CAT_CB_PREFIX,
     )
-    await send_or_edit(callback, subcategory_item_card_text(current_item, current_index, total), markup=keyboard)
+
+    photos = await photo_service.get_photos_by_item_id(current_item.id)
+
+    await send_or_edit_item_card(
+        callback=callback,
+        photos=photos,
+        text=subcategory_item_card_text(current_item, current_index, len(items)),
+        markup=keyboard,
+    )
+
+    #await send_or_edit(callback, subcategory_item_card_text(current_item, current_index, total), markup=keyboard)
+
+
+
+
+async def send_or_edit_item_card(
+    callback: CallbackQuery,
+    photos: list[PhotoOut],
+    text: str,
+    markup,
+) -> None:
+    """Показать карточку товара: с фото, если оно есть, иначе обычным текстом."""
+    main_photo = photos[0] if photos else None
+    photo_source = get_photo_source(main_photo)
+
+    if not photo_source:
+        await send_or_edit(callback, text, markup=markup)
+        return
+
+    message = callback.message
+    if message is None:
+        return
+
+    try:
+        # Если текущее сообщение уже с фото — редактируем media.
+        if message.photo:
+            from aiogram.types import InputMediaPhoto
+
+            await message.edit_media(
+                media=InputMediaPhoto(
+                    media=photo_source,
+                    caption=text,
+                    parse_mode="HTML",
+                ),
+                reply_markup=markup,
+            )
+            return
+
+        # Если текущее сообщение текстовое — удаляем его и отправляем фото.
+        await message.delete()
+        await message.answer_photo(
+            photo=photo_source,
+            caption=text,
+            reply_markup=markup,
+            parse_mode="HTML",
+        )
+
+    except TelegramBadRequest:
+        # Fallback: если Telegram не смог отредактировать/удалить сообщение.
+        await message.answer_photo(
+            photo=photo_source,
+            caption=text,
+            reply_markup=markup,
+            parse_mode="HTML",
+        )
