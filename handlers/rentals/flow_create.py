@@ -13,7 +13,7 @@ from services.notif_service import NotificationService
 
 from states.rental import RentalCreateStates
 from schemas.rental import RentalCreate, RentalCreateDraft
-from keyboards.rental_kb import build_rent_end_date_keyboard, build_rent_confirmation_keyboard
+from keyboards.common import build_rent_end_date_keyboard, build_rent_confirmation_keyboard
 from utils.functions import send_or_edit, render_rent_ui, abort_rent_flow
 from utils.errors import ServiceError, ValidationError
 from utils.callbacks import RENT_ITEM_CB, START_DATE_CB, END_DATE_CB, CONFIRM_RENT_CB, CANCEL_RENT_FLOW_CB, IGNORE_CB

@@ -6,7 +6,6 @@ from handlers.admin import admin_router
 from handlers.auth import auth_router
 from handlers.base.base import base_router
 from handlers.category.category import category_router
-from handlers.item.router import items_router
 from handlers.rentals.router import rental_router
 from handlers.search.search import search_router
 from handlers.support.support import support_router
@@ -16,7 +15,6 @@ def register_routers(dp: Dispatcher) -> None:
     # Подключаем роутеры, порядок важен: конкретные роутеры раньше, базовый catch-all — последним
 
     # 1) Самые конкретные FSM/сценарии
-    dp.include_router(items_router)
     dp.include_router(category_router)
     dp.include_router(rental_router)
 

@@ -4,9 +4,7 @@ from aiogram.fsm.context import FSMContext
 
 from .router import auth_router
 
-from handlers.entries.auth_entry import start_registration
-from handlers.entries.base_entry import show_main_menu
-from handlers.entries.entry_helper import build_registration_contact_keyboard
+from handlers.entries import start_registration, show_main_menu, build_registration_contact_keyboard
 
 from .helpers_auth.keyboards import build_change_phone_keyboard, build_open_profile_keyboard
 from .helpers_auth.texts import build_invalid_contact_text, build_phone_changed_success_text, build_change_phone_prompt_text

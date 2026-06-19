@@ -2,9 +2,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 from collections.abc import Awaitable, Callable
 
-from handlers.entries.base_entry import show_main_menu
-from handlers.entries.category_entry import show_categories
-from handlers.entries.rental_entry import show_my_rentals
+from handlers.entries import show_main_menu, show_categories, show_my_rentals
 from handlers.search.search import start_search
 from handlers.support.support import support_start
 from services.category_service import CategoryService

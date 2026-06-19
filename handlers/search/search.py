@@ -8,7 +8,7 @@ from handlers.search.helpers_search import (build_search_prompt_keyboard, valida
 from services.item_service import ItemService
 
 from states.search import SearchStates
-from keyboards.search_kb import build_search_keyboard
+from keyboards.common import build_search_keyboard
 from utils.functions import send_or_edit
 
 search_router = Router()

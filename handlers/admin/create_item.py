@@ -5,7 +5,7 @@ from aiogram.fsm.context import FSMContext
 #from .router import
 
 from handlers.admin import create_helpers as ch
-from handlers.entries.base_entry import show_main_menu
+from handlers.entries import show_main_menu
 from services.item_service import ItemService
 from services.photo_service import PhotoService
 from services.category_service import CategoryService

@@ -23,6 +23,16 @@ async def parse_int_id_from_callback(
         return None
 
 
+RENT_ITEM_CB = "rent_item:"
+SHOW_ALL_PHOTOS_CB = "show_all_photos:"
+MESSAGE_OWNER_CB = "message_owner:"
+REVIEWS_CB = "reviews:"
+
+
+CANCEL_RENT_FLOW_CB = "cancel_rent_flow"
+START_DATE_CB = "start_date:"
+CONFIRM_RENT_CB = "confirm_rent"
+
 
 # Константы callback-данных
 # CATEGORY HANDLER

@@ -6,7 +6,7 @@ from .router import auth_router
 from .helpers_auth.texts import build_profile_text, build_profile_stats_text, build_achievements_text
 from .helpers_auth.keyboards import build_back_to_profile_keyboard
 from utils.functions import send_or_edit
-from keyboards.user_kb import get_profile_keyboard
+from keyboards.common import get_profile_keyboard
 
 
 @auth_router.message(F.text == "👤 Профиль")

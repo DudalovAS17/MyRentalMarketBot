@@ -3,15 +3,12 @@ from sqlalchemy import select, or_
 from datetime import datetime, timezone
 
 from db.models.item import Item
+from db.models.item_characteristics import ItemCharacteristic
 from db.repositories.base import BaseRepository
 
 from schemas.item import ItemCreate, ItemUpdate
 from status.item_status import ItemStatus
 
-"""Убрал: list_by_user_id - Все объявления владельца. 
-При active_only=True — только ACTIVE, active_only=False - все объявления владельца
-
-"""
 
 """
 exclude_none=True делает хорошую вещь:
@@ -77,7 +74,6 @@ changed = True
 if updated_by_admin_id is not None:
     obj.updated_by_admin_id = updated_by_admin_id
     
-
 """
 
 
@@ -269,3 +265,18 @@ class ItemRepository(BaseRepository):
                 return False
 
             return await self._delete_commit(s, obj)
+
+
+
+    # ─────────────────────────────────────────────Item Characteristic──────────────────────────────────────────────────
+    async def list_characteristics_by_item_id(self, item_id: int, limit: Optional[int] = None) -> list[ItemCharacteristic]:
+        """Вернуть характеристики товара в порядке отображения."""
+        async with self._session() as s:
+            stmt = (
+                select(ItemCharacteristic)
+                .where(ItemCharacteristic.item_id == item_id)
+                .order_by(ItemCharacteristic.sort_order.asc(), ItemCharacteristic.id.asc())
+            )
+            if limit is not None:
+                stmt = stmt.limit(limit)
+            return await self._list(s, stmt)

@@ -12,7 +12,7 @@ from services.user_service import UserService
 from schemas.user import UserUpdate
 from utils.functions import send_or_edit
 from states.user import ProfileEditStates
-from keyboards.user_kb import profile_settings_back_keyboard
+from keyboards.common import profile_settings_back_keyboard
 
 
 # тут нет вызова для message

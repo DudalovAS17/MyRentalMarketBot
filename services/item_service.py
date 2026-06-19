@@ -2,9 +2,10 @@ import logging
 from typing import Optional
 
 from db.repositories.item import ItemRepository
+
 from services.rental_service import RentalService
 
-from schemas.item import ItemCreate, ItemUpdate, ItemOut
+from schemas.item import ItemCreate, ItemUpdate, ItemOut, ItemCharacteristicOut
 from utils.errors import ConflictError, NotFoundError
 from status.item_status import can_transition, ItemStatus
 
@@ -190,3 +191,15 @@ class ItemService:
         if strict:
             raise ConflictError(f"Нельзя изменить статус товара id={item_id}: есть открытые заявки аренды")
         return False
+
+
+
+    # ─────────────────────────────────────────────Item Characteristic──────────────────────────────────────────────────
+    async def list_item_characteristics_by_item_id(
+        self,
+        item_id: int,
+        limit: Optional[int] = None,
+    ) -> list[ItemCharacteristicOut]:
+        """Вернуть характеристики товара в порядке sort_order ASC, id ASC."""
+        characteristics = await self.item_repo.list_characteristics_by_item_id(item_id, limit=limit)
+        return [ItemCharacteristicOut.model_validate(characteristic) for characteristic in characteristics]

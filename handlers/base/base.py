@@ -5,13 +5,12 @@ from aiogram.filters import CommandStart
 
 from handlers.base.helpers_base import (resolve_main_menu_action, normalize_menu_text, safe_answer_for_blocked,
                                         CANCELLED_TO_MAIN_MENU_TEXT, UNKNOWN_MAIN_MENU_TEXT)
-from handlers.entries.base_entry import show_main_menu
-from handlers.entries.auth_entry import start_registration, request_phone_confirmation
+from handlers.entries import show_main_menu, start_registration, request_phone_confirmation
 from services.category_service import CategoryService
 from services.rental_service import RentalService
 from services.user_service import UserService, StartAction
 
-from keyboards.main_kb import get_main_menu_keyboard
+from keyboards.common import get_main_menu_keyboard
 from texts.base import LEGAL_TEXT, HELP_TEXT, build_unknown_command_text
 
 base_router = Router()

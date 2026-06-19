@@ -1,5 +1,8 @@
-from schemas.item import ItemOut
+from html import escape
+
+from schemas.item import ItemOut, ItemCharacteristicOut
 from utils.functions import format_price, format_days
+
 
 not_cat_id = "⚠️ Не удалось распознать категорию."
 serv_err_cat = "⚠️ Не удалось загрузить категорию. Попробуйте позже."
@@ -17,44 +20,94 @@ serv_err_items = "⚠️ Не удалось загрузить товары. П
 serv_err_photo = "⚠️ Не удалось загрузить фото. Попробуйте позже."
 not_photos = "⚠️ Фото для этого товара не найдены." # 📭 У этого товара нет фотографий
 
-def item_details_text(item: ItemOut, category_name: str, subcategory_name: str) -> str:
-    """Сформировать текст карточки товара для карусели подкатегории."""
+def characteristics_block(characteristics: list[ItemCharacteristicOut], *, limit: int = 5) -> str:
+    """Сформировать красивый блок характеристик."""
+    if not characteristics:
+        return "• Характеристики пока не добавлены"
 
-    description = item.short_description or item.description or "Описание пока не добавлено."
-    if len(description) > 180:
-        description = description[:177].rstrip() + "..."
+    visible_characteristics = list(characteristics[:limit])
+    lines: list[str] = []
+
+    for index, characteristic in enumerate(visible_characteristics):
+        if index == 0 and len(visible_characteristics) == 1:
+            prefix = "└"
+        elif index == 0:
+            prefix = "┌"
+        elif index == len(visible_characteristics) - 1:
+            prefix = "└"
+        else:
+            prefix = "├"
+
+        lines.append(
+            f"{prefix} <b>{characteristic.name}:</b> {characteristic.value}"
+        )
+
+    return "\n".join(lines)
+
+def trim_text(value: str | None, limit: int = 260) -> str:
+    """Обрезать длинный текст без грубого разрыва."""
+    if not value:
+        return "Описание пока не добавлено."
+
+    value = value.strip()
+
+    if len(value) <= limit:
+        return value
+
+    return value[: limit - 3].rstrip() + "..."
+
+def item_details_text(
+    item: ItemOut,
+    category_name: str,
+    subcategory_name: str,
+    characteristics: list[ItemCharacteristicOut],
+) -> str:
+    """Сформировать красивую подробную карточку товара."""
+
+    min_period = format_days(item.min_rental_period)
+    description = trim_text(item.description or item.short_description, limit=300)
 
     return (
         f"📦 <b>{item.title}</b>\n\n"
-        f"📝 <b>Описание:</b>\n{description}\n\n"
-        f"🏷️ <b>Категория:</b> {category_name} > {subcategory_name}\n"
-        f"💰 <b>Цена:</b> {format_price(item.price)} ₽/день\n"
-        f"🕒 <b>Минимальный срок аренды:</b> {item.min_rental_period} \n" # {format_days(min_rental_period)}
-        # f"🔐 <b>Залог:</b> {deposit_text}\n"
-        # f"📍 <b>Местоположение:</b> {location}\n"
-        #f"👤 <b>Владелец:</b> {item.user_id}\n"
-        #f"⭐ <b>Рейтинг:</b> ... ({item.views_count} отзывов)\n"
-        f"✅ <b>Доступное количество:</b> {item.available_quantity}\n"
+        f"💰 <b>{format_price(item.price)} ₽ / день</b>\n"
+        f"✅ В наличии: <b>{item.available_quantity}</b>\n"
+        f"📅 Минимальный срок аренды: <b>{min_period}</b>\n\n"
+        f"⚙️ <b>Характеристики</b>\n"
+        f"{characteristics_block(characteristics, limit=7)}\n\n"
+        f"🏷️ <b>Раздел</b>\n"
+        f"{category_name} → {subcategory_name}\n\n"
+        f"📝 <b>Описание</b>\n"
+        f"{description}\n\n"
+        f"👇 Выберите действие ниже"
     )
-# location = item.location or "Не указано"
-# deposit_text = f"{format_price(item.deposit)} ₽" if item.deposit else "Без залога"
+#f"⭐ <b>Рейтинг:</b> ... ({item.views_count} отзывов)\n"
 # availability_text = "Доступно для аренды" if item.is_available else "Временно недоступно"
 
 # карусель
-def subcategory_item_card_text(item: ItemOut, current_index: int, total_items: int) -> str:
+def subcategory_item_card_text(
+    item: ItemOut,
+    current_index: int,
+    total_items: int,
+    characteristics: list[ItemCharacteristicOut],
+) -> str:
     """Карточка товара для карусели внутри подкатегории."""
 
-    short_description = item.short_description or item.description or "Описание не указано"
     min_period = item.min_rental_period or 1
+    characteristics_text = "\n".join(
+        f"• <b>{escape(characteristic.name)}:</b> {escape(characteristic.value)}"
+        for characteristic in characteristics
+    )
+    if not characteristics_text:
+        characteristics_text = "• Характеристики пока не добавлены"
 
     return (
-        f"📦 <b>{item.title}</b>\n\n"
-        f"📝 {short_description}\n"
-        f"💰 Цена: <b>{format_price(item.price)} ₽/день</b>\n"
-        #f"📍 Локация: {location}\n"
-        f"🗓 Мин. срок: {min_period} {format_days(min_period)}\n"
-        f"✅ Количество: {item.available_quantity}\n"
-        f"👁 Просмотры: {item.views_count}\n\n"
-        f"{current_index + 1} / {total_items}"
+        f"📦 <b>{escape(item.title)}</b>\n\n"
+        f"💰 <b>{format_price(item.price)} ₽ / день</b>\n"
+        f"📅 Мин. срок: <b>{min_period} {format_days(min_period)}</b>\n"
+        f"✅ В наличии: <b>{item.available_quantity} шт.</b>\n\n"
+        f"⚙️ <b>Характеристики:</b>\n"
+        f"{characteristics_text}\n\n"
+        f"📍 <b>{current_index + 1} из {total_items}</b>"
+
+        # f"👁 Просмотры: {item.views_count}\n\n"
     )
-# location = item.location or "Не указана"

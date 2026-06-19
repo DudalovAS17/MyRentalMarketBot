@@ -1,9 +1,21 @@
 from collections.abc import Sequence
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-from keyboards.category_kb import build_category_keyboard
-from utils.callbacks import SUBCAT_CB_PREFIX, ALL_CATEGORY_CB, BACK_TO_CAT, ITEM_DETAILS_CB
+from keyboards.common import build_category_keyboard
+from utils.callbacks import (SUBCAT_CB_PREFIX, ALL_CATEGORY_CB, BACK_TO_CAT, ITEM_DETAILS_CB, RENT_ITEM_CB,
+                             SHOW_ALL_PHOTOS_CB, MESSAGE_OWNER_CB, REVIEWS_CB)
 from schemas.category import CategoryOut
+
+
+"""
+build_category_keyboard - показ категорий
+build_subcategories_keyboard - показ подкатегорий - SUBCAT_CB_PREFIX / {ALL_CATEGORY_CB}:{category.id} / BACK_TO_CAT
+build_items_carousel_keyboard - показ товаров (каруселью)
+build_item_details_kb - показ деталей товара
+build_back_to_item_details_keyboard - возврата к деталям товара - {ITEM_DETAILS_CB}{item_id}
+
+удалена: build_items_keyboard - показ товаров (переделана под карусель)
+"""
 
 def build_subcategories_keyboard(subcategories: Sequence[CategoryOut], category: CategoryOut) -> InlineKeyboardMarkup:
     """Собрать клавиатуру подкатегорий выбранной категории."""
@@ -20,16 +32,7 @@ def build_subcategories_keyboard(subcategories: Sequence[CategoryOut], category:
         ],
     )
 
-def build_back_to_item_details_keyboard(item_id: int) -> InlineKeyboardMarkup:
-    """Собрать клавиатуру возврата к деталям товара."""
-    return InlineKeyboardMarkup(
-        inline_keyboard=[[InlineKeyboardButton(
-            text="🔙 Назад (к деталям товара)",
-            callback_data=f"{ITEM_DETAILS_CB}{item_id}"
-        )]]
-    )
 
-# карусель
 def build_items_carousel_keyboard(
     *,
     current_item_id: int,
@@ -63,3 +66,42 @@ def build_items_carousel_keyboard(
         buttons.append([InlineKeyboardButton(text="🔙 Назад (к подкатегориям)", callback_data=f"{subcat_cb_prefix}{subcategory_id}")])
 
     return InlineKeyboardMarkup(inline_keyboard=buttons)
+
+
+def build_item_details_kb(
+    item_id: int,
+    *,
+    is_busy: bool,
+    selected_subcategory_id: int | None,
+    end_date: str | None,
+) -> InlineKeyboardMarkup:
+    buttons: list[list[InlineKeyboardButton]] = []
+
+    if is_busy:
+        button_text = f"⛔ Сейчас занято (до {end_date})" if end_date else "⛔ Сейчас занято"
+        buttons.append([InlineKeyboardButton(text=button_text, callback_data="noop")])
+    else:
+        buttons.append([InlineKeyboardButton(text="✅ Арендовать", callback_data=f"{RENT_ITEM_CB}{item_id}")])
+
+    buttons.append([InlineKeyboardButton(text="📸 Показать все фото", callback_data=f"{SHOW_ALL_PHOTOS_CB}{item_id}")])
+    buttons.append([InlineKeyboardButton(text="💬 Написать менеджеру", callback_data=f"{MESSAGE_OWNER_CB}{item_id}")])
+    buttons.append([InlineKeyboardButton(text="⭐ Отзывы", callback_data=f"{REVIEWS_CB}{item_id}")])
+
+    if selected_subcategory_id:
+        buttons.append(
+            [InlineKeyboardButton(text="🔙 Назад (к товарам)", callback_data=f"{SUBCAT_CB_PREFIX}{selected_subcategory_id}")]
+        )
+    else:
+        buttons.append([InlineKeyboardButton(text="🔙 Назад (к категориям)", callback_data=BACK_TO_CAT)])
+
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
+
+
+def build_back_to_item_details_keyboard(item_id: int) -> InlineKeyboardMarkup:
+    """Собрать клавиатуру возврата к деталям товара."""
+    return InlineKeyboardMarkup(
+        inline_keyboard=[[InlineKeyboardButton(
+            text="🔙 Назад (к деталям товара)",
+            callback_data=f"{ITEM_DETAILS_CB}{item_id}"
+        )]]
+    )
