@@ -3,11 +3,13 @@ from datetime import date, timedelta
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton, ReplyKeyboardMarkup
 
+#from handlers.auth.helpers_auth.keyboards import BACK_TO_SETTINGS
 from schemas.category import CategoryOut
 from status.rental_status import OPEN_STATUSES
 from utils.callbacks import (CAT_CB_PREFIX,  SEARCH_CITY_CB, SEARCH_FILTERS_CB, BACK_TO_MENU_CB, RENTAL_DETAILS_CB,
                              CANCEL_RENT_FLOW_CB, START_DATE_CB, CONFIRM_RENT_CB)
 
+BACK_TO_SETTINGS = "back_to_profile_settings"
 
 # ──────────────────────────────────────────── base ────────────────────────────────────────────────────────────────────
 def get_main_menu_keyboard() -> ReplyKeyboardMarkup:
@@ -165,9 +167,9 @@ def get_profile_keyboard() -> InlineKeyboardMarkup:
     builder.button(text="🏆 Достижения", callback_data="achievements")
     builder.button(text ="📊 Статистика", callback_data="profile_stats")
     builder.button(text="📱 Изменить номер", callback_data="profile_change_phone")
-    builder.button(text="🔔 Уведомления", callback_data="profile_notifications")
+    builder.button(text="🔔 Уведомления", callback_data="profile_notifications") # "settings_notifications"
     builder.button(text = "✏️ Редактировать профиль", callback_data="profile_settings") # "⚙️ Настройки" # "edit_profile"
-    builder.button(text = "📞 Поддержка", callback_data="profile_help")
+    builder.button(text = "📞 Поддержка", callback_data="profile_help") # "support:start"
     builder.button(text = "⬅️ В главное меню", callback_data="back_to_main_menu") # ?
 
     # Если у пользователя есть непрочитанные уведомления
@@ -185,7 +187,7 @@ def profile_settings_back_keyboard() -> InlineKeyboardMarkup:
     """Кнопка 'Назад в настройки'."""
     return InlineKeyboardMarkup(
         inline_keyboard=[
-            [InlineKeyboardButton(text="« Назад", callback_data="back_to_profile_settings")]
+            [InlineKeyboardButton(text="« Назад", callback_data=BACK_TO_SETTINGS)]
         ]
     )
 

@@ -1,48 +1,49 @@
+from schemas.user import UserOut
+
+#📦🧰💰💸
+
+
+def _display_name(user: UserOut) -> str:
+    return user.full_name or " ".join(part for part in (user.first_name, user.last_name) if part).strip() or user.username or "Не указано"
+    # {user.full_name or 'Не указан'}
 
 # ────────────────────────────────────────────────── profile ───────────────────────────────────────────────────────────
-def build_profile_text(user) -> str:
+def build_profile_text(user: UserOut) -> str:
     """Сформировать текст экрана профиля"""
-    #rating_stars = "★" * int(user.rating) + "☆" * (5 - int(user.rating))
+    username = f"@{user.username}" if user.username else "Не указан"
     return  (
         "👤 <b>Личный кабинет</b>\n\n"
-        f"Пользователь: {user.full_name or 'Не указан'}\n"
-        # f"Статус: {'👑 Премиум' if user_data.get('is_premium', False) else '🔹 Стандарт'}\n"  # нет такого поля в User
-        f"ID: #{user.id or 0}\n"
-        f"Телефон: 📱 {user.phone or 'Не указан'} {'⚠️' if not user.phone or user.phone == 'Не указан' else ''}\n"
-        f"Email: 📧 {user.email or 'Не указано'} {'⚠️' if not user.email or user.email == 'Не указан' else ''}\n"
-        f"Рейтинг: {'★' * int(user.rating or 5) + '☆' * (5 - int(user.rating or 5))} ({user.rating or 5}/5)\n\n"
-        # f"*Рейтинг:* {round(user.rating, 1)} ⭐️ ({user.rating_count} отзывов)\n"
-
-        f"\n\nВыберите действие:"
+        f"Пользователь: <b>{_display_name(user)}</b>\n"
+        f"Telegram: {username}\n"
+        f"Телефон: 📱 {user.phone or 'Не указан'} {'⚠️' if not user.phone else ''}\n"
+        f"Email: 📧 {user.email or 'Не указан'} {'⚠️' if not user.email else ''}\n"
+        f"Статус аккаунта: ⭐️ <b>{user.account_status.value}</b>\n\n"
+        "Выберите действие:"
     )
 
 def build_profile_stats_text() -> str:
-    """Сформировать текст экрана статистики"""
+    """Сформировать текст экрана статистики."""
+    # TODO: ?
     return (
         "📊 <b>Ваша статистика</b>\n\n"
-        f"• 📦 Сдано вещей в аренду: x\n" #*{user_data.get('items_rented_out', 0)}* - x
-        f"• 🧰 Арендовано вещей: x\n" #*{user_data.get('items_rented', 0)}* - x
-        f"• 💰 Заработано (ориентировочно): x ₽\n" # *~{user_data.get('total_earnings', 0)}* - x
-        f"• 💸 Сэкономлено (ориентировочно): x ₽\n\n" # *~{user_data.get('total_savings', 0)}* - x
-        # Сюда можно добавить больше статистики в будущем
-        # Например, по категориям, по времени и т.д.
+        "• 🧰 Арендовано вещей: ?\n"
+        "• 💰 ?: ?\n"
+        "• 💸 ?: ?\n\n"
+        "Статистика будет доступна после подключения агрегатов по сделкам."
     )
 
 def default_achievements() -> list[tuple[str, bool]]:
     """Список достижений-заглушек до подключения реальных данных"""
+    # TODO: ?
     return [  # пока на шару расставил True\False
-        ("Первая сдача", True),  # user_data.get("achievement_first_rental_out", False)
-        ("Первая аренда", False),  # user_data.get("achievement_first_rental_in", False)
-        ("5 сданных вещей", True),  # user_data.get("achievement_5_rentals_out", False)
-        ("5 арендованных вещей", False),  # user_data.get("achievement_5_rentals_in", False)
-        # Сюда можно добавить больше достижений
-        ("10 сделок", True),  # user_data.get("achievement_10_deals", False)
-        ("Премиум статус", False),  # user_data.get("is_premium", False)
+        ("Первая аренда", False),
+        ("5 арендованных вещей", False),
+        ("Премиум статус", False),
     ]
-
 
 def build_achievements_text() -> str:
     """Сформировать текст экрана достижений"""
+    # TODO: ? "Достижения пока готовятся. Совершайте сделки — мы обязательно покажем ваш прогресс здесь."
     achievements_message = "🏆 <b>Ваши достижения</b>\n\n"
     achievements = default_achievements()
 
@@ -61,24 +62,22 @@ def build_achievements_text() -> str:
 
     return achievements_message
 
-# ────────────────────────────────────────────────── edit profile ──────────────────────────────────────────────────────
-EDIT_NAME_FIELD = "name"
-EDIT_EMAIL_FIELD = "email"
 
+# ────────────────────────────────────────────────── edit profile ──────────────────────────────────────────────────────
 def build_edit_profile_menu_text(user) -> str:
     return (
         "✏️ <b>Редактирование профиля</b>\n\n"
         "<b>Текущие данные:</b>\n"
-        f"👤 Имя: <b>{user.full_name or 'Не указано'}</b>\n"
+        f"👤 Имя: <b>{_display_name(user)}</b>\n"
         f"📧 Email: <b>{user.email or 'Не указан'}</b>\n\n"
         "Выберите поле для редактирования:"
     )
 
 def build_edit_name_prompt_text() -> str:
-    return "👤 <b>Изменение имени</b>\n\nВведите новое имя. Это имя будет отображаться другим пользователям.\n"
+    return "👤 <b>Изменение имени</b>\n\n Введите новое имя.\n"
 
 def build_edit_email_prompt_text() -> str:
-    return "📧 <b>Изменение email</b>\n\nВведите новый email (Email используется для отправки уведомлений о сделках)"
+    return "📧 <b>Изменение email</b>\n\n Введите новый email или /cancel для отмены."
 
 def build_profile_name_updated_text(new_name: str) -> str:
     return f"✅ Ваше имя успешно изменено на <b>{new_name}</b>."
@@ -103,8 +102,7 @@ def build_change_phone_prompt_text() -> str:
     """Сформировать prompt смены номера телефона."""
     return (
         "📱 <b>Смена номера телефона</b>\n\n"
-        "Пожалуйста, нажмите кнопку ниже и поделитесь вашим <b>новым контактом</b>, "
-        "чтобы обновить номер телефона в профиле."
+        "Нажмите кнопку ниже и поделитесь вашим <b>новым контактом</b>."
     )
 
 # ───────────────────────────────────────────────── privacy ────────────────────────────────────────────────────────────

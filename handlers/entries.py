@@ -11,7 +11,6 @@ from schemas.user import UserCreate
 from utils.functions import send_reply, send_or_edit
 from utils.errors import ServiceError
 
-
 # ───────────────────────────────────────────────── Base ───────────────────────────────────────────────────────────────
 async def show_main_menu(event: Message | CallbackQuery, user) -> None:
     """Показывает главное меню"""
@@ -85,7 +84,8 @@ async def start_registration(message: Message, user_service: UserService) -> Non
         last_name=tg_user.last_name,
         full_name=f"{tg_user.first_name or ''} {tg_user.last_name or ''}".strip(),
         phone=None,
-        email=None
+        email=None,
+        language_code=tg_user.language_code
     )
 
     try:

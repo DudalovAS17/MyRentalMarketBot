@@ -105,3 +105,11 @@ CANCEL_RENT_FLOW_CB = "cancel_rent_flow" # new
 IGNORE_CB = "ignore"
 
 START_DATE_DAYS_AHEAD = 5
+
+
+
+# edit_profile.py
+EPF_NAME = "edit_profile_field:name"
+EPF_EMAIL = "edit_profile_field:email"
+EPF_PHONE = "profile_change_phone" #"edit_profile_field:phone"
+SEP = "settings_edit_profile"
