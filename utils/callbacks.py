@@ -101,11 +101,15 @@ MY_RENTALS_CB = "rental_list" # back_to_rentals
 RENTAL_DETAILS_CB = "rental_details:"
 CANCEL_RENT_FLOW_CB = "cancel_rent_flow" # new
 
-
 IGNORE_CB = "ignore"
 
 START_DATE_DAYS_AHEAD = 5
 
+
+
+RENT_PERIOD_CB = "rent_period:"
+CUSTOM_RENT_DATES_CB = "rent_dates:custom"
+CLIENT_CANCEL_RENTAL_CB = "rental_action:cancel:"
 
 
 # edit_profile.py
@@ -113,3 +117,13 @@ EPF_NAME = "edit_profile_field:name"
 EPF_EMAIL = "edit_profile_field:email"
 EPF_PHONE = "profile_change_phone" #"edit_profile_field:phone"
 SEP = "settings_edit_profile"
+
+
+
+# Удалено:
+# "rental_action:confirm:{rental_id}"
+# "rental_action:rejected_by_owner/renter:{rental_id}"
+# "rental_action:cancelled_confirmed_by_owner/renter:{rental_id}"
+# "rental_action:handover_owner/renter:{rental_id}"
+# "rental_action:complete:{rental_id}"
+# "rental_action:receive_renter/renter:{rental_id}"

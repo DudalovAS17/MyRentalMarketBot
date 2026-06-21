@@ -1,6 +1,4 @@
-from datetime import datetime
 from dataclasses import dataclass
-from typing import Optional
 
 from status.rental_status import RentalStatus
 
@@ -32,7 +30,7 @@ class ItemNotAvailable(DomainError): # Exception - чтобы корректно
     item_id: int # какая вещь
     rental_id: int # Optional[int] # какая аренда блокирует
     status: RentalStatus # её статус
-    end_date: Optional[datetime]
+    #end_date: Optional[datetime]
 
 
 @dataclass

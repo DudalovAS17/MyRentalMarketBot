@@ -24,11 +24,11 @@ class RentalCreate(BaseModel):
 
     total_price: Optional[Decimal] = Field(None, ge=0)
 
-    start_date: Optional[AwareDatetime] = None
-    end_date: Optional[AwareDatetime] = None
+    #start_date: Optional[AwareDatetime] = None
+    #end_date: Optional[AwareDatetime] = None
     rental_period_text: Optional[str] = Field(None, max_length=100)
 
-    quantity: int = Field(1, ge=1)
+    #quantity: int = Field(1, ge=1)
 
     delivery_needed: Optional[bool] = None
     delivery_address: Optional[str] = None
@@ -41,8 +41,8 @@ class RentalCreate(BaseModel):
 class RentalUpdate(BaseModel):
     """Схема для обновления заявки на аренду менеджером или системой."""
 
-    start_date: Optional[AwareDatetime] = None
-    end_date: Optional[AwareDatetime] = None
+    #start_date: Optional[AwareDatetime] = None
+    #end_date: Optional[AwareDatetime] = None
     rental_period_text: Optional[str] = Field(default=None, max_length=100)
 
     total_price: Optional[Decimal] = Field(default=None, ge=0)
@@ -75,8 +75,8 @@ class RentalOut(BaseModel):
     item_id: int
     user_id: int
 
-    start_date: Optional[AwareDatetime] = None
-    end_date: Optional[AwareDatetime] = None
+    #start_date: Optional[AwareDatetime] = None
+    #end_date: Optional[AwareDatetime] = None
 
     rental_period_text: Optional[str] = None
     total_price: Optional[Decimal] = None
@@ -108,10 +108,7 @@ class RentalOut(BaseModel):
 
 
 # ────────────────────────────────────────── Rental Details ────────────────────────────────────────────────────────────
-# class RentalWithRoleOut(RentalOut):
-#     """Совместимое имя для списка клиентских заявок."""
-#
-#     user_role: RentalActorRole
+# class RentalWithRoleOut(RentalOut): user_role: RentalActorRole
 
 
 class RentalDetailsOut(BaseModel):
@@ -143,14 +140,17 @@ class RentalCreateDraft(BaseModel):
 
     item_id: Optional[int] = None
 
-    start_date: Optional[str] = None
-    end_date: Optional[str] = None
+    #start_date: Optional[str] = None
+    #end_date: Optional[str] = None
 
-    rental_period_text: Optional[str] = Field(None, max_length=100)
-    quantity: Optional[int] = Field(default=None, ge=1)
+    rental_period_text: Optional[str] = Field(default=None, max_length=100)
+    #quantity: Optional[int] = Field(default=None, ge=1)
 
     delivery_needed: Optional[bool] = None
     delivery_address: Optional[str] = None
-    client_name: Optional[str] = Field(None, max_length=150)
-    client_phone: Optional[str] = Field(None, max_length=30)
+
+    client_name: Optional[str] = Field(default=None, max_length=150)
+    client_phone: Optional[str] = Field(default=None, max_length=30)
     client_comment: Optional[str] = None
+
+    total_price: Optional[Decimal] = Field(default=None, ge=0)

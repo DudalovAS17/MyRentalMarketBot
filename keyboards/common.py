@@ -1,5 +1,5 @@
 from typing import Sequence
-from datetime import date, timedelta
+#from datetime import date, timedelta
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton, ReplyKeyboardMarkup
 
@@ -7,7 +7,7 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, KeyboardBu
 from schemas.category import CategoryOut
 from status.rental_status import OPEN_STATUSES
 from utils.callbacks import (CAT_CB_PREFIX,  SEARCH_CITY_CB, SEARCH_FILTERS_CB, BACK_TO_MENU_CB, RENTAL_DETAILS_CB,
-                             CANCEL_RENT_FLOW_CB, START_DATE_CB, CONFIRM_RENT_CB)
+                             CANCEL_RENT_FLOW_CB, CONFIRM_RENT_CB) # START_DATE_CB,
 
 BACK_TO_SETTINGS = "back_to_profile_settings"
 
@@ -118,11 +118,12 @@ def get_open_rental_keyboard(rental_id: int) -> InlineKeyboardMarkup:
         ] # "🔍 Посмотреть запрос"
     )
 
+"""
 def build_rent_end_date_keyboard(start_date: date, min_days: int, max_days: int, options: int = 6) -> InlineKeyboardMarkup:
-    """
+    ""
     Клавиатура выбора даты окончания аренды.
     Показываем 'options' вариантов начиная с min_days, но не выходя за max_days.
-    """
+    ""
 
     min_days = max(min_days, 1)
     max_days = max(max_days, min_days)
@@ -136,7 +137,7 @@ def build_rent_end_date_keyboard(start_date: date, min_days: int, max_days: int,
 
     for days in option_days:
         end_date = start_date + timedelta(days=days)
-        end_str = end_date.strftime("%d.%m.%Y")
+        end_str = end_date.str_ftime("%d.%m.%Y") # убери _ у str_ftime
         rows.append(
             [InlineKeyboardButton(text=f"{end_str}  ({days} дн.)", callback_data=f"end_date:{end_str}:{days}")]
         )
@@ -145,17 +146,17 @@ def build_rent_end_date_keyboard(start_date: date, min_days: int, max_days: int,
     #rows.append([InlineKeyboardButton(text="🔙 Назад к выбору даты начала", callback_data=f"rent_item:{item_id}")])
 
     return InlineKeyboardMarkup(inline_keyboard=rows)
+"""
 
-def build_rent_confirmation_keyboard(start_date: str) -> InlineKeyboardMarkup:
+def build_rent_confirmation_keyboard() -> InlineKeyboardMarkup: # start_date: str
     """Клавиатура финального шага подтверждения аренды."""
     return InlineKeyboardMarkup(
         inline_keyboard=[
-            [InlineKeyboardButton(text="✅ Отправить запрос владельцу", callback_data=CONFIRM_RENT_CB)],
-            [InlineKeyboardButton(text="🔙 Изменить дату окончания", callback_data=f"{START_DATE_CB}{start_date}")],
+            [InlineKeyboardButton(text="✅ Отправить заявку менеджеру", callback_data=CONFIRM_RENT_CB)],
             [InlineKeyboardButton(text="❌ Отменить аренду", callback_data=CANCEL_RENT_FLOW_CB)], # или f"{ITEM_DETAILS}{item_id}"???
         ]
     )
-
+# [InlineKeyboardButton(text="🔙 Изменить дату окончания", callback_data=f"{START_DATE_CB}{start_date}")],
 
 # ───────────────────────────────────────────────── user ───────────────────────────────────────────────────────────────
 def get_profile_keyboard() -> InlineKeyboardMarkup:

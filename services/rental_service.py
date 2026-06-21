@@ -8,7 +8,7 @@ from schemas.item import ItemOut
 from schemas.user import UserOut
 from status.rental_status import RentalStatus, is_open_status, can_transition
 from utils.domain_exceptions import ItemNotAvailable
-from utils.errors import NotFoundError, ForbiddenError, ConflictError, ValidationError
+from utils.errors import NotFoundError, ForbiddenError, ConflictError #, ValidationError
 
 """
     list_rentals_by_renter - Возвращает все аренды, где пользователь — арендатор
@@ -53,10 +53,10 @@ class RentalService:
             raise ConflictError(f"Нельзя изменить статус заявки: {old_status.value} -> {new_status.value}")
         return False
 
-    @staticmethod
-    def _validate_date_create(data: RentalCreate) -> None:
-        if data.start_date and data.end_date and data.end_date <= data.start_date:
-            raise ValidationError("Дата окончания аренды должна быть позже даты начала")
+    # @staticmethod
+    # def _validate_date_create(data: RentalCreate) -> None:
+    #     if data.start_date and data.end_date and data.end_date <= data.start_date:
+    #         raise ValidationError("Дата окончания аренды должна быть позже даты начала")
 
     # ────────────────────────────────────────── Read methods ──────────────────────────────────────────────────────────
     async def get_by_id(self, rental_id: int, *, strict: bool = False) -> Optional[RentalOut]:
@@ -93,7 +93,7 @@ class RentalService:
     # ─────────────────────────────────────────── write methods ────────────────────────────────────────────────────────
     async def create(self, data: RentalCreate) -> RentalOut:
         """Создать новую заявку клиента."""
-        self._validate_date_create(data)
+        #self._validate_date_create(data)
         rental = await self.repo.create(data)
 
         dto = self._to_out(rental)
@@ -183,7 +183,7 @@ class RentalService:
             item_id=item_id,
             rental_id=open_rental.id,
             status=open_rental.status,
-            end_date=open_rental.end_date,
+            #end_date=open_rental.end_date,
         )
 
     async def has_open_rentals_for_item(self, item_id: int) -> bool:

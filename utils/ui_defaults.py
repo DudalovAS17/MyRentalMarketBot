@@ -9,3 +9,7 @@ def ui_money(value: Optional[Decimal], default: str = "0") -> str:
 
 def ui_int(value: Optional[int], default: int = 0) -> int:
     return value if value is not None else default
+
+# Красивое имя вида: "Александр С. (@potch)"
+def fmt_person(name: str, username: str = None) -> str:
+    return f"{name} (@{username})" if username else name

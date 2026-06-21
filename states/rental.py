@@ -1,8 +1,8 @@
 from aiogram.fsm.state import StatesGroup, State
 
 class RentalCreateStates(StatesGroup):
-    """Состояния процесса аренды"""
+    """Состояния процесса создания заявки на аренду."""
 
-    start_date = State() # Пользователь выбирает дату начала
-    end_date = State() # Пользователь выбирает дату окончания
-    confirmation = State() # Подтверждение аренды
+    period = State()  # Пользователь выбирает фиксированный диапазон аренды
+    custom_dates = State()  # Пользователь вводит свои даты одним сообщением
+    confirmation = State()  # Пользователь подтверждает заявку

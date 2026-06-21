@@ -19,7 +19,6 @@ from utils.callbacks import MY_RENTALS_CB, RENTAL_DETAILS_CB
 async def view_my_rentals(event: Message | CallbackQuery, rental_service: RentalService, user) -> None:
     await show_my_rentals(event, rental_service, user)
 
-
 @rental_router.callback_query(F.data.startswith(RENTAL_DETAILS_CB))
 async def show_rental_details(callback: CallbackQuery, rental_service: RentalService, user) -> None:
     """Отображает детали конкретной аренды"""

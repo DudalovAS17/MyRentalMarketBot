@@ -90,14 +90,15 @@ async def deny(
 """
 
 async def abort_rent_flow(
-        callback: CallbackQuery,
+        callback: Message | CallbackQuery,
         state: FSMContext,
         err_text: str,
         rent_ui_message_id: Optional[int] = None,
 ) -> None:
     """Показывает ошибку в rent-UI (если есть) и очищает FSM rent-flow."""
 
-    chat_id = callback.message.chat.id
+    message = callback.message if isinstance(callback, CallbackQuery) else callback
+    chat_id = message.chat.id
 
     # если id не передали — пробуем взять из state
     if rent_ui_message_id is None:
@@ -106,16 +107,16 @@ async def abort_rent_flow(
 
     if rent_ui_message_id:
         try:
-            await callback.bot.edit_message_text(
+            await message.bot.edit_message_text(
                 chat_id=chat_id,
                 message_id=rent_ui_message_id,
                 text=err_text,
                 parse_mode="HTML",
             )
         except TelegramBadRequest:
-            await callback.message.answer(err_text, parse_mode="HTML")
+            await message.answer(err_text, parse_mode="HTML")
     else:
-        await callback.message.answer(err_text, parse_mode="HTML")
+        await message.answer(err_text, parse_mode="HTML")
         # await send_or_edit(callback, err_text)
 
     await state.clear() # Очищаем некорректные данные

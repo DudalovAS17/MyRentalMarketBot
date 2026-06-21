@@ -26,8 +26,8 @@ class Rental(Base, TimestampMixin):
     item_id: Mapped[int] = mapped_column(ForeignKey("items.id", ondelete="RESTRICT"), nullable=False)
 
     # сроки аренды
-    start_date: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
-    end_date: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    #start_date: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    #end_date: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
 
     rental_period_text: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
 
