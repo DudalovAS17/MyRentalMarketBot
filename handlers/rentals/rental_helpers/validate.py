@@ -117,6 +117,31 @@ def parse_period_prices(price_text: str | None) -> dict[str, Decimal]:
 
     return prices
 
+""" Более строгий парсе id сделки
+async def _parse_accessible_rental_id(
+    callback: CallbackQuery,
+    rental_service: RentalService,
+    user,
+    prefix: str,
+) -> int | None:
+    ""Получить rental_id из callback и проверить доступ клиента к заявке.""
+    rental_id = parse_callback(callback.data, prefix)
+    if rental_id is None:
+        await callback.answer("Некорректная заявка.", show_alert=True)
+        return None
+
+    try:
+        details = await rental_service.get_rental_details(rental_id=rental_id, current_user_id=user.id)
+    except ServiceError:
+        await callback.answer("Ошибка. Попробуйте позже.", show_alert=True)
+        return None
+
+    if not details:
+        await callback.answer("Заявка не найдена или нет доступа.", show_alert=True)
+        return None
+
+    return rental_id
+"""
 # ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 async def abort_if_item_unavailable(event: CallbackQuery | Message, rental_service: RentalService, item_id: int) -> bool:
     """Проверить доступность товара и показать понятное сообщение, если товар занят."""

@@ -20,6 +20,14 @@ DEALS_CANCEL_PREFIX = "admin:deals:cancel:"
 DEALS_RESOLVE_PREFIX = "admin:deals:resolve:"
 DEALS_RESOLVE_TARGET_PREFIX = "admin:deals:resolve_target:"
 
+"""
+Админ: подтверждает аренду - у пользователя уже нет возможности отменить аренду
+
+- Админ отклонил запрос аренды (Админ - REJECTED)
+- Админ подтверждает заявку CONFIRMED
+- Админ отменяет подтвержденную аренду CANCELLED_BY_ADMIN
+- Админ завершает аренду COMPLETED
+"""
 # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 @admin_deals_router.callback_query(F.data == DEALS_PREFIX)
 async def admin_deals_list(callback: CallbackQuery, admin_rental_service: AdminRentalService) -> None:

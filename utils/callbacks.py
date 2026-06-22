@@ -109,8 +109,8 @@ START_DATE_DAYS_AHEAD = 5
 
 RENT_PERIOD_CB = "rent_period:"
 CUSTOM_RENT_DATES_CB = "rent_dates:custom"
-CLIENT_CANCEL_RENTAL_CB = "rental_action:cancel:"
-
+CLIENT_CANCEL_RENTAL_CB = "rental_action:canceled_by_client:" # "rental_action:cancel:"
+CLIENT_SUPPORT_RENTAL_CB = "rental_action:support_by_client:" # "rental_action:support:"
 
 # edit_profile.py
 EPF_NAME = "edit_profile_field:name"

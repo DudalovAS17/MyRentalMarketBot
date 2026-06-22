@@ -16,6 +16,10 @@ from utils.functions import send_or_edit
 """создание тикета + отправка админам"""
 support_router = Router()
 
+# TODO: логика поддержки для конкретной аренды.
+CLIENT_SUPPORT_RENTAL_CB = "rental_action:support_by_client:" # "rental_action:dispute:"
+# rental_support_by_client - Написать в поддержку для клиента
+
 # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 # если хочешь reply-кнопку в меню — добавишь "Поддержка"
 @support_router.message(Command("support"))

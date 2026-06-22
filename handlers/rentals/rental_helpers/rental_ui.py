@@ -2,7 +2,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from status.rental_status import RentalStatus, STATUS_LABELS
 from schemas.rental import RentalDetailsOut, RentalOut
-from utils.callbacks import MY_RENTALS_CB, BACK_TO_MENU_CB, IGNORE_CB, CLIENT_CANCEL_RENTAL_CB
+from utils.callbacks import MY_RENTALS_CB, BACK_TO_MENU_CB, IGNORE_CB, CLIENT_CANCEL_RENTAL_CB, CLIENT_SUPPORT_RENTAL_CB
 from utils.ui_defaults import ui_str, ui_money
 
 # "✅ Подтвердить получение товара"
@@ -100,6 +100,10 @@ def build_client_actions(rental: RentalOut) -> list[list[InlineKeyboardButton]]:
     #             callback_data=f"{CLIENT_CANCEL_RENTAL_CB}{rental.id}",
     #         )
     #     ])
+
+    buttons.append([
+        InlineKeyboardButton(text="💬 Написать в поддержку", callback_data=f"{CLIENT_SUPPORT_RENTAL_CB}{rental.id}")
+    ])
 
     if rental.manager_comment:
         buttons.append([
