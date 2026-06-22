@@ -1,9 +1,9 @@
 import re
 from aiogram.types import CallbackQuery, Message
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 from handlers.rentals.rental_helpers.texts import item_not_available_message
-from handlers.rentals.rental_helpers.keyboard import PERIOD_DAYS, PERIOD_LABELS, RENT_PERIOD_CB
+from handlers.rentals.rental_helpers.keyboard import PERIOD_LABELS, RENT_PERIOD_CB
 from services.rental_service import RentalService
 
 from utils.domain_exceptions import ItemNotAvailable
@@ -64,14 +64,69 @@ async def get_rental_id_or_alert(callback: CallbackQuery) -> int | None:
 
     return rental_id
 
+# ?
+def parse_rent_details_message(text: str | None) -> tuple[int, str, str | None] | None:
+    """Распарсить одно сообщение: кол-во дней - дата, к которой нужен товар - комментарий."""
+    if not text:
+        return None
+
+    parts = [part.strip() for part in re.split(r"\s*[-—–]\s*", text.strip(), maxsplit=2)]
+    if len(parts) < 2 or not parts[0].isdigit() or not parts[1]:
+        return None
+
+    days = int(parts[0])
+    if days < 1:
+        return None
+
+    comment = parts[2] if len(parts) == 3 and parts[2] else None
+    return days, parts[1], comment
+
+
+def _money_from_text(value: str) -> Decimal | None:
+    """Достать первое денежное значение из текстового фрагмента."""
+    match = re.search(r"(\d[\d\s]*(?:[,.]\d+)?)", value)
+    if not match:
+        return None
+
+    try:
+        return Decimal(match.group(1).replace(" ", "").replace(",", ".")).quantize(Decimal("0.01"))
+    except (InvalidOperation, ValueError):
+        return None
+
+def parse_period_prices(price_text: str | None) -> dict[str, Decimal]:
+    """Распарсить цены по диапазонам из человеко-читаемого текста цены товара."""
+    if not price_text:
+        return {}
+
+    normalized = price_text.lower().replace("ё", "е")
+    patterns = {
+        "1d": r"(?:сутки|1\s*(?:день|дн|сут))\D*(\d[\d\s]*(?:[,.]\d+)?)",
+        "2_7d": r"2\s*[-–—]\s*7\s*(?:дн|сут|дней)?\D*(\d[\d\s]*(?:[,.]\d+)?)",
+        "8_14d": r"8\s*[-–—]\s*14\s*(?:дн|сут|дней)?\D*(\d[\d\s]*(?:[,.]\d+)?)",
+        "15_plus": r"(?:>|от)?\s*15\+?\s*(?:дн|сут|дней)?\D*(\d[\d\s]*(?:[,.]\d+)?)",
+    }
+
+    prices: dict[str, Decimal] = {}
+    for code, pattern in patterns.items():
+        match = re.search(pattern, normalized)
+        if not match:
+            continue
+        price = _money_from_text(match.group(1))
+        if price is not None:
+            prices[code] = price
+
+    return prices
+
 # ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-async def ensure_rent_item_available_or_notify(event: CallbackQuery | Message, rental_service: RentalService, item_id: int) -> bool:
+async def abort_if_item_unavailable(event: CallbackQuery | Message, rental_service: RentalService, item_id: int) -> bool:
     """Проверить доступность товара и показать понятное сообщение, если товар занят."""
+    """Вернуть True, если rent-flow нужно остановить из-за недоступности товара."""
     try:
         await rental_service.ensure_item_available(item_id)
     except ItemNotAvailable:
         message = event.message if isinstance(event, CallbackQuery) else event
-        await message.answer(item_not_available_message)
+        if message:
+            await message.answer(item_not_available_message)
         return True
 
     return False
@@ -83,10 +138,14 @@ def calculate_total_rent_price(price_per_day: Decimal | int | float, days: int) 
     total_rent_price = (normalized_price * Decimal(days)).quantize(Decimal("0.01"))
     return normalized_price, total_rent_price
 
-def calculate_fixed_period_total(price_per_day: Decimal | int | float, period_code: str) -> Decimal | None:
-    """Рассчитать стоимость для диапазона, если он имеет точное число дней."""
-    days = PERIOD_DAYS.get(period_code)
-    if days is None:
-        return None
-    _, total_price = calculate_total_rent_price(price_per_day, days)
-    return total_price
+def calculate_price_for_fixed_period_total(
+    item_price: Decimal | int | float,
+    period_code: str,
+    price_text: str | None = None,
+) -> Decimal | None:
+    """Получить готовую цену для выбранного диапазона."""
+    period_prices = parse_period_prices(price_text)
+    if period_code in period_prices:
+        return period_prices[period_code]
+
+    return item_price if isinstance(item_price, Decimal) else Decimal(str(item_price)).quantize(Decimal("0.01"))

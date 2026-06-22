@@ -1,5 +1,5 @@
 from aiogram import F
-from aiogram.types import CallbackQuery
+from aiogram.types import CallbackQuery, Message
 from aiogram.fsm.context import FSMContext
 
 from .router import rental_router
@@ -29,7 +29,7 @@ async def start_rent_process(callback: CallbackQuery, state: FSMContext, item_se
     if item is None:
         return
 
-    if await ch.ensure_rent_item_available_or_notify(callback, rental_service, item.id):
+    if await ch.abort_if_item_unavailable(callback, rental_service, item.id):
         return # вещь недоступна
 
     draft = RentalCreateDraft(
@@ -61,7 +61,7 @@ async def process_fixed_period(
     item_service: ItemService,
     rental_service: RentalService,
 ) -> None:
-    """Обработать выбор одного из четырёх фиксированных диапазонов аренды."""
+    """FSM: Обработать выбор одного из четырёх фиксированных диапазонов аренды."""
     await callback.answer()
 
     period_code = ch.parse_rent_period_code(callback.data) # (callback, state)
@@ -70,11 +70,11 @@ async def process_fixed_period(
         return
 
     # проверь
-    draft, rent_ui_message_id = await ch.get_rent_confirm_context_or_abort(callback, state, ch.rental_data_err, ch.not_all_rental_data_err) # get_rent_draft_from_state?
-    if draft is None or draft.item_id is None:
-        await abort_rent_flow(callback, state, ch.rental_data_err, rent_ui_message_id)
+    draft_ctx = await ch.get_rent_draft_context_or_abort(callback, state, ch.rental_data_err, ch.not_all_rental_data_err)  # get_rent_draft_from_state?
+    if draft_ctx is None:
+        # await abort_rent_flow(callback, state, ch.rental_data_err, rent_ui_message_id)
         return
-    # item_id, rent_ui_message_id =
+    draft, rent_ui_message_id = draft_ctx
 
     item = await ch.load_item_or_abort(
         callback, state, item_service.get_item_by_id, draft.item_id, invalid_id_text=ch.not_item_for_rental,
@@ -83,19 +83,69 @@ async def process_fixed_period(
     if item is None:
         return
 
-    if await ch.ensure_rent_item_available_or_notify(callback, rental_service, item.id):
+    if await ch.abort_if_item_unavailable(callback, rental_service, item.id):
         return # вещь недоступна
 
     # сохраняем period_text, total_price в draft (Считаем итоговую стоимость)
     period_text = ch.PERIOD_LABELS[period_code]
-    total_price = ch.calculate_fixed_period_total(item.price, period_code) # ?
-    await ch.store_fixed_period_choice_and_price(state, draft, period_text, total_price)
+
+    period_price = ch.calculate_price_for_fixed_period_total(item.price, period_code, item.price_text)
+    await ch.store_fixed_period_choice_and_price(state, draft, period_text, period_price)
     # в store_rent_start_date_or_abort еще были: ch.rental_data_err, ch.not_item_for_rental
 
     await render_rent_ui(
         callback,
         state,
-        ch.format_rent_confirmation_text(item, period_text, total_price), # format_fixed_period_confirmation_text
+        ch.format_rent_details_request_text(item, period_text),
+        ch.build_rent_cancel_keyboard(item.id),
+        rent_ui_message_id,
+    )
+    await state.set_state(RentalCreateStates.comment)
+
+@rental_router.message(RentalCreateStates.comment)
+async def process_rent_details_message(
+    message: Message,
+    state: FSMContext,
+    item_service: ItemService,
+    rental_service: RentalService,
+) -> None:
+    """FSM: Обработать сообщение клиента (количеством дней, датой и комментарий)."""
+
+    parsed = ch.parse_rent_details_message(message.text)
+    if parsed is None:
+        await message.answer(
+            "⚠️ Не удалось разобрать сообщение. Отправьте в формате:\n"
+            "<code>3 - 25.06.2026 - Нужна доставка вечером</code>",
+            parse_mode="HTML",
+        )
+        return
+
+    days, needed_by_date, client_comment = parsed
+
+    draft_ctx = await ch.get_rent_draft_context_or_abort(message, state, ch.rental_data_err, ch.not_all_rental_data_err)
+    if draft_ctx is None:
+        return
+    draft, rent_ui_message_id = draft_ctx
+
+    item = await ch.load_item_or_abort(
+        message, state, item_service.get_item_by_id, draft.item_id, invalid_id_text=ch.not_item_for_rental,
+        load_error_text=ch.serv_item_err, not_found_text=ch.not_item, rent_ui_message_id=rent_ui_message_id,
+    )
+    if item is None:
+        return
+
+    if await ch.abort_if_item_unavailable(message, rental_service, item.id):
+        return
+
+    await ch.store_rent_details_message(state, draft, client_comment) # format_fixed_period_confirmation_text
+
+    total_price = draft.total_price
+    rental_period_text = f"{draft.rental_period_text}; указано: {days} дн., товар нужен к {needed_by_date}"
+
+    await render_rent_ui(
+        message,
+        state,
+        ch.format_rent_confirmation_text(item, rental_period_text, total_price, client_comment),
         build_rent_confirmation_keyboard(),
         rent_ui_message_id,
     )
@@ -110,10 +160,11 @@ async def confirm_rent(
     #notification_service: NotificationService,
     user,
 ) -> None:
-    """Создать заявку на аренду - показать экран успеха - уведомить владельца."""
+    """FSM: Создать заявку на аренду - показать экран успеха - уведомить владельца."""
     await callback.answer()
 
-    confirm_ctx = await ch.get_rent_confirm_context_or_abort(callback, state, ch.rental_data_err, ch.not_all_rental_data_err)
+    confirm_ctx = await ch.get_rent_draft_context_or_abort(callback, state, ch.rental_data_err,
+                                                           ch.not_all_rental_data_err)
     if confirm_ctx is None:
         return
     draft, rent_ui_message_id = confirm_ctx
@@ -124,7 +175,7 @@ async def confirm_rent(
     if item is None:
         return
 
-    if await ch.ensure_rent_item_available_or_notify(callback, rental_service, draft.item_id):
+    if await ch.abort_if_item_unavailable(callback, rental_service, draft.item_id):
         return # вещь занята
 
 
@@ -137,7 +188,7 @@ async def confirm_rent(
             total_price=draft.total_price,
             client_name=draft.client_name,
             client_phone=draft.client_phone,
-            #client_comment=draft.client_comment,
+            client_comment=draft.client_comment,
         )
     except ValidationError:
         await abort_rent_flow(callback, state, ch.rental_data_err, rent_ui_message_id)
@@ -156,10 +207,9 @@ async def confirm_rent(
     await render_rent_ui(callback, state, text, ch.build_rent_success_keyboard(), rent_ui_message_id)
     await state.clear()
 
-
 @rental_router.callback_query(F.data == CANCEL_RENT_FLOW_CB)
 async def cancel_rent_flow(callback: CallbackQuery, state: FSMContext) -> None:
-    """Fatal: пользователь отменил аренду. Отменить rent-flow и очистить FSM"""
+    """FSM: Отменить rent-flow и очистить FSM"""
     await callback.answer()
 
     data = await state.get_data()

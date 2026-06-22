@@ -123,7 +123,7 @@ async def abort_rent_flow(
 
 
 async def render_rent_ui(
-    callback: CallbackQuery,
+    event: Message | CallbackQuery,
     state: FSMContext,
     text: str,
     keyboard: Optional[InlineKeyboardMarkup] = None,
@@ -132,7 +132,8 @@ async def render_rent_ui(
     """Обновляет rent-UI сообщение (если есть) или создаёт новое. ✅ НЕ чистит state.
     Возвращает актуальный message_id"""
 
-    chat_id = callback.message.chat.id
+    message = event.message if isinstance(event, CallbackQuery) else event
+    chat_id = message.chat.id
 
     # если id не передали — пробуем взять из state
     if rent_ui_message_id is None:
@@ -141,7 +142,7 @@ async def render_rent_ui(
 
     if rent_ui_message_id:
         try:
-            await callback.bot.edit_message_text(
+            await message.bot.edit_message_text(
                 chat_id=chat_id,
                 message_id=rent_ui_message_id,
                 text=text, # "❌ Ошибка. Попробуйте начать аренду заново."
@@ -152,7 +153,7 @@ async def render_rent_ui(
         except TelegramBadRequest:
             pass
 
-    sent = await callback.message.answer(text, reply_markup=keyboard, parse_mode="HTML")
+    sent = await message.answer(text, reply_markup=keyboard, parse_mode="HTML")
     await state.update_data(rent_ui_message_id=sent.message_id)
     return sent.message_id
 # ---------------------------------------------------------------------------------------------
