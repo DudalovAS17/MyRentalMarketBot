@@ -11,12 +11,12 @@ from services.photo_service import PhotoService
 from services.category_service import CategoryService
 from schemas.item import ItemCreateDraft, ItemCreate
 from states.item import ItemCreateStates
-from keyboards.item_kb import get_photos_keyboard, build_edit_item_keyboard, cancel_keyboard
+from keyboards.item_kb import get_photos_keyboard, cancel_keyboard
 from utils.functions import send_or_edit
 from utils.errors import ServiceError, ValidationError
 from utils.validators import parse_callback
 from utils.callbacks import (ADMIN_CAT_FI_PREFIX, ADMIN_SUBCAT_FI_PREFIX, ADMIN_ADD_ITEM_CB, ADMIN_PUBLISH_ITEM_CB,
-                             ADMIN_EDIT_ITEM_CB, ADMIN_CANCEL_ITEM_CB, ADMIN_MAX_PHOTOS, ADMIN_CREATE_ITEM_MODE) #, BACK_TO_MENU_CB, BACK_TO_CAT
+                             ADMIN_CANCEL_ITEM_CB, ADMIN_MAX_PHOTOS, ADMIN_CREATE_ITEM_MODE) #, BACK_TO_MENU_CB, BACK_TO_CAT
 
 admin_create_item_router = Router()
 
@@ -372,28 +372,3 @@ async def cancel_flow_to_main_menu(callback: CallbackQuery,  state: FSMContext, 
 
     # Главное меню
     await show_main_menu(callback, user)
-
-
-# Нужен отдельный файл для реализации этой логике:
-# ────────────────────────────────────────── Редактирования ✏️ товара ──────────────────────────────────────────────
-@admin_create_item_router.callback_query(F.data.startswith(ADMIN_EDIT_ITEM_CB))
-async def start_process_edit_item(callback: CallbackQuery, state: FSMContext, item_service: ItemService) -> None:
-    """📝 Начало процесса редактирования товара"""
-    await callback.answer()
-
-    item = await ch.load_entity_or_notify(
-        callback, item_service.get_item_by_id, parse_callback(callback.data, ADMIN_EDIT_ITEM_CB),
-        invalid_id_text=ch.not_item_id, load_error_text=ch.serv_err_item, not_found_text=ch.not_item
-    )
-    if item is None:
-        return
-
-    # Сохраняем данные для редактирования
-    await ch.init_edit_item_context(state, item)
-
-    await send_or_edit(
-        callback,
-        ch.edit_item_start_text(item),
-        markup=build_edit_item_keyboard(item.id),
-        parse_mode="HTML"
-    )

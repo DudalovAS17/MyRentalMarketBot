@@ -1,6 +1,7 @@
 from aiogram import Router
 
 from .create_item import admin_create_item_router
+from .update_item import admin_update_item_router
 from .menu import admin_menu_router # /admin + главное меню админа
 
 from .deals import admin_deals_router # админ по сделкам (твой текущий файл)
@@ -12,7 +13,6 @@ from .users import admin_users_router # пользователи / бан / ог
 
 #     disputes.py # жалобы/споры (если отдельно от deals)
 
-
 admin_router = Router()
 admin_router.include_router(admin_menu_router)
 admin_router.include_router(admin_deals_router)
@@ -22,3 +22,4 @@ admin_router.include_router(admin_users_router)
 admin_router.include_router(admin_status_actions_router)
 
 admin_router.include_router(admin_create_item_router)
+admin_router.include_router(admin_update_item_router)
