@@ -4,10 +4,22 @@ from collections.abc import Awaitable, Callable
 from services.user_service import UserService
 
 from status.user_status import AccountStatus
-from .keyboard import get_admin_users_menu_keyboard, get_admin_user_card_keyboard
+from .keyboard import get_admin_user_card_keyboard
 from utils.functions import send_or_edit
 
 
+# ────────────────────────────────────────────────── parse ─────────────────────────────────────────────────────────────
+def parse_admin_user_id(raw_text: str | None) -> int | None:
+    """Распарсить user_id из текстового ввода"""
+    if not raw_text:
+        return None
+
+    try:
+        return int(raw_text.strip())
+    except ValueError:
+        return None
+
+# ────────────────────────────────────────────────── texts ─────────────────────────────────────────────────────────────
 def format_user_card(user) -> str:
     """Сформировать карточку пользователя для админки"""
     username = user.username
@@ -34,18 +46,6 @@ def format_user_card(user) -> str:
 
     return "\n".join(lines)
 
-
-def parse_admin_user_id(raw_text: str | None) -> int | None:
-    """Распарсить user_id из текстового ввода"""
-    if not raw_text:
-        return None
-
-    try:
-        return int(raw_text.strip())
-    except ValueError:
-        return None
-
-
 async def get_admin_user_id_or_alert(callback: CallbackQuery) -> int | None:
     """Получить user_id из callback data или показать alert"""
     try:
@@ -54,7 +54,7 @@ async def get_admin_user_id_or_alert(callback: CallbackQuery) -> int | None:
         await callback.answer("Некорректный user-ID", show_alert=True)
         return None
 
-
+# ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 async def show_user_card(event: Message | CallbackQuery, user_service: UserService, user_id: int) -> None:
     """Показать карточку пользователя в админке"""
 
@@ -68,7 +68,6 @@ async def show_user_card(event: Message | CallbackQuery, user_service: UserServi
         format_user_card(user),
         get_admin_user_card_keyboard(user.id, user.account_status)
     )
-
 
 async def apply_user_action_and_show_card(
     event: Message | CallbackQuery,

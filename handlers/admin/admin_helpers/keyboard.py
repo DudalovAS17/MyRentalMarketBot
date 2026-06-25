@@ -6,6 +6,8 @@ from status.support_ticket_status import SupportTicketStatus
 from schemas.rental import RentalAdminDetailsOut
 from utils.callbacks import ADMIN_ADD_ITEM_CB
 
+
+# ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 def get_admin_menu_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
@@ -37,14 +39,13 @@ def get_back_to_admin_menu_keyboard() -> InlineKeyboardMarkup:
         ]
     )
 
-
 # ────────────────────────────────────────────────── ADMIN ITEMS ───────────────────────────────────────────────────────
 def get_admin_items_menu_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
-            [InlineKeyboardButton(text="🟡 PENDING", callback_data="admin:items:filter:PENDING")],
-            [InlineKeyboardButton(text="✅ ACTIVE", callback_data="admin:items:filter:ACTIVE")],
-            [InlineKeyboardButton(text="🙈 HIDDEN", callback_data="admin:items:filter:HIDDEN")],
+            [InlineKeyboardButton(text="📝 Новые товары", callback_data="admin:items:filter:DRAFT")],
+            [InlineKeyboardButton(text="✅ Активные товары", callback_data="admin:items:filter:ACTIVE")],
+            [InlineKeyboardButton(text="🙈 Скрытые товары", callback_data="admin:items:filter:HIDDEN")],
             [InlineKeyboardButton(text="🔙 Назад в админ-меню", callback_data="admin:menu")],
         ]
     )
@@ -71,21 +72,29 @@ def get_admin_items_list_keyboard(items: list, status: str, page: int, has_next:
     return InlineKeyboardMarkup(inline_keyboard=kb)
 
 def get_admin_item_details_keyboard(item_id: int, status_value: ItemStatus) -> InlineKeyboardMarkup:
-    kb = []
-    kb.append([InlineKeyboardButton(text="🔄 Обновить", callback_data=f"admin:items:view:{item_id}")])
 
-    if status_value == ItemStatus.PENDING:
-        kb.append([InlineKeyboardButton(text="✅ Сделать ACTIVE", callback_data=f"admin:items:approve:{item_id}")])
-        kb.append([InlineKeyboardButton(text="❌ Reject", callback_data=f"admin:items:reject:{item_id}")])
+    kb = [[InlineKeyboardButton(text="🔄 Обновить", callback_data=f"admin:items:view:{item_id}")]]
+
+    if status_value == ItemStatus.DRAFT:
+        kb.append([InlineKeyboardButton(text="✅ Опубликовать", callback_data=f"admin:items:approve:{item_id}")])
+        kb.append([InlineKeyboardButton(text="🙈 Скрыть", callback_data=f"admin:items:hide:{item_id}")])
+        # нужна кнопка "Изменить детали товара"?
+
     if status_value == ItemStatus.ACTIVE:
-        kb.append([InlineKeyboardButton(text="🙈 Hide", callback_data=f"admin:items:hide:{item_id}")])
-    if status_value == ItemStatus.HIDDEN:
-        kb.append([InlineKeyboardButton(text="👁️ Unhide", callback_data=f"admin:items:unhide:{item_id}")])
+        kb.append([InlineKeyboardButton(text="🙈 Скрыть", callback_data=f"admin:items:hide:{item_id}")])
+        # нужна кнопка "Изменить детали товара"?
 
-    kb.append([InlineKeyboardButton(text="🔙 К списку", callback_data="admin:items")])
+    if status_value == ItemStatus.HIDDEN:
+        #kb.append([InlineKeyboardButton(text="👁️ Unhide", callback_data=f"admin:items:unhide:{item_id}")])
+        kb.append([InlineKeyboardButton(text="✅ Опубликовать снова", callback_data=f"admin:items:approve:{item_id}")])
+        kb.append([InlineKeyboardButton(text="🚫 Убрать в архив", callback_data=f"admin:items:archive:{item_id}")])
+
+    kb.append([InlineKeyboardButton(text="🔙 К списку действий", callback_data="admin:items")])
 
     return InlineKeyboardMarkup(inline_keyboard=kb)
 
+# "🙈 Скрыть" - :hide:
+# "👁️ Unhide" - :unhide:
 
 # ────────────────────────────────────────────────── ADMIN USERS ───────────────────────────────────────────────────────
 def get_admin_users_menu_keyboard() -> InlineKeyboardMarkup:
@@ -134,9 +143,7 @@ def get_admin_deals_list_keyboard(rentals_rows: list[RentalAdminDetailsOut], pag
     return InlineKeyboardMarkup(inline_keyboard=kb)
 
 def get_admin_deal_details_keyboard(rental_id: int, status: RentalStatus) -> InlineKeyboardMarkup:
-    kb = []
-
-    kb.append([InlineKeyboardButton(text="🔄 Обновить", callback_data=f"admin:deals:view:{rental_id}")])
+    kb = [[InlineKeyboardButton(text="🔄 Обновить", callback_data=f"admin:deals:view:{rental_id}")]]
 
     if status == RentalStatus.REQUESTED:
         kb.append([InlineKeyboardButton(text="👀 Взять в работу", callback_data=f"admin:deals:progress:{rental_id}")])
@@ -191,8 +198,7 @@ def get_admin_support_list_keyboard(tickets_rows: list[dict], page: int, has_nex
 #get_admin_support_list_kb
 
 def get_admin_support_ticket_keyboard(ticket_id: int, status: SupportTicketStatus) -> InlineKeyboardMarkup:
-    kb = []
-    kb.append([InlineKeyboardButton(text="🔄 Обновить", callback_data=f"admin:support:view:{ticket_id}")])
+    kb = [[InlineKeyboardButton(text="🔄 Обновить", callback_data=f"admin:support:view:{ticket_id}")]]
 
     if status == SupportTicketStatus.OPEN:
         kb.append([InlineKeyboardButton(text="✉️ Ответить", callback_data=f"admin:support:reply:{ticket_id}")])
@@ -222,3 +228,27 @@ def get_admin_support_menu_kb() -> InlineKeyboardMarkup:
             [InlineKeyboardButton(text="🔙 Назад в админ-меню", callback_data="admin:menu")],
         ]
     )
+
+
+# ───────────────────────────────────────── ADMIN ITEMS (возможное доп-е) ──────────────────────────────────────────────
+SHOW_ITEM_CB = "show_item:"
+EDIT_ITEM_CB = "edit_item"
+EDIT_FIELD_CB = "edit_field:"
+
+def build_edit_item_keyboard(item_id: int) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="📝 Название", callback_data=f"{EDIT_FIELD_CB}title")],
+            [InlineKeyboardButton(text="📋 Описание", callback_data=f"{EDIT_FIELD_CB}description")],
+            [InlineKeyboardButton(text="💰 Цена", callback_data=f"{EDIT_FIELD_CB}price")],
+            [InlineKeyboardButton(text="🔙 Назад", callback_data=f"{SHOW_ITEM_CB}{item_id}")],
+        ]
+    )
+
+"""
+"✏️ Редактировать конкретное объявление" - "{EDIT_ITEM_CB}{item.id}" / "🔄 Изменить" - EDIT_ITEM_CB
+"🗑️ Удалить" - f"delete_item:{item.id}"
+
+"✅ Опубликовать" - "publish_item"
+"❌ Отменить" - "cancel_item"
+"""

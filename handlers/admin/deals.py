@@ -3,11 +3,10 @@ from aiogram.types import CallbackQuery, Message
 from aiogram.fsm.context import FSMContext
 
 from services.admin_rental_service import AdminRentalService
-from .admin_helpers.file_deals import (show_deals_list, format_deal_details, parse_admin_page, parse_admin_rental_id,
-                                       parse_admin_rental_id_text, parse_dispute_target, parse_resolve_target_callback)
+from .admin_helpers.show import show_deals_list, show_deal_card
+from .admin_helpers.parse import parse_admin_page, parse_admin_rental_id, parse_admin_rental_id_text
 
 from states.admin import AdminStates
-from admin_helpers.keyboard import get_admin_deal_details_keyboard, get_admin_dispute_target_keyboard
 from utils.functions import send_or_edit
 
 admin_deals_router = Router()
@@ -16,431 +15,50 @@ DEALS_PREFIX = "admin:deals"
 DEALS_PAGE_PREFIX = "admin:deals:page:"
 DEALS_VIEW_PREFIX = "admin:deals:view:"
 DEALS_BY_ID_PREFIX = "admin:deals:by_id"
-DEALS_CANCEL_PREFIX = "admin:deals:cancel:"
-DEALS_RESOLVE_PREFIX = "admin:deals:resolve:"
-DEALS_RESOLVE_TARGET_PREFIX = "admin:deals:resolve_target:"
 
-DEALS_PROGRESS_PREFIX = "admin:deals:progress:"
-DEALS_CONFIRM_PREFIX = "admin:deals:confirm:"
-DEALS_REJECT_PREFIX = "admin:deals:reject:"
-DEALS_COMPLETE_PREFIX = "admin:deals:complete:"
-
-"""
-Админ: подтверждает аренду - у пользователя уже нет возможности отменить аренду
-
-- Админ отклонил запрос аренды (Админ - REJECTED)
-- Админ подтверждает заявку CONFIRMED
-- Админ отменяет подтвержденную аренду CANCELLED_BY_ADMIN
-- Админ завершает аренду COMPLETED
-"""
-
-
-# ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-async def apply_admin_deal_action(
-    callback: CallbackQuery,
-    admin_rental_service: AdminRentalService,
-    *,
-    action_name: str,
-    service_call: AdminRentalAction,
-) -> None:
-    """Выполнить админское действие над заявкой и перерисовать карточку."""
-    rental_id = parse_admin_rental_id(callback.data)
-    if rental_id is None:
-        await callback.answer("Некорректный ID", show_alert=True)
-        return
-
-    updated = await service_call(rental_id)
-    if not updated:
-        await callback.answer(f"Не удалось выполнить действие: {action_name}.", show_alert=True)
-        return
-
-    await callback.answer(action_name)
-    await show_deal_card(callback, admin_rental_service, rental_id, f"✅ {action_name}.\n\n")
-
-
-async def ask_reason(
-    callback: CallbackQuery,
-    state: FSMContext,
-    *,
-    target_state,
-    prompt: str,
-) -> None:
-    """Запросить обязательную причину для отрицательного решения по заявке."""
-    rental_id = parse_admin_rental_id(callback.data)
-    if rental_id is None:
-        await callback.answer("Некорректный ID", show_alert=True)
-        return
-
-    await callback.answer()
-    await state.set_state(target_state)
-    await state.update_data(rental_id=rental_id)
-    await send_or_edit(callback, prompt.format(rental_id=rental_id), None)
-
-
-async def apply_reasoned_action(
-    message: Message,
-    state: FSMContext,
-    admin_rental_service: AdminRentalService,
-    *,
-    action_name: str,
-    failure_text: str,
-    service_call: Callable[[int, str], Awaitable[object | None]],
-) -> None:
-    """Применить действие с обязательной причиной из FSM."""
-    data = await state.get_data()
-    rental_id = data.get("rental_id")
-    if rental_id is None:
-        await state.clear()
-        await send_or_edit(message, "❌ Не удалось определить заявку. Повторите попытку.", None)
-        return
-
-    reason = (message.text or "").strip()
-    if not reason:
-        await message.answer("❌ Причина не может быть пустой. Введите текст причины:")
-        return
-
-    await state.clear()
-    rental_id = int(rental_id)
-    updated = await service_call(rental_id, reason)
-    if not updated:
-        await message.answer(failure_text)
-        return
-
-    await show_deal_card(message, admin_rental_service, rental_id, f"✅ {action_name}.\n\n")
-
-
-# ─────────────────────────────────────────────── Просмотр сделок ──────────────────────────────────────────────────────
+# ─────────────────────────────────────────────── Просмотр заявок ──────────────────────────────────────────────────────
 @admin_deals_router.callback_query(F.data == DEALS_PREFIX)
 async def admin_deals_list(callback: CallbackQuery, admin_rental_service: AdminRentalService) -> None:
-    """Список последних сделок (страница 1)"""
+    """Список последних заявок на аренду (страница 1)"""
     await callback.answer()
 
     await show_deals_list(callback, admin_rental_service, page=1)
 
 @admin_deals_router.callback_query(F.data.startswith(DEALS_PAGE_PREFIX))
 async def admin_deals_page(callback: CallbackQuery, admin_rental_service: AdminRentalService) -> None:
-    """Пагинация списка сделок"""
+    """Пагинация списка заявок"""
     await callback.answer()
 
     page = parse_admin_page(callback.data)
     await show_deals_list(callback, admin_rental_service, page=page)
 
 @admin_deals_router.callback_query(F.data.startswith(DEALS_VIEW_PREFIX))
-async def admin_deals_view(callback: CallbackQuery, admin_rental_service: AdminRentalService, *, action_name: str) -> None:
-    """Карточка конкретной сделки"""
-    await callback.answer()
-
+async def admin_deals_view(callback: CallbackQuery, admin_rental_service: AdminRentalService) -> None: # , *, action_name: str
+    """Карточка конкретной заявки"""
     rental_id = parse_admin_rental_id(callback.data)
     if rental_id is None:
-        #await callback.answer("Некорректный ID", show_alert=True)
+        await callback.answer("Некорректный ID заявки", show_alert=True)
         return
 
-    details = await admin_rental_service.get_details(rental_id)
-    if not details:
-        await send_or_edit(callback, f"❌ Сделка #{rental_id} не найдена.", None)
-        return
+    await callback.answer()
+    await show_deal_card(callback, admin_rental_service, rental_id) # , prefix_text=f"✅ {action_name}.\n\n"
 
-    await send_or_edit(
-        callback,
-        f"✅ {action_name}.\n\n" + format_deal_details(details),
-        get_admin_deal_details_keyboard(rental_id=rental_id, status=details.rental.status)
-    )
-
-# ─────────────────────────────────────────── 🔎 Открыть сделку по ID ──────────────────────────────────────────────────
+# ───────────────────────────────────────── FSM: 🔎 Открыть сделку по ID ───────────────────────────────────────────────
 @admin_deals_router.callback_query(F.data == DEALS_BY_ID_PREFIX)
 async def admin_deals_open_by_id(callback: CallbackQuery, state: FSMContext) -> None:
-    """Просим админа ввести ID сделки"""
+    """FSM: Просим админа ввести ID заявки"""
     await callback.answer()
 
     await state.set_state(AdminStates.waiting_rental_id)
-    await send_or_edit(callback, "Введите ID сделки (число):", None)
+    await send_or_edit(callback, "Введите ID заявки (число):", None)
 
 @admin_deals_router.message(AdminStates.waiting_rental_id)
 async def admin_deals_process_id(message: Message, state: FSMContext, admin_rental_service: AdminRentalService) -> None:
-    """Обработка введенного ID сделки"""
-
+    """FSM: Обработка введенного ID заявки"""
     rental_id = parse_admin_rental_id_text(message.text)
     if rental_id is None:
-        await message.answer("❌ Нужно число. Введите ID сделки:")
+        await message.answer("❌ Нужно число. Введите ID заявки:")
         return
 
     await state.clear()
-
-    details = await admin_rental_service.get_details(rental_id)
-    if not details:
-        await message.answer(f"❌ Сделка #{rental_id} не найдена.")
-        return
-
-    await send_or_edit(
-        message,
-        format_deal_details(details),
-        get_admin_deal_details_keyboard(rental_id=rental_id, status=details.rental.status)
-    )
-
-
-# ──────────────────────────────────────────────── 🚫 Отменить сделку ──────────────────────────────────────────────────
-@admin_deals_router.callback_query(F.data.startswith(DEALS_CANCEL_PREFIX))
-async def admin_deals_cancel_ask(callback: CallbackQuery, state: FSMContext) -> None:
-    """Запрос причины отмены"""
-    await callback.answer()
-
-    rental_id = parse_admin_rental_id(callback.data)
-    if rental_id is None:
-        #await callback.answer("Некорректный ID", show_alert=True)
-        return
-
-    await state.set_state(AdminStates.waiting_rental_cancel_reason) # .waiting_cancel_reason
-    await state.update_data(rental_id=rental_id)
-
-    await send_or_edit(callback, f"🚫 Укажите причину отмены сделки #{rental_id}:", None)
-
-@admin_deals_router.message(AdminStates.waiting_rental_cancel_reason) # .waiting_cancel_reason
-async def admin_deals_cancel_apply(message: Message,state: FSMContext, admin_rental_service: AdminRentalService) -> None:
-    """Применить отмену сделки с причиной"""
-    data = await state.get_data()
-
-    rental_id = data.get("rental_id")
-    if rental_id is None:
-        await state.clear()
-        await send_or_edit(message, "❌ Не удалось определить сделку. Повторите попытку.", None)
-        return
-    rental_id = int(rental_id)
-
-    reason = (message.text or "").strip()
-    if not reason:
-        await message.answer("❌ Причина не может быть пустой. Введите текст причины:")
-        return
-
-    await state.clear()
-
-    ok = await admin_rental_service.admin_cancel_rental(rental_id=rental_id, admin_tg_id=message.from_user.id, reason=reason)
-    if not ok:
-        await message.answer("❌ Нельзя отменить эту сделку (возможно, уже завершена).")
-        return
-
-    details = await admin_rental_service.get_details(rental_id)
-    if not details:
-        await send_or_edit(message, f"❌ Сделка #{rental_id} не найдена.", None)
-        return
-
-    await send_or_edit(
-        message,
-        "✅ Отменено.\n\n" + format_deal_details(details),
-        get_admin_deal_details_keyboard(rental_id=rental_id, status=details.rental.status)
-    )
-
-
-# ──────────────────────────────────────────────── ✅ Закрыть спор ─────────────────────────────────────────────────────
-@admin_deals_router.callback_query(F.data.startswith(DEALS_RESOLVE_PREFIX))
-async def admin_deals_resolve_ask(callback: CallbackQuery, state: FSMContext) -> None:
-    """Запрос текста решения по спору"""
-    await callback.answer()
-
-    rental_id = parse_admin_rental_id(callback.data)
-    if rental_id is None:
-        #await callback.answer("Некорректный ID", show_alert=True)
-        return
-
-    await state.set_state(AdminStates.waiting_dispute_resolution)
-    await state.update_data(rental_id=rental_id)
-
-    await send_or_edit(callback, f"✅ Введите решение по спору сделки #{rental_id} (кратко):", None)
-
-@admin_deals_router.message(AdminStates.waiting_rental_resolution) # .waiting_dispute_resolution
-async def admin_deals_resolve_collect_resolution(message: Message, state: FSMContext) -> None:
-    """Сохранить текст решения по спору и запросить итоговый статус"""
-    data = await state.get_data()
-
-    rental_id = data.get("rental_id")
-    if rental_id is None:
-        await state.clear()
-        await send_or_edit(message, "❌ Не удалось определить сделку. Повторите попытку.", None)
-        return
-    rental_id = int(rental_id)
-
-    resolution = (message.text or "").strip()
-    if not resolution:
-        await message.answer("❌ Решение не может быть пустым. Введите текст:")
-        return
-
-    await state.set_state(AdminStates.waiting_rental_resolution)  # .waiting_dispute_resolution
-    await state.update_data(resolution=resolution)
-
-    await send_or_edit(
-        message,
-        f"Выберите исход закрытия спора по сделке #{rental_id}.\n\n 📝 Решение:\n{resolution}",
-        get_admin_dispute_target_keyboard(rental_id)
-    )
-
-
-# ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-@admin_deals_router.callback_query(F.data.startswith(DEALS_RESOLVE_TARGET_PREFIX))
-async def admin_deals_resolve_apply_target(callback: CallbackQuery, state: FSMContext, admin_rental_service: AdminRentalService) -> None:
-    """Закрыть спор с выбранным итоговым статусом"""
-    payload = parse_resolve_target_callback(callback.data)
-    if payload is None:
-        await callback.answer("Некорректные данные", show_alert=True)
-        return
-
-    rental_id, target = payload
-
-    data = await state.get_data()
-
-    resolution = (data.get("resolution") or "").strip()
-    if not resolution:
-        await callback.answer("Сначала введите текст решения.", show_alert=True)
-        return
-
-    target_status = parse_dispute_target(target)
-    if target_status is None:
-        await callback.answer("Некорректный исход", show_alert=True)
-        return
-
-    ok = await admin_rental_service.admin_set_status(rental_id=rental_id, admin_tg_id=callback.from_user.id,
-                                                     resolution=resolution, target_status=target_status)
-
-    await state.clear()
-
-    if not ok:
-        await callback.answer("Нельзя закрыть спор (проверь статус/сделку).", show_alert=True)
-        return
-
-    details = await admin_rental_service.get_details(rental_id)
-    if not details:
-        await callback.answer()
-        await send_or_edit(callback, f"✅ Спор закрыт. Сделка #{rental_id}.", None)
-        return
-
-    await send_or_edit(
-        callback,
-        "✅ Спор закрыт.\n\n" + format_deal_details(details),
-        get_admin_deal_details_keyboard(rental_id=rental_id, status=details.rental.status)
-    )
-
-    await callback.answer()
-
-
-
-
-
-
-
-
-# ──────────────────────────────────────────────── Admin status actions ────────────────────────────────────────────────
-@admin_deals_router.callback_query(F.data.startswith(DEALS_PROGRESS_PREFIX))
-async def admin_deals_take_in_progress(callback: CallbackQuery, admin_rental_service: AdminRentalService) -> None:
-    """Взять заявку в работу: REQUESTED → IN_PROGRESS."""
-    await apply_admin_deal_action(
-        callback,
-        admin_rental_service,
-        action_name="Заявка взята в работу",
-        service_call=lambda rental_id: admin_rental_service.take_in_progress(
-            rental_id=rental_id,
-            admin_tg_id=callback.from_user.id,
-        ),
-    )
-
-
-@admin_deals_router.callback_query(F.data.startswith(DEALS_CONFIRM_PREFIX))
-async def admin_deals_confirm(callback: CallbackQuery, admin_rental_service: AdminRentalService) -> None:
-    """Подтвердить заявку: REQUESTED/IN_PROGRESS → CONFIRMED."""
-    await apply_admin_deal_action(
-        callback,
-        admin_rental_service,
-        action_name="Заявка подтверждена",
-        service_call=lambda rental_id: admin_rental_service.confirm_rental(
-            rental_id=rental_id,
-            admin_tg_id=callback.from_user.id,
-        ),
-    )
-
-
-@admin_deals_router.callback_query(F.data.startswith(DEALS_REJECT_PREFIX))
-async def admin_deals_reject_ask(callback: CallbackQuery, state: FSMContext) -> None:
-    """Запросить причину отклонения заявки."""
-    await callback.answer()
-
-    rental_id = parse_admin_rental_id(callback.data)
-    if rental_id is None:
-        await callback.answer("Некорректный ID", show_alert=True)
-        return
-
-    await state.set_state(AdminStates.waiting_rental_reject_reason)
-    await state.update_data(rental_id=rental_id)
-    await send_or_edit(callback, f"❌ Укажите причину отклонения заявки #{rental_id}:", None)
-
-
-@admin_deals_router.message(AdminStates.waiting_rental_reject_reason)
-async def admin_deals_reject_apply(message: Message, state: FSMContext, admin_rental_service: AdminRentalService) -> None:
-    """Отклонить заявку с причиной: REQUESTED/IN_PROGRESS → REJECTED."""
-    data = await state.get_data()
-    rental_id = data.get("rental_id")
-    if rental_id is None:
-        await state.clear()
-        await send_or_edit(message, "❌ Не удалось определить сделку. Повторите попытку.", None)
-        return
-
-    reason = (message.text or "").strip()
-    if not reason:
-        await message.answer("❌ Причина не может быть пустой. Введите текст причины:")
-        return
-
-    await state.clear()
-
-    ok = await admin_rental_service.reject_rental(
-        rental_id=int(rental_id),
-        admin_tg_id=message.from_user.id,
-        reason=reason,
-    )
-    if not ok:
-        await message.answer("❌ Нельзя отклонить эту заявку (возможно, статус уже изменился).")
-        return
-
-    await refresh_deal_card(message, admin_rental_service, int(rental_id), "✅ Заявка отклонена.\n\n")
-
-
-@admin_deals_router.callback_query(F.data.startswith(DEALS_COMPLETE_PREFIX))
-async def admin_deals_complete(callback: CallbackQuery, admin_rental_service: AdminRentalService) -> None:
-    """Завершить подтверждённую аренду: CONFIRMED → COMPLETED."""
-    await apply_admin_deal_action(
-        callback,
-        admin_rental_service,
-        action_name="Аренда завершена",
-        service_call=lambda rental_id: admin_rental_service.complete_rental(
-            rental_id=rental_id,
-            admin_tg_id=callback.from_user.id,
-        ),
-    )
-
-
-# ──────────────────────────────────────────────── 🚫 Отменить сделку ──────────────────────────────────────────────────
-@admin_deals_router.callback_query(F.data.startswith(DEALS_CANCEL_PREFIX))
-async def admin_deals_cancel_ask(callback: CallbackQuery, state: FSMContext) -> None:
-    """Запрос причины отмены"""
-    await callback.answer()
-
-    rental_id = parse_admin_rental_id(callback.data)
-    if rental_id is None:
-        #await callback.answer("Некорректный ID", show_alert=True)
-        return
-
-    await state.set_state(AdminStates.waiting_rental_cancel_reason) # .waiting_cancel_reason
-    await state.update_data(rental_id=rental_id)
-
-    await send_or_edit(callback, f"🚫 Укажите причину отмены сделки #{rental_id}:", None)
-
-@admin_deals_router.message(AdminStates.waiting_rental_cancel_reason) # .waiting_cancel_reason
-async def admin_deals_cancel_apply(message: Message,state: FSMContext, admin_rental_service: AdminRentalService) -> None:
-    """Применить отмену сделки с причиной"""
-    data = await state.get_data()
-
-    rental_id = data.get("rental_id")
-    if rental_id is None:
-        await state.clear()
-        await send_or_edit(message, "❌ Не удалось определить сделку. Повторите попытку.", None)
-        return
-    rental_id = int(rental_id)
-
-    reason = (message.text or "").strip()
-    if not reason:
-        await message.answer("❌ Причина не может быть пустой. Введите текст причины:")
+    await show_deal_card(message, admin_rental_service, rental_id)

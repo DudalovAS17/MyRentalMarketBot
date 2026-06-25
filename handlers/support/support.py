@@ -5,8 +5,8 @@ from aiogram.fsm.context import FSMContext
 
 from handlers.entries import show_main_menu
 from handlers.support.helpers_support import (render_admin_ticket_message, build_support_request_text, build_support_confirmation_text,
-                             build_support_cancel_keyboard, build_support_already_open_text, notify_admins,
-                             build_support_already_open_after_create_text)
+                             build_support_cancel_keyboard, build_support_already_open_text,
+                             build_support_already_open_after_create_text) # notify_admins,
 from services.support_service import SupportService, TicketAlreadyOpen
 
 from states.support_ticket import SupportStates
@@ -83,7 +83,7 @@ async def receive_support_text(
     await send_or_edit(message, build_support_confirmation_text())
 
     # отправляем сообщение поддержки админу
-    await notify_admins(message.bot, admin_ids, render_admin_ticket_message(ticket, user), ticket.id)
+    #await notify_admins(message.bot, admin_ids, render_admin_ticket_message(ticket, user), ticket.id)
 
     # Возвращаем пользователя в главное меню
     # await show_main_menu(message, user)

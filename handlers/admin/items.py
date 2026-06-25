@@ -7,7 +7,7 @@ from .admin_helpers.validate import parse_admin_item_status
 from .admin_helpers.file_items import format_item_details, apply_item_status_action, show_items_list, get_admin_item_id_or_alert
 
 from states.admin import AdminStates
-from admin_helpers.keyboard import get_admin_item_details_keyboard, get_admin_items_menu_keyboard
+from .admin_helpers.keyboard import get_admin_item_details_keyboard, get_admin_items_menu_keyboard
 from utils.functions import send_or_edit
 from status.item_status import ItemStatus
 
@@ -16,18 +16,18 @@ admin_items_router = Router()
 # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 @admin_items_router.callback_query(F.data == "admin:items")
 async def admin_items_list(callback: CallbackQuery) -> None:
-    """Меню модерации объявлений"""
+    """Меню модерации товаров"""
     await callback.answer()
 
     await send_or_edit(
         callback,
-        "📦 <b>Модерация объявлений</b>\n\nВыберите статус:",
+        "📦 <b>Модерация товаров</b>\n\nВыберите действие:",
         get_admin_items_menu_keyboard()
     )
 
 @admin_items_router.callback_query(F.data.startswith("admin:items:filter:"))
 async def admin_items_filter(callback: CallbackQuery, state: FSMContext, item_service: ItemService) -> None:
-    """Список объявлений по статусу (страница 1)"""
+    """Список товаров по статусу (страница 1)"""
     await callback.answer()
 
     raw_status = (callback.data or "").split(":")[-1]
@@ -37,7 +37,7 @@ async def admin_items_filter(callback: CallbackQuery, state: FSMContext, item_se
 
 @admin_items_router.callback_query(F.data.startswith("admin:items:page:"))
 async def admin_items_page(callback: CallbackQuery, state: FSMContext, item_service: ItemService) -> None:
-    """Пагинация списка объявлений"""
+    """Пагинация списка товаров"""
     await callback.answer()
 
     try:
@@ -45,14 +45,14 @@ async def admin_items_page(callback: CallbackQuery, state: FSMContext, item_serv
         status = parse_admin_item_status(raw_status)
         page = int(page_str)
     except (ValueError, IndexError):
-        status = ItemStatus.PENDING
+        status = ItemStatus.DRAFT
         page = 1
 
     await show_items_list(callback, item_service, state, status=status, page=page)
 
 @admin_items_router.callback_query(F.data.startswith("admin:items:view:"))
 async def admin_items_view(callback: CallbackQuery, item_service: ItemService) -> None:
-    """Карточка объявления"""
+    """Карточка товара"""
     await callback.answer()
 
     item_id = await get_admin_item_id_or_alert(callback)
@@ -61,7 +61,7 @@ async def admin_items_view(callback: CallbackQuery, item_service: ItemService) -
 
     item = await item_service.get_item_by_id(item_id)
     if not item:
-        await send_or_edit(callback, f"❌ Объявление #{item_id} не найдено.", None)
+        await send_or_edit(callback, f"❌ Товар #{item_id} не найден.", None)
         return
 
     await send_or_edit(
@@ -70,6 +70,7 @@ async def admin_items_view(callback: CallbackQuery, item_service: ItemService) -
         get_admin_item_details_keyboard(item_id=item.id, status_value=item.status)
     )
 
+# ────────────────────────────────────────── Отклонение объявления ─────────────────────────────────────────────────────
 @admin_items_router.callback_query(F.data.startswith("admin:items:approve:"))
 async def admin_items_approve(callback: CallbackQuery, item_service: ItemService) -> None:
     """Перевод объявления в ACTIVE"""

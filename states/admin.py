@@ -6,8 +6,6 @@ class AdminStates(StatesGroup):
     waiting_rental_id = State()
     waiting_rental_cancel_reason = State()
     waiting_rental_reject_reason = State()
-    waiting_rental_resolution = State()
-    waiting_rental_target_status = State()
 
     # Catalog item management
     waiting_item_reject_reason = State()

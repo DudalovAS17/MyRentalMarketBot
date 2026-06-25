@@ -8,7 +8,7 @@ from services.support_service import SupportService
 from status.support_ticket_status import SupportTicketStatus
 from utils.functions import send_or_edit
 
-
+# ────────────────────────────────────────────────── parse ─────────────────────────────────────────────────────────────
 def parse_support_page(raw: str | None, *, default: int = 1) -> int:
     """Распарсить номер страницы из callback data поддержки"""
     try:
@@ -24,6 +24,7 @@ def parse_support_ticket_id(raw: str | None) -> int | None:
     except (ValueError, IndexError):
         return None
 
+# ────────────────────────────────────────────────── texts ─────────────────────────────────────────────────────────────
 def format_datetime(dt: datetime | None) -> str: # ("%d.%m %H:%M")
     """Сформатировать дату для админского UI"""
     if not dt:
@@ -43,6 +44,9 @@ def format_ticket_card(ticket: SupportTicketOut) -> str:
         f"📅 <b>Создан:</b> 🕒 {created}\n\n"
         f"📝 <b>Текст:</b>\n{ticket.text}"
     )
+
+# ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
 
 async def show_support_ticket_list(event: Message | CallbackQuery, support_service: SupportService,page: int) -> None:
     """Показать список открытых тикетов поддержки"""

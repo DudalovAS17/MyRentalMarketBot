@@ -5,7 +5,7 @@ from aiogram.fsm.context import FSMContext
 from services.user_service import UserService
 from .admin_helpers.file_users import show_user_card, get_admin_user_id_or_alert, parse_admin_user_id, apply_user_action_and_show_card
 
-from admin_helpers.keyboard import get_admin_users_menu_keyboard
+from .admin_helpers.keyboard import get_admin_users_menu_keyboard
 from states.admin import AdminStates
 from utils.functions import send_or_edit
 
