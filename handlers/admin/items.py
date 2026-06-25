@@ -7,7 +7,7 @@ from .admin_helpers.validate import parse_admin_item_status
 from .admin_helpers.file_items import format_item_details, apply_item_status_action, show_items_list, get_admin_item_id_or_alert
 
 from states.admin import AdminStates
-from keyboards.admin_kb import get_admin_item_details_keyboard, get_admin_items_menu_keyboard
+from admin_helpers.keyboard import get_admin_item_details_keyboard, get_admin_items_menu_keyboard
 from utils.functions import send_or_edit
 from status.item_status import ItemStatus
 

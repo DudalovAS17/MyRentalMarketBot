@@ -79,3 +79,8 @@ def build_success_text(item: ItemOut, period_text: str, total_price: Decimal | N
         f"ℹ️ Статус: <b>Ожидает обработки менеджером</b>\n\n"
         f"Вы получите уведомление, когда менеджер обработает вашу заявку."
     )
+
+
+RENTAL_DETAILS_LOAD_ERROR = "⚠️ Не удалось загрузить детали заявки. Попробуйте позже."
+RENTAL_DETAILS_ACCESS_ERROR = "❌ Заявка не найдена или у вас нет доступа."
+INVALID_RENTAL_ID_TEXT = "Некорректный id сделки."

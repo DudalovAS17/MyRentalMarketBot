@@ -1,4 +1,3 @@
-from __future__ import annotations
 import logging
 
 from aiogram import Router, F
@@ -7,14 +6,8 @@ from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 
 from states.admin import AdminStates
-from keyboards.admin_kb import (
-    get_admin_deals_list_keyboard,
-    get_admin_deal_details_keyboard,
-)
-
-from services.admin_rental_service import AdminRentalService
-
-from keyboards.admin_kb import get_admin_menu_keyboard, get_back_to_admin_menu_keyboard, get_admin_dispute_target_keyboard
+from admin_helpers.keyboard  import (get_admin_menu_keyboard, get_back_to_admin_menu_keyboard,
+                                     get_admin_menu_keyboard, get_back_to_admin_menu_keyboard, get_admin_dispute_target_keyboard)
 from utils.functions import send_or_edit
 
 logger = logging.getLogger(__name__)

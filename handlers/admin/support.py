@@ -8,7 +8,7 @@ from .admin_helpers.file_support import (format_ticket_card, show_support_ticket
                                          parse_support_page, parse_support_ticket_id, load_open_support_ticket_or_notify,
                                          send_support_reply_and_audit, notify_ticket_closed_and_audit)
 
-from keyboards.admin_kb import get_admin_support_ticket_keyboard
+from admin_helpers.keyboard import get_admin_support_ticket_keyboard
 from states.admin_support import AdminSupportStates
 from utils.functions import send_or_edit
 

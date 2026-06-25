@@ -107,8 +107,6 @@ def build_edit_item_keyboard(item_id: int) -> InlineKeyboardMarkup:
             [InlineKeyboardButton(text="📝 Название", callback_data=f"{EDIT_FIELD_CB}title")],
             [InlineKeyboardButton(text="📋 Описание", callback_data=f"{EDIT_FIELD_CB}description")],
             [InlineKeyboardButton(text="💰 Цена", callback_data=f"{EDIT_FIELD_CB}price")],
-            [InlineKeyboardButton(text="🔐 Залог", callback_data=f"{EDIT_FIELD_CB}deposit")],
-            [InlineKeyboardButton(text="📍 Местоположение", callback_data=f"{EDIT_FIELD_CB}location")],
             [InlineKeyboardButton(text="🔙 Назад", callback_data=f"{SHOW_ITEM_CB}{item_id}")],
         ]
     )

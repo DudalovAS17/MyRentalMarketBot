@@ -2,7 +2,7 @@ from datetime import datetime
 from aiogram.types import CallbackQuery, Message
 
 from services.admin_service import AdminActionService
-from keyboards.admin_kb import get_admin_support_list_keyboard, get_admin_support_ticket_keyboard
+from .keyboard import get_admin_support_list_keyboard, get_admin_support_ticket_keyboard
 from schemas.support import SupportTicketOut
 from services.support_service import SupportService
 from status.support_ticket_status import SupportTicketStatus

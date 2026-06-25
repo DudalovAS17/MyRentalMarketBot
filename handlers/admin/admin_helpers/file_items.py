@@ -3,7 +3,7 @@ from aiogram.fsm.context import FSMContext
 
 from services.item_service import ItemService
 
-from keyboards.admin_kb import get_admin_items_list_keyboard, get_admin_item_details_keyboard
+from .keyboard import get_admin_items_list_keyboard, get_admin_item_details_keyboard
 from utils.functions import send_or_edit, format_price, send_reply
 from status.item_status import ItemStatus
 from utils.errors import ServiceError

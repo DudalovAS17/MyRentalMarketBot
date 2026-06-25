@@ -4,7 +4,7 @@ from collections.abc import Awaitable, Callable
 from services.user_service import UserService
 
 from status.user_status import AccountStatus
-from keyboards.admin_kb import get_admin_users_menu_keyboard, get_admin_user_card_keyboard
+from .keyboard import get_admin_users_menu_keyboard, get_admin_user_card_keyboard
 from utils.functions import send_or_edit
 
 
