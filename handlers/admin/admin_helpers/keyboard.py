@@ -1,4 +1,5 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+
 from status.item_status import ItemStatus
 from status.rental_status import RentalStatus
 from status.user_status import AccountStatus
@@ -16,7 +17,7 @@ def get_admin_menu_keyboard() -> InlineKeyboardMarkup:
                 InlineKeyboardButton(text="📦 Модерация объявлений", callback_data="admin:items"),
             ],
             [
-                InlineKeyboardButton(text="👥 Управление пользователями", callback_data="admin:users"),
+                InlineKeyboardButton(text="👥 Наши клиенты", callback_data="admin:users"),
                 InlineKeyboardButton(text="➕ Создать объявление", callback_data=ADMIN_ADD_ITEM_CB),
             ],
             [
@@ -85,22 +86,19 @@ def get_admin_item_details_keyboard(item_id: int, status_value: ItemStatus) -> I
         # нужна кнопка "Изменить детали товара"?
 
     if status_value == ItemStatus.HIDDEN:
-        #kb.append([InlineKeyboardButton(text="👁️ Unhide", callback_data=f"admin:items:unhide:{item_id}")])
-        kb.append([InlineKeyboardButton(text="✅ Опубликовать снова", callback_data=f"admin:items:approve:{item_id}")])
+        kb.append([InlineKeyboardButton(text="👁️ Unhide", callback_data=f"admin:items:unhide:{item_id}")])
         kb.append([InlineKeyboardButton(text="🚫 Убрать в архив", callback_data=f"admin:items:archive:{item_id}")])
 
     kb.append([InlineKeyboardButton(text="🔙 К списку действий", callback_data="admin:items")])
 
     return InlineKeyboardMarkup(inline_keyboard=kb)
 
-# "🙈 Скрыть" - :hide:
-# "👁️ Unhide" - :unhide:
 
 # ────────────────────────────────────────────────── ADMIN USERS ───────────────────────────────────────────────────────
 def get_admin_users_menu_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
-            [InlineKeyboardButton(text="🔎 Найти по user_id", callback_data="admin:users:find")],
+            [InlineKeyboardButton(text="🔎 Найти клиента по id", callback_data="admin:users:find")],
             [InlineKeyboardButton(text="🔙 Назад в админ-меню", callback_data="admin:menu")],
         ]
     )
@@ -109,9 +107,9 @@ def get_admin_user_card_keyboard(user_id: int, account_status: AccountStatus) ->
     kb = []
 
     if account_status == AccountStatus.ACTIVE:
-        kb.append([InlineKeyboardButton(text="🚫 Ban", callback_data=f"admin:users:ban:{user_id}")])
+        kb.append([InlineKeyboardButton(text="🚫 Забанить", callback_data=f"admin:users:ban:{user_id}")])
     elif account_status == AccountStatus.BANNED:
-        kb.append([InlineKeyboardButton(text="✅ Unban", callback_data=f"admin:users:unban:{user_id}")])
+        kb.append([InlineKeyboardButton(text="✅ Разбанить", callback_data=f"admin:users:unban:{user_id}")])
 
     kb.append([InlineKeyboardButton(text="🔄 Обновить", callback_data=f"admin:users:view:{user_id}")])
     kb.append([InlineKeyboardButton(text="🔙 Назад", callback_data="admin:users")])

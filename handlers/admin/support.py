@@ -4,9 +4,12 @@ from aiogram.fsm.context import FSMContext
 
 from services.admin_service import AdminActionService
 from services.support_service import SupportService
-from .admin_helpers.file_support import (format_ticket_card, show_support_ticket_list, show_support_ticket_card_or_not_found,
-                                         parse_support_page, parse_support_ticket_id, load_open_support_ticket_or_notify,
-                                         send_support_reply_and_audit, notify_ticket_closed_and_audit)
+from .admin_helpers.show import show_support_ticket_list, show_support_ticket_card_or_not_found
+from .admin_helpers.parse import parse_support_page, parse_support_ticket_id
+from .admin_helpers.texts import format_ticket_card
+
+from .admin_helpers.file_support import (load_open_support_ticket_or_notify, send_support_reply_and_audit,
+                                         notify_ticket_closed_and_audit)
 
 from .admin_helpers.keyboard import get_admin_support_ticket_keyboard
 from states.admin_support import AdminSupportStates

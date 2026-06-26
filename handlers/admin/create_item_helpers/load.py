@@ -3,7 +3,7 @@ from typing import TypeVar
 from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup
 from aiogram.exceptions import TelegramBadRequest
 
-from .keyboard import build_create_item_categories_keyboard
+from handlers.admin.admin_helpers.keyboard import build_create_item_categories_keyboard
 from .texts import create_item_category_step_text
 from services.category_service import CategoryService
 from services.photo_service import PhotoService

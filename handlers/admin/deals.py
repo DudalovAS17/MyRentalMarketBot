@@ -11,6 +11,8 @@ from utils.functions import send_or_edit
 
 admin_deals_router = Router()
 
+# ***** кнопка админки "Заявки на аренду" *****
+
 DEALS_PREFIX = "admin:deals"
 DEALS_PAGE_PREFIX = "admin:deals:page:"
 DEALS_VIEW_PREFIX = "admin:deals:view:"

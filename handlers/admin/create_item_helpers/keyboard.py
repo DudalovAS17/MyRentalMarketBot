@@ -1,20 +1,11 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-from keyboards.common import build_category_keyboard
-from utils.callbacks import (MY_ITEMS_PREFIX, CAT_FI_PREFIX, PUBLISH_ITEM_CB, CANCEL_ITEM_CB,
+from utils.callbacks import (CAT_FI_PREFIX, PUBLISH_ITEM_CB, CANCEL_ITEM_CB,
                              SUBCAT_FI_PREFIX, BACK_TO_MENU_CB, BACK_TO_CAT)
 
-# ─────────────────────────────────────────────────show─────────────────────────────────────────────────────────────────
-def build_back_to_my_items_keyboard() -> InlineKeyboardMarkup:
-    """Собрать клавиатуру возврата к списку моих товаров"""
-    return InlineKeyboardMarkup(
-        inline_keyboard=[[InlineKeyboardButton(
-            text="🔙 Назад (к моим товарам)",
-            callback_data=MY_ITEMS_PREFIX
-        )]]
-    )
+from keyboards.common import build_category_keyboard
 
-# ─────────────────────────────────────────────────flow_create──────────────────────────────────────────────────────────
+
 def build_create_item_categories_keyboard(categories) -> InlineKeyboardMarkup:
     """Собрать клавиатуру выбора категории при создании товара"""
     return build_category_keyboard(
@@ -43,3 +34,6 @@ def build_item_confirmation_keyboard() -> InlineKeyboardMarkup:
             [InlineKeyboardButton(text="❌ Отмена", callback_data=CANCEL_ITEM_CB)],
         ]
     )
+
+# build_back_to_my_items_keyboard() - Собрать клавиатуру возврата к списку моих товаров
+# "🔙 Назад (к моим товарам)" - MY_ITEMS_PREFIX

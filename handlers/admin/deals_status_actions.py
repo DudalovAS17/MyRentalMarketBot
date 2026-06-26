@@ -9,14 +9,11 @@ from .admin_helpers.parse import parse_admin_rental_id
 
 from states.admin import AdminStates
 from utils.functions import send_or_edit
+from utils.callbacks import DEALS_PROGRESS_PREFIX, DEALS_CONFIRM_PREFIX, DEALS_REJECT_PREFIX, DEALS_COMPLETE_PREFIX, DEALS_CANCEL_PREFIX
 
 admin_status_actions_router = Router()
 
-DEALS_PROGRESS_PREFIX = "admin:deals:progress:"
-DEALS_CONFIRM_PREFIX = "admin:deals:confirm:"
-DEALS_REJECT_PREFIX = "admin:deals:reject:"
-DEALS_COMPLETE_PREFIX = "admin:deals:complete:"
-DEALS_CANCEL_PREFIX = "admin:deals:cancel:"
+# *****
 
 AdminRentalAction = Callable[[int], Awaitable[object | None]]
 
@@ -170,22 +167,3 @@ async def get_reasoned_action_payload(message: Message, state: FSMContext) -> tu
 
     await state.clear()
     return rental_id, reason
-
-
-# ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-""" Удалено:
-
-# 🚫 Отменить сделку
-# admin_deals_cancel_ask - Запрос причины отмены (DEALS_CANCEL_PREFIX)
-
-# AdminStates.waiting_rental_cancel_reason) # .waiting_cancel_reason
-# admin_deals_cancel_apply - Применить отмену сделки с причиной
-
-# ✅ Закрыть спор
-# admin_deals_resolve_ask - Запрос текста решения по спору (DEALS_RESOLVE_PREFIX)
-
-# AdminStates.waiting_rental_resolution / waiting_dispute_resolution
-# admin_deals_resolve_collect_resolution - Сохранить текст решения по спору и запросить итоговый статус
-
-# admin_deals_resolve_apply_target - Закрыть спор с выбранным итоговым статусом (DEALS_RESOLVE_TARGET_PREFIX)
-"""

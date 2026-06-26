@@ -4,7 +4,7 @@ from aiogram.fsm.context import FSMContext
 
 #from .router import
 
-from handlers.admin import create_helpers as ch
+from handlers.admin import create_item_helpers as ch
 from handlers.entries import show_main_menu
 from services.item_service import ItemService
 from services.photo_service import PhotoService
@@ -20,13 +20,7 @@ from utils.callbacks import (ADMIN_CAT_FI_PREFIX, ADMIN_SUBCAT_FI_PREFIX, ADMIN_
 
 admin_create_item_router = Router()
 
-""" Старая логика:
-start_create_item_from_my_items - Запуск процесса создания объявления из списка 'Мои объявления'
-show_subcategories_for_creating_item - Показывает подкатегории для FSM-сценария 'Создать объявление'
-start_create_item_from_subcategory - Переход из подкатегории к вводу названия вещи
-
-start_create_item_from_menu Сценарий 1: старт создания объявления из меню без выбора категории/подкатегории
-"""
+# ***** кнопка админки "+Создать товар" *****
 
 # ─────────────────────────────────────────────── helpers ──────────────────────────────────────────────────────────────
 async def _save_draft(state: FSMContext, draft: ItemCreateDraft) -> None:

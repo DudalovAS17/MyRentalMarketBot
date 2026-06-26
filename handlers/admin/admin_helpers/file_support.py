@@ -1,93 +1,10 @@
-from datetime import datetime
 from aiogram.types import CallbackQuery, Message
 
 from services.admin_service import AdminActionService
-from .keyboard import get_admin_support_list_keyboard, get_admin_support_ticket_keyboard
 from schemas.support import SupportTicketOut
 from services.support_service import SupportService
 from status.support_ticket_status import SupportTicketStatus
 from utils.functions import send_or_edit
-
-# ────────────────────────────────────────────────── parse ─────────────────────────────────────────────────────────────
-def parse_support_page(raw: str | None, *, default: int = 1) -> int:
-    """Распарсить номер страницы из callback data поддержки"""
-    try:
-        page = int((raw or "").split(":")[-1])
-    except (ValueError, IndexError):
-        return default
-    return max(1, page)
-
-def parse_support_ticket_id(raw: str | None) -> int | None:
-    """Распарсить ticket_id из callback data поддержки"""
-    try:
-        return int((raw or "").split(":")[-1])
-    except (ValueError, IndexError):
-        return None
-
-# ────────────────────────────────────────────────── texts ─────────────────────────────────────────────────────────────
-def format_datetime(dt: datetime | None) -> str: # ("%d.%m %H:%M")
-    """Сформатировать дату для админского UI"""
-    if not dt:
-        return "—"
-    return dt.strftime("%d.%m.%Y %H:%M")
-
-def format_ticket_card(ticket: SupportTicketOut) -> str:
-    """Сформировать текст карточки тикета поддержки"""
-    username = ticket.username or "—"
-    created = format_datetime(ticket.created_at)
-    status = ticket.status.value
-    return (
-        f"🆘 🎫 <b>Тикет поддержки</b> #{ticket.id}\n\n"
-        f"💬 <b>Username:</b> {username}\n\n"
-        f"Статус: <b>{status}</b>\n"
-        f"👤 <b>Пользователь:</b> @{username} (🆔 tg_id={ticket.telegram_id})\n"
-        f"📅 <b>Создан:</b> 🕒 {created}\n\n"
-        f"📝 <b>Текст:</b>\n{ticket.text}"
-    )
-
-# ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-
-
-async def show_support_ticket_list(event: Message | CallbackQuery, support_service: SupportService,page: int) -> None:
-    """Показать список открытых тикетов поддержки"""
-
-    tickets, has_next = await support_service.list_open_tickets(page)
-    lines = [f"📭 <b>Открытые тикеты</b> (стр. {page})\n"]
-
-    if not tickets:
-        lines.append("Пока нет открытых тикетов.")
-    else:
-        for ticket in tickets:
-            created_at = format_datetime(ticket.created_at)
-            uname = f"@{ticket.username}" if ticket.username else f"tg_id={ticket.telegram_id}"
-            lines.append(f"•🎫• <b>#{ticket.id}</b> — {uname} — {created_at}")
-
-    rows = [{"ticket": ticket} for ticket in tickets]
-    await send_or_edit(
-        event,
-        "\n".join(lines),
-        get_admin_support_list_keyboard(rows, page=page, has_next=has_next),
-    )
-
-async def show_support_ticket_card_or_not_found(
-    event: Message | CallbackQuery,
-    support_service: SupportService,
-    ticket_id: int,
-) -> None: #SupportTicketOut | None:
-    """Показать карточку тикета или not-found сообщение"""
-
-    ticket = await support_service.get_ticket_by_id(ticket_id)
-    if not ticket:
-        await send_or_edit(event, f"❌ Тикет #{ticket_id} не найден.", None)
-        return #None
-
-    await send_or_edit(
-        event,
-        format_ticket_card(ticket),
-        get_admin_support_ticket_keyboard(ticket.id, ticket.status),
-    )
-
-    #return ticket
 
 
 def is_open_ticket(ticket: SupportTicketOut) -> bool:

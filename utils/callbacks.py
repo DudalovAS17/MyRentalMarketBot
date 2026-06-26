@@ -106,6 +106,13 @@ IGNORE_CB = "ignore"
 START_DATE_DAYS_AHEAD = 5
 
 
+# deals status action
+DEALS_PROGRESS_PREFIX = "admin:deals:progress:"
+DEALS_CONFIRM_PREFIX = "admin:deals:confirm:"
+DEALS_REJECT_PREFIX = "admin:deals:reject:"
+DEALS_COMPLETE_PREFIX = "admin:deals:complete:"
+DEALS_CANCEL_PREFIX = "admin:deals:cancel:"
+
 
 RENT_PERIOD_CB = "rent_period:"
 CUSTOM_RENT_DATES_CB = "rent_dates:custom"

@@ -1,7 +1,7 @@
 import logging
 from aiogram.exceptions import TelegramAPIError
 
-from admin_helpers.keyboard import get_admin_support_ticket_notification_keyboard
+from .admin_helpers.keyboard import get_admin_support_ticket_notification_keyboard
 
 logger = logging.getLogger(__name__)
 

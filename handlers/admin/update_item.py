@@ -2,7 +2,7 @@ from aiogram import Router, F
 from aiogram.types import CallbackQuery
 from aiogram.fsm.context import FSMContext
 
-from handlers.admin import create_helpers as ch
+from handlers.admin import create_item_helpers as ch
 from services.item_service import ItemService
 #from keyboards.item_kb import build_edit_item_keyboard
 from utils.functions import send_or_edit

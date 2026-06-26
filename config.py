@@ -113,7 +113,7 @@ def get_settings() -> Settings:
 settings: Final[Settings] = get_settings()
 
 
-#-------------------- item_helpers ---------
+#-------------------- create_item_helpers ---------
 """
     def _env_required(name: str) -> str:
         value = os.getenv(name)
