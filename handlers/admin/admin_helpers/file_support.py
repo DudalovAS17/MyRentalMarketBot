@@ -7,7 +7,6 @@ from services.support_service import SupportService
 from status.support_ticket_status import SupportTicketStatus
 from utils.functions import send_or_edit
 
-
 def is_open_ticket(ticket: SupportTicketOut) -> bool:
     """Проверить, что тикет открыт"""
     return ticket.status == SupportTicketStatus.OPEN
@@ -58,7 +57,7 @@ async def send_support_reply_and_audit(
         payload={
             "text": reply_text,
             "to_user_id": ticket_user.id,
-            #"to_telegram_id": int(ticket.telegram_id),
+            "to_telegram_id": int(ticket_user.telegram_id),
         },
     )
 
@@ -88,6 +87,5 @@ async def notify_ticket_closed_and_audit(
         action_type="SUPPORT_CLOSE",
         entity_type="support_ticket",
         entity_id=ticket.id,
-        #payload={"to_telegram_id": int(ticket_user.telegram_id)},
-        payload={"to_user_id": ticket.id},
+        payload={"to_user_id": ticket.id, "to_telegram_id": int(ticket_user.telegram_id)},
     )
