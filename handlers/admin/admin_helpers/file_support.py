@@ -2,6 +2,7 @@ from aiogram.types import CallbackQuery, Message
 
 from services.admin_service import AdminActionService
 from schemas.support import SupportTicketOut
+from schemas.user import UserOut
 from services.support_service import SupportService
 from status.support_ticket_status import SupportTicketStatus
 from utils.functions import send_or_edit
@@ -35,6 +36,7 @@ async def load_open_support_ticket_or_notify(
 async def send_support_reply_and_audit(
     message: Message,
     admin_service: AdminActionService,
+    ticket_user: UserOut,
     ticket: SupportTicketOut,
     reply_text: str,
 ) -> None:
@@ -42,7 +44,7 @@ async def send_support_reply_and_audit(
 
     # Отправляем ответ пользователю
     await message.bot.send_message(
-        chat_id=int(ticket.telegram_id),
+        chat_id=ticket_user.id, # telegram_id
         text=f"💬 <b>Ответ поддержки</b> по тикету #{ticket.id}:\n\n{reply_text}",
         parse_mode="HTML",
     )
@@ -55,7 +57,8 @@ async def send_support_reply_and_audit(
         entity_id=ticket.id,
         payload={
             "text": reply_text,
-            "to_telegram_id": int(ticket.telegram_id),
+            "to_user_id": ticket_user.id,
+            #"to_telegram_id": int(ticket.telegram_id),
         },
     )
 
@@ -63,6 +66,7 @@ async def send_support_reply_and_audit(
 async def notify_ticket_closed_and_audit(
     callback: CallbackQuery,
     admin_service: AdminActionService,
+    ticket_user: UserOut,
     ticket: SupportTicketOut,
     admin_tg_id: int,
 ) -> None:
@@ -70,7 +74,7 @@ async def notify_ticket_closed_and_audit(
 
     # Уведомляем пользователя
     await callback.bot.send_message(
-        chat_id=int(ticket.telegram_id),
+        chat_id=ticket_user.id, # int(ticket_user.telegram_id)
         text=(
             f"✅ Ваш тикет поддержки #{ticket.id} закрыт. "
             "Если у вас остались вопросы, вы можете создать новый тикет командой /support."
@@ -84,5 +88,6 @@ async def notify_ticket_closed_and_audit(
         action_type="SUPPORT_CLOSE",
         entity_type="support_ticket",
         entity_id=ticket.id,
-        payload={"to_telegram_id": int(ticket.telegram_id)},
+        #payload={"to_telegram_id": int(ticket_user.telegram_id)},
+        payload={"to_user_id": ticket.id},
     )

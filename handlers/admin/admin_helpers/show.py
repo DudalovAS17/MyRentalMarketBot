@@ -119,7 +119,12 @@ async def show_user_card(event: Message | CallbackQuery, user_service: UserServi
 
 
 # ───────────────────────────────────────────────── support ─────────────────────────────────────────────────────────────
-async def show_support_ticket_list(event: Message | CallbackQuery, support_service: SupportService,page: int) -> None:
+async def show_support_ticket_list(
+        event: Message | CallbackQuery,
+        user_service: UserService,
+        support_service: SupportService,
+        page: int
+) -> None:
     """Показать список открытых тикетов поддержки"""
 
     tickets, has_next = await support_service.list_open_tickets(page)
@@ -130,7 +135,15 @@ async def show_support_ticket_list(event: Message | CallbackQuery, support_servi
     else:
         for ticket in tickets:
             created_at = format_datetime(ticket.created_at)
-            uname = f"@{ticket.username}" if ticket.username else f"tg_id={ticket.telegram_id}"
+
+            ticket_user = await user_service.get_by_id(ticket.user_id)
+            if ticket_user and ticket_user.username:
+                uname = f"@{ticket_user.username}"
+            elif ticket_user:
+                uname = f"user_id={ticket.user_id}"
+            else:
+                uname = f"tg_id={ticket_user.telegram_id}"
+
             lines.append(f"•🎫• <b>#{ticket.id}</b> — {uname} — {created_at}")
 
     rows = [{"ticket": ticket} for ticket in tickets]
@@ -142,6 +155,7 @@ async def show_support_ticket_list(event: Message | CallbackQuery, support_servi
 
 async def show_support_ticket_card_or_not_found(
     event: Message | CallbackQuery,
+    user_service: UserService,
     support_service: SupportService,
     ticket_id: int,
 ) -> None: #SupportTicketOut | None:
@@ -152,9 +166,10 @@ async def show_support_ticket_card_or_not_found(
         await send_or_edit(event, f"❌ Тикет #{ticket_id} не найден.", None)
         return #None
 
+    ticket_user = await user_service.get_by_id(ticket.user_id)
     await send_or_edit(
         event,
-        format_ticket_card(ticket),
+        format_ticket_card(ticket, ticket_user),
         get_admin_support_ticket_keyboard(ticket.id, ticket.status),
     )
 

@@ -7,6 +7,7 @@ from handlers.search.search import start_search
 from handlers.support.support import support_start
 from services.category_service import CategoryService
 from services.rental_service import RentalService
+from services.support_service import SupportService
 
 # ────────────────────────────────────────────────── Texts ─────────────────────────────────────────────────────────────
 BLOCKED_ACCOUNT_TEXT = "⚠️ Ваша учётная запись заблокирована. Пожалуйста, обратитесь в службу поддержки."
@@ -29,6 +30,7 @@ def resolve_main_menu_action(
     state: FSMContext,
     category_service: CategoryService,
     rental_service: RentalService,
+    support_service: SupportService,
     user,
     text: str,
     #help_command,
@@ -42,7 +44,7 @@ def resolve_main_menu_action(
     routes = {
         "🔍 Арендовать": lambda: show_categories(message, category_service),
         "🔎 Поиск": lambda: start_search(message, state),
-        "📞 Поддержка": lambda: support_start(message, state), # start_support_dialog
+        "📞 Поддержка": lambda: support_start(message, state, support_service, user), # start_support_dialog
         #"❓ Помощь": lambda: help_command(message),
         "⬅️ Вернуться в меню": lambda: show_main_menu(message, user),
         "🏠 Главное меню": lambda: show_main_menu(message, user),

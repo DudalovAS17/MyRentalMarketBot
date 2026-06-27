@@ -9,7 +9,7 @@ from status.admin_status import AdminRole
 from status.user_status import AccountStatus
 
 
-class AdminRepository(BaseRepository):
+class AdminRepository(BaseRepository): # AdminDirectoryService
     """Репозиторий администраторов и менеджеров компании."""
 
     # ───────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -131,7 +131,7 @@ class AdminRepository(BaseRepository):
             return await self._delete_commit(s, obj)
 
 
-class AdminActionRepository(BaseRepository):
+class AdminActionRepository(BaseRepository): # AdminActionService
     """Репозиторий журнала действий администратора"""
 
     # ───────────────────────────────────────────────────────────────────────────────────────────────────────

@@ -21,7 +21,7 @@ def get_admin_menu_keyboard() -> InlineKeyboardMarkup:
                 InlineKeyboardButton(text="➕ Создать объявление", callback_data=ADMIN_ADD_ITEM_CB),
             ],
             [
-                InlineKeyboardButton(text="🆘 Поддержка", callback_data="admin:support"),
+                InlineKeyboardButton(text="🆘 Обращения клиентов", callback_data="admin:support"),
                 InlineKeyboardButton(text="📚 Контент/FAQ", callback_data="admin:content"),
             ],
             [

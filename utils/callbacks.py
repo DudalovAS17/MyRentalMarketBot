@@ -135,3 +135,11 @@ SEP = "settings_edit_profile"
 # "rental_action:complete:{rental_id}"
 # "rental_action:receive_renter/renter:{rental_id}"
 
+
+
+"""
+Логика поддержки для конкретной аренды = "💬 Написать в поддержку":
+CLIENT_SUPPORT_RENTAL_CB = "rental_action:support_by_client:"
+rental_support_by_client - Написать в поддержку для клиента
+f"{CLIENT_SUPPORT_RENTAL_CB}{rental.id}"
+"""

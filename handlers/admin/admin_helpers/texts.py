@@ -87,16 +87,23 @@ def format_datetime(dt: datetime | None) -> str: # ("%d.%m %H:%M")
         return "—"
     return dt.strftime("%d.%m.%Y %H:%M")
 
-def format_ticket_card(ticket: SupportTicketOut) -> str:
+def format_ticket_card(ticket: SupportTicketOut, user=None) -> str:
     """Сформировать текст карточки тикета поддержки"""
-    username = ticket.username or "—"
+    user_line = f"@{user.username} (🆔 user_id={ticket.user_id})" if ticket.user_id else f"tg_id={user.telegram_id}"
+    subject_line = f"📌 <b>Тема:</b> {ticket.subject}\n" if ticket.subject else ""
+    item_line = f"📦 <b>Товар:</b> #{ticket.item_id}\n" if ticket.item_id else ""
+    rental_line = f"📄 <b>Заявка:</b> #{ticket.rental_id}\n" if ticket.rental_id else ""
     created = format_datetime(ticket.created_at)
     status = ticket.status.value
-    return (
-        f"🆘 🎫 <b>Тикет поддержки</b> #{ticket.id}\n\n"
-        f"💬 <b>Username:</b> {username}\n\n"
+
+    return (f"🆘 🎫 <b>Тикет поддержки</b> #{ticket.id}\n\n"
+
         f"Статус: <b>{status}</b>\n"
-        f"👤 <b>Пользователь:</b> @{username} (🆔 tg_id={ticket.telegram_id})\n"
+        f"👤 <b>Пользователь:</b> {user_line}\n"
+        f"💬 <b>Username:</b> {user.username}\n"
+        f"{subject_line}"
+        f"{item_line}"
+        f"{rental_line}"
         f"📅 <b>Создан:</b> 🕒 {created}\n\n"
         f"📝 <b>Текст:</b>\n{ticket.text}"
     )

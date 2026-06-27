@@ -16,11 +16,11 @@ def render_admin_ticket_message(ticket: SupportTicketOut, user: UserOut) -> str:
     """Сформировать уведомление админам о новом тикете."""
     username_text = f"@{user.username}" if user.username else "—"
     created = format_datetime(ticket.created_at)
-
+    rental_line = f"📄 <b>Заявка:</b> #{ticket.rental_id}\n" if ticket.rental_id else ""
     return (
         f"🆘 🎫 <b>Новый тикет поддержки </b> #{ticket.id}\n\n"
         f"👤 <b>Пользователь:</b> @{username_text} (🆔 id={user.id}) \n"
-        #f"🆔 <b>Telegram ID:</b> <code>{user.telegram_id if user else '—'}</code>\n"
+        f"{rental_line}"
         f"📅 <b>Создан:</b> {created}\n"
         f"📝 <b>Текст:</b>\n{ticket.text}"
     )

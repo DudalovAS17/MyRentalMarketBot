@@ -16,7 +16,7 @@ from .users_moderation import admin_users_router # пользователи / б
 admin_router = Router()
 admin_router.include_router(admin_menu_router)
 admin_router.include_router(admin_deals_router) # ***** кнопка админки "Заявки на аренду" *****
-admin_router.include_router(admin_support_router)
+admin_router.include_router(admin_support_router) # ***** кнопка админки "Обращения клиентов" *****
 admin_router.include_router(admin_items_router) # ***** кнопка админки "Модерация товаров" *****
 admin_router.include_router(admin_users_router) # ***** кнопка админки "Наши клиенты" *****
 admin_router.include_router(admin_status_actions_router) # *****

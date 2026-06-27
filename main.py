@@ -47,6 +47,9 @@ async def build_app() -> tuple[Bot, Dispatcher]:
     # создаём сервисы
     services = build_services(bot=bot, session_factory=session_factory)
 
+    # Bootstrap доменных профилей админов из ADMIN_IDS: доступ по-прежнему проверяется whitelist middleware.
+    await services.admin_directory_service.sync_admins_from_settings(settings.admin_ids)
+
     # Middlewares
     register_middlewares(dp=dp, services=services, admin_ids=settings.admin_ids)
 

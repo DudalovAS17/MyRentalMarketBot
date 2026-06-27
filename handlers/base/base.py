@@ -8,6 +8,7 @@ from handlers.base.helpers_base import (resolve_main_menu_action, normalize_menu
 from handlers.entries import show_main_menu, start_registration, request_phone_confirmation
 from services.category_service import CategoryService
 from services.rental_service import RentalService
+from services.support_service import SupportService
 from services.user_service import UserService, StartAction
 
 from keyboards.common import get_main_menu_keyboard
@@ -97,6 +98,7 @@ async def text_message_handler(
         state: FSMContext,
         category_service: CategoryService,
         rental_service: RentalService,
+        support_service: SupportService,
         user
 ) -> None:
     """Обрабатывает текстовые сообщения от клиента в главном меню.
@@ -105,7 +107,7 @@ async def text_message_handler(
     - вызывает нужный сценарий (handler-функцию)
     """
     text = normalize_menu_text(message.text)
-    action = resolve_main_menu_action(message, state, category_service, rental_service, user=user, text=text)
+    action = resolve_main_menu_action(message, state, category_service, rental_service, support_service, user=user, text=text)
 
     # Если текст не соответствует ни одной кнопке
     if action is None:

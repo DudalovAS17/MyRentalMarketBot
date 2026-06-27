@@ -12,7 +12,7 @@ from db.repositories.category import CategoryRepository
 from db.repositories.item import ItemRepository
 from db.repositories.rental import RentalRepository
 from db.repositories.photo import PhotoRepository
-from db.repositories.admin import AdminActionRepository
+from db.repositories.admin import AdminActionRepository, AdminRepository
 from db.repositories.review import ReviewRepository
 from db.repositories.support_ticket import SupportTicketRepository
 
@@ -24,6 +24,7 @@ from services.photo_service import PhotoService
 from services.review_service import ReviewService
 from services.admin_service import AdminActionService
 from services.admin_rental_service import AdminRentalService
+from services.admin_directory_service import AdminDirectoryService
 from services.support_service import SupportService
 from services.notif_service import NotificationService
 
@@ -37,6 +38,7 @@ class AppServices:
     photo_service: PhotoService
     review_service: ReviewService
     admin_service: AdminActionService
+    admin_directory_service: AdminDirectoryService
     admin_rental_service: AdminRentalService
     support_service: SupportService
     notification_service: NotificationService
@@ -53,7 +55,8 @@ def build_services(
     category_repo = CategoryRepository(session_factory)
     photo_repo = PhotoRepository(session_factory)
     review_repo = ReviewRepository(session_factory)
-    admin_repo = AdminActionRepository(session_factory)
+    admin_action_repo = AdminActionRepository(session_factory)
+    admin_repo = AdminRepository(session_factory) # раннее AdminActionRepositor было тут
     support_repo = SupportTicketRepository(session_factory)
 
     # services (domain layer)
@@ -64,7 +67,8 @@ def build_services(
     category_service = CategoryService(category_repo)
     photo_service = PhotoService(photo_repo)
     review_service = ReviewService(review_repo, rental_repo)
-    admin_service = AdminActionService(admin_repo)
+    admin_service = AdminActionService(admin_action_repo)
+    admin_directory_service = AdminDirectoryService(admin_repo)
     admin_rental_service = AdminRentalService(rental_repo, admin_service) # item_service, user_service,
     support_service = SupportService(support_repo)
 
@@ -76,6 +80,7 @@ def build_services(
         photo_service=photo_service,
         review_service=review_service,
         admin_service=admin_service,
+        admin_directory_service=admin_directory_service,
         admin_rental_service=admin_rental_service,
         support_service=support_service,
         notification_service=notification_service,

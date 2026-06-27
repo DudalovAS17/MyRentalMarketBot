@@ -9,9 +9,9 @@ class AdminCreate(BaseModel):
     """Схема для создания менеджера/сотрудника компании."""
 
     telegram_id: int
-    username: Optional[str] = Field(None, max_length=100)
-    full_name: Optional[str] = Field(None, max_length=200)
-    phone: Optional[str] = Field(None, max_length=20)
+    username: Optional[str] = Field(default=None, max_length=100)
+    full_name: Optional[str] = Field(default=None, max_length=200)
+    phone: Optional[str] = Field(default=None, max_length=20)
     role: AdminRole = AdminRole.MANAGER # ?
     is_active: bool = True
     account_status: AccountStatus = AccountStatus.ACTIVE # ?
@@ -20,9 +20,9 @@ class AdminCreate(BaseModel):
 class AdminUpdate(BaseModel):
     """Схема для обновления менеджера/сотрудника компании."""
 
-    username: Optional[str] = Field(None, max_length=100)
-    full_name: Optional[str] = Field(None, max_length=200)
-    phone: Optional[str] = Field(None, max_length=20)
+    username: Optional[str] = Field(default=None, max_length=100)
+    full_name: Optional[str] = Field(default=None, max_length=200)
+    phone: Optional[str] = Field(default=None, max_length=20)
     role: Optional[AdminRole] = None
     is_active: Optional[bool] = None
     account_status: Optional[AccountStatus] = None

@@ -25,6 +25,7 @@ def register_middlewares(*, dp: Dispatcher, services: AppServices, admin_ids: se
         photo_service=services.photo_service,
         review_service=services.review_service,
         admin_service=services.admin_service, # нужны тут?
+        admin_directory_service=services.admin_directory_service,
         admin_rental_service=services.admin_rental_service, # нужны тут?
         support_service=services.support_service,
         notification_service=services.notification_service,
@@ -43,7 +44,7 @@ def register_middlewares(*, dp: Dispatcher, services: AppServices, admin_ids: se
 
     # 4) Admin guard only for admin router
     admin_guard = AdminCheckMiddleware(admin_ids)
-    # AdminCheckMiddleware — точечный: проверяет админство только в админских хендлерах
+    # AdminCheckMiddleware — точечный: проверяет на админа только в админских хендлерах
     admin_router.message.middleware(admin_guard)
     admin_router.callback_query.middleware(admin_guard)
 
