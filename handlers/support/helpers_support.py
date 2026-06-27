@@ -19,7 +19,7 @@ def render_admin_ticket_message(ticket: SupportTicketOut, user: UserOut) -> str:
     rental_line = f"📄 <b>Заявка:</b> #{ticket.rental_id}\n" if ticket.rental_id else ""
     return (
         f"🆘 🎫 <b>Новый тикет поддержки </b> #{ticket.id}\n\n"
-        f"👤 <b>Пользователь:</b> @{username_text} (🆔 id={user.id}) \n"
+        f"👤 <b>Пользователь:</b> {username_text} (🆔 id={user.id}) \n"
         f"{rental_line}"
         f"📅 <b>Создан:</b> {created}\n"
         f"📝 <b>Текст:</b>\n{ticket.text}"

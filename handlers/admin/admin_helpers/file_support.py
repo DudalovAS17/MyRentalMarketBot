@@ -11,7 +11,6 @@ def is_open_ticket(ticket: SupportTicketOut) -> bool:
     """Проверить, что тикет открыт"""
     return ticket.status == SupportTicketStatus.OPEN
 
-
 async def load_open_support_ticket_or_notify(
     event: Message | CallbackQuery,
     support_service: SupportService,
@@ -43,7 +42,7 @@ async def send_support_reply_and_audit(
 
     # Отправляем ответ пользователю
     await message.bot.send_message(
-        chat_id=ticket_user.id, # telegram_id
+        chat_id=ticket_user.telegram_id,
         text=f"💬 <b>Ответ поддержки</b> по тикету #{ticket.id}:\n\n{reply_text}",
         parse_mode="HTML",
     )
@@ -73,7 +72,7 @@ async def notify_ticket_closed_and_audit(
 
     # Уведомляем пользователя
     await callback.bot.send_message(
-        chat_id=ticket_user.id, # int(ticket_user.telegram_id)
+        chat_id=int(ticket_user.telegram_id),
         text=(
             f"✅ Ваш тикет поддержки #{ticket.id} закрыт. "
             "Если у вас остались вопросы, вы можете создать новый тикет командой /support."

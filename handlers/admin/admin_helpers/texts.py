@@ -2,6 +2,7 @@ from datetime import datetime
 
 from schemas.support import SupportTicketOut
 from schemas.rental import RentalAdminDetailsOut
+from schemas.user import UserOut
 from utils.functions import format_price
 from status.user_status import AccountStatus
 
@@ -87,9 +88,9 @@ def format_datetime(dt: datetime | None) -> str: # ("%d.%m %H:%M")
         return "—"
     return dt.strftime("%d.%m.%Y %H:%M")
 
-def format_ticket_card(ticket: SupportTicketOut, user=None) -> str:
+def format_ticket_card(ticket: SupportTicketOut, user: UserOut = None) -> str:
     """Сформировать текст карточки тикета поддержки"""
-    user_line = f"@{user.username} (🆔 user_id={ticket.user_id})" if ticket.user_id else f"tg_id={user.telegram_id}"
+    user_line = f"🆔 = {ticket.user_id}" if ticket.user_id else f"tg_id={user.telegram_id}" # @{user.username}
     subject_line = f"📌 <b>Тема:</b> {ticket.subject}\n" if ticket.subject else ""
     item_line = f"📦 <b>Товар:</b> #{ticket.item_id}\n" if ticket.item_id else ""
     rental_line = f"📄 <b>Заявка:</b> #{ticket.rental_id}\n" if ticket.rental_id else ""
