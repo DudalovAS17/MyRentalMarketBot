@@ -99,11 +99,11 @@ class Rental(Base, TimestampMixin):
     support_tickets: Mapped[list["SupportTicket"]] = relationship("SupportTicket", back_populates="rental")
 
     __table_args__ = (
-        # нельзя создать аренду, которая заканчивается раньше, чем начинается
-        CheckConstraint(
-            "(start_date IS NULL AND end_date IS NULL) OR (start_date IS NOT NULL AND end_date IS NOT NULL AND end_date > start_date)",
-            name="ck_rentals_end_after_start",
-        ),
+        # # нельзя создать аренду, которая заканчивается раньше, чем начинается
+        # CheckConstraint(
+        #     "(start_date IS NULL AND end_date IS NULL) OR (start_date IS NOT NULL AND end_date IS NOT NULL AND end_date > start_date)",
+        #     name="ck_rentals_end_after_start",
+        # ),
 
         # запрет отрицательной стоимости (логическая ошибка)
         CheckConstraint("(total_price IS NULL) OR (total_price >= 0)", name="ck_rentals_total_price_non_neg"),

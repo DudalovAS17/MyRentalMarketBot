@@ -1,5 +1,23 @@
 # Nullable-карта по моделям
 
+Документ фиксирует, какие поля в актуальных SQLAlchemy-моделях проекта допускают `NULL`, а какие являются обязательными.
+
+---
+
+## Общее правило
+
+Во всех основных моделях есть поля из `TimestampMixin`:
+
+`nullable=False`
+- `created_at`
+- `updated_at`
+
+---
+
+Во всех таблицах есть `id`: `nullable=False`
+
+---
+
 ## Admin
 
 `nullable=True`
@@ -15,6 +33,8 @@
 - `account_status`
 - `created_at`
 - `updated_at`
+
+---
 
 ## AdminAction
 
@@ -32,6 +52,10 @@
 - `created_at`
 - `updated_at`
 
+> `admin_id` nullable специально: audit-запись должна сохраниться даже если связанный админ будет удалён. Для этого дополнительно хранится обязательный `admin_tg_id`.
+
+---
+
 ## Category
 
 `nullable=True`
@@ -46,6 +70,10 @@
 - `is_active`
 - `created_at`
 - `updated_at`
+
+> `parent_id = NULL` означает корневую категорию.
+
+---
 
 ## Item
 
@@ -74,6 +102,8 @@
 - `created_at`
 - `updated_at`
 
+---
+
 ## ItemCharacteristic
 
 `nullable=True`
@@ -87,6 +117,8 @@
 - `sort_order`
 - `created_at`
 - `updated_at`
+
+---
 
 ## Photo
 
@@ -102,7 +134,9 @@
 - `created_at`
 - `updated_at`
 
-> Хотя `telegram_file_id` и `url` оба nullable по колонкам, check-constraint требует, чтобы хотя бы одно из них было заполнено.
+> Хотя `telegram_file_id` и `url` оба nullable по колонкам, check-constraint `ck_photos_has_source` требует, чтобы хотя бы одно из этих полей было заполнено.
+
+---
 
 ## User
 
@@ -125,11 +159,11 @@
 - `created_at`
 - `updated_at`
 
+---
+
 ## Rental
 
 `nullable=True`
-- `start_date`
-- `end_date`
 - `rental_period_text`
 - `total_price`
 - `final_price`
@@ -157,6 +191,8 @@
 - `created_at`
 - `updated_at`
 
+---
+
 ## Review
 
 `nullable=True`
@@ -172,6 +208,8 @@
 - `status`
 - `created_at`
 - `updated_at`
+
+---
 
 ## SupportTicket
 
@@ -190,3 +228,5 @@
 - `status`
 - `created_at`
 - `updated_at`
+
+> `closed_at` и `closed_by_admin_id` должны быть либо оба пустыми, либо оба заполненными. Это проверяет `ck_support_tickets_closed_fields_consistent`.

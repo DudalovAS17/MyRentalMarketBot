@@ -1,4 +1,4 @@
-# Смысла проекта
+# Смысл проекта
 
 Это система аренды, где каталог принадлежит компании, а пользователь не создаёт товары, а выбирает их и оставляет заявку на аренду.
 
@@ -19,10 +19,10 @@
 
 `Item` — товар/оборудование компании для аренды.  
 Это актив компании, который можно показывать в каталоге, сортировать, скрывать, архивировать и сдавать в аренду.  
-У товара есть категория, опциональная подкатегория, фото, характеристики, цена, количество и статус публикации.
+У товара есть обязательная категория, опциональная подкатегория, фото, характеристики, цена, количество и статус публикации.
 
 `Photo` — фотография товара.  
-Это дочерняя сущность `Item`: без товара фотография не имеет самостоятельного смысла.
+Это дочерняя сущность `Item`: без товара фотография не имеет самостоятельного смысла. Источник фото может быть Telegram `file_id` или внешний `url`.
 
 `ItemCharacteristic` — характеристика товара.  
 Например: вес, мощность, размер, глубина уплотнения, производительность и другие параметры.  
@@ -30,7 +30,7 @@
 
 `Rental` — заявка клиента на аренду.  
 Это центральная операционная сущность проекта.  
-Она связывает клиента и товар, хранит срок аренды, количество, доставку, контакты клиента, цену, комментарии и статус обработки.  
+Она связывает клиента и товар, хранит текстовый срок аренды, количество, доставку, контакты клиента, цену, комментарии и статус обработки.  
 Заявка может быть назначена на менеджера и затем пройти путь от новой заявки до завершения, отмены или отказа.
 
 `Review` — отзыв клиента.  
@@ -47,19 +47,19 @@
 
 ```text
 Admin
- ├─ created_items -> Item
- ├─ updated_items -> Item
- ├─ assigned_rentals -> Rental
- ├─ closed_support_tickets -> SupportTicket
- └─ admin_actions -> AdminAction
+ ├─ created_items -> Item[]
+ ├─ updated_items -> Item[]
+ ├─ assigned_rentals -> Rental[]
+ ├─ closed_support_tickets -> SupportTicket[]
+ └─ admin_actions -> AdminAction[]
 
 AdminAction
  └─ admin -> Admin | NULL
 
 User
- ├─ rentals -> Rental
- ├─ support_tickets -> SupportTicket
- ├─ reviews -> Review
+ ├─ rentals -> Rental[]
+ ├─ support_tickets -> SupportTicket[]
+ ├─ reviews -> Review[]
  └─ banned_by_admin -> Admin | NULL
 
 Category
@@ -85,44 +85,11 @@ ItemCharacteristic
 
 Rental
  ├─ item -> Item
- ├─ user -> User
- ├─ assigned_admin -> Admin | NULL
- ├─ reviews -> Review[]
- └─ support_tickets -> SupportTicket[]
-
-Review
- ├─ rental -> Rental
- ├─ user -> User
- └─ item -> Item | NULL
-
-SupportTicket
- ├─ user -> User
- ├─ item -> Item | NULL
- ├─ rental -> Rental | NULL
- └─ closed_by_admin -> Admin | NULL
 ```
-
----
 
 # Короткая интуиция по проекту
 
 ```text
-  User
-   ├─ создаёт Rental
-   ├─ создаёт SupportTicket
-   ├─ оставляет Review
-   └─ может быть заблокирован Admin
-
-  Admin
-   ├─ создаёт Item
-   ├─ обновляет Item
-   ├─ берёт Rental в работу
-   ├─ закрывает SupportTicket
-   └─ оставляет след в AdminAction
-
-  AdminAction
-   └─ фиксирует действия Admin как аудит/историю
-
   Category
    ├─ может быть корневой категорией
    ├─ может иметь parent Category
@@ -148,7 +115,7 @@ SupportTicket
   Rental
    ├─ связывает User + Item
    ├─ может быть назначена на Admin
-   ├─ хранит сроки/количество/доставку/цены
+   ├─ хранит срок текстом/количество/доставку/цены
    ├─ проходит статусы обработки
    ├─ порождает Review
    └─ может иметь SupportTicket
@@ -173,7 +140,7 @@ SupportTicket
 ## `CASCADE`
 
 Удаление родителя удаляет дочерние записи:
-- `Category.parent_id` — удаление родителя удаляет подкатегории.
+- `Category.parent_id` — удаление родительской категории удаляет подкатегории.
 - `Photo.item_id` — удаление товара удаляет фото.
 - `ItemCharacteristic.item_id` — удаление товара удаляет характеристики.
 - `Review.rental_id` — удаление заявки удаляет отзывы по этой заявке.
@@ -190,6 +157,7 @@ SupportTicket
 ## `SET NULL`
 
 Связь мягкая: если связанная сущность исчезла, основная запись остаётся:
+- `AdminAction.admin_id`
 - `Item.subcategory_id`
 - `Item.created_by_admin_id`
 - `Item.updated_by_admin_id`
@@ -199,7 +167,16 @@ SupportTicket
 - `SupportTicket.rental_id`
 - `SupportTicket.closed_by_admin_id`
 - `User.banned_by_admin_id`
-- `AdminAction.admin_id`
+
+---
+
+# Где связь намеренно не задана
+
+`Item.category` и `Item.subcategory` не используют `back_populates` на стороне `Category`.  
+Категория строит своё дерево через `parent/subcategories`, а товары получают категорию через внешние ключи.
+
+`User.banned_by_admin` не имеет обратного списка на стороне `Admin`.  
+Это мягкая audit-связь: важен факт, кто заблокировал пользователя, но в модели нет отдельной коллекции `banned_users`.
 
 ---
 
