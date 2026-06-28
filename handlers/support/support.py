@@ -4,12 +4,12 @@ from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 
 from handlers.entries import show_main_menu
-from handlers.admin.notify import notify_admins
-from handlers.support.helpers_support import (render_admin_ticket_message, build_support_request_text, build_support_confirmation_text,
-                             build_support_cancel_keyboard, build_support_already_open_text,
-                             build_support_already_open_after_create_text) # notify_admins,
+from handlers.support.helpers_support import (build_support_request_text, build_support_cancel_keyboard,
+                                              build_support_already_open_text, build_support_already_open_after_create_text)
+from handlers.admin.admin_helpers.keyboard import get_admin_support_ticket_notification_keyboard
 from services.support_service import SupportService, TicketAlreadyOpen
 from services.rental_service import RentalService
+from services.notif_service import NotificationService
 
 from states.support_ticket import SupportStates
 from schemas.support import SupportTicketCreateInternal
@@ -95,6 +95,7 @@ async def receive_support_text(
     support_service: SupportService,
     user,
     admin_ids: list[int],
+    notification_service: NotificationService,
 ) -> None:
     """Обрабатывает сообщение пользователя для службы поддержки. Создание тикета и отправка уведомления админам."""
 
@@ -125,10 +126,16 @@ async def receive_support_text(
     await state.clear()
 
     # Отправляем подтверждение пользователю
-    await send_or_edit(message, build_support_confirmation_text())
+    await notification_service.notify_user_support_ticket_created(user.telegram_id, ticket)
+    # await send_or_edit(message, build_support_confirmation_text())
 
     # отправляем сообщение поддержки админу
-    await notify_admins(message.bot, admin_ids, render_admin_ticket_message(ticket, user), ticket.id)
+    await notification_service.notify_admins_new_support_ticket(
+        admin_ids,
+        ticket,
+        user,
+        reply_markup=get_admin_support_ticket_notification_keyboard(ticket.id),
+    )
 
     # Возвращаем пользователя в главное меню
     # await show_main_menu(message, user)

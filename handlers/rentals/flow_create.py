@@ -7,7 +7,7 @@ from .router import rental_router
 from handlers.rentals import create_helpers as ch
 from services.item_service import ItemService
 from services.rental_service import RentalService
-#from services.notif_service import NotificationService
+from services.notif_service import NotificationService
 
 from states.rental import RentalCreateStates
 from schemas.rental import RentalCreate, RentalCreateDraft
@@ -157,7 +157,8 @@ async def confirm_rent(
     state: FSMContext,
     rental_service: RentalService,
     item_service: ItemService,
-    #notification_service: NotificationService,
+    notification_service: NotificationService,
+    admin_ids: list[int], # это ок, что тут id админов?
     user,
 ) -> None:
     """FSM: Создать заявку на аренду - показать экран успеха - уведомить владельца."""
@@ -196,12 +197,16 @@ async def confirm_rent(
 
     # Создаём аренду
     try:
-        await rental_service.create(payload)
+        rental = await rental_service.create(payload)
     except ServiceError:
         await send_or_edit(callback, "❌ Не удалось создать заявку. Попробуйте позже.")
         return
 
-    # TODO: уведомление админу о новой заявке
+    # уведомление клиента/админа о новой заявке
+    rental_details = await rental_service.get_rental_details(rental.id, user.id)
+    if rental_details is not None:
+        await notification_service.notify_user_rental_created(user.telegram_id, rental_details)
+        await notification_service.notify_admins_new_rental(admin_ids, rental_details)
 
     text = ch.build_success_text(item, draft.rental_period_text, draft.total_price)
     await render_rent_ui(callback, state, text, ch.build_rent_success_keyboard(), rent_ui_message_id)

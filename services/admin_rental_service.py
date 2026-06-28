@@ -1,6 +1,5 @@
 import logging
 from typing import Optional
-from datetime import datetime, timezone
 
 from db.repositories.rental import RentalRepository
 from services.admin_service import AdminActionService
@@ -134,6 +133,12 @@ class AdminRentalService:
                 raise ConflictError("Не удалось обновить статус заявки")
             return None
 
+        updated_rental = await self.repo.get_by_id(rental_id)
+        if not updated_rental:
+            if strict:
+                raise NotFoundError(f"Заявка не найдена после обновления: id={rental_id}")
+            return None
+
         # Пишем audit-log
         await self.admin_service.log_action(
             admin_tg_id=admin_tg_id,
@@ -149,7 +154,7 @@ class AdminRentalService:
         )
 
         logger.info("Статус заявки изменён сотрудником: id=%s %s->%s", rental_id, old_status.value, new_status.value)
-        return self._to_rental_out(updated)
+        return self._to_rental_out(updated_rental)
 
     """ 
     Лучше:

@@ -4,6 +4,7 @@ from aiogram.fsm.context import FSMContext
 from collections.abc import Awaitable, Callable
 
 from services.admin_rental_service import AdminRentalService
+from services.notif_service import NotificationService
 from .admin_helpers.show import show_deal_card
 from .admin_helpers.parse import parse_admin_rental_id
 
@@ -19,11 +20,16 @@ AdminRentalAction = Callable[[int], Awaitable[object | None]]
 
 # REQUESTED → IN_PROGRESS
 @admin_status_actions_router.callback_query(F.data.startswith(DEALS_PROGRESS_PREFIX))
-async def admin_deals_take_in_progress(callback: CallbackQuery, admin_rental_service: AdminRentalService) -> None:
+async def admin_deals_take_in_progress(
+        callback: CallbackQuery,
+        admin_rental_service: AdminRentalService,
+        notification_service: NotificationService
+) -> None:
     """Взять заявку в работу: REQUESTED → IN_PROGRESS."""
     await apply_admin_deal_action(
         callback,
         admin_rental_service,
+        notification_service,
         action_name="Заявка взята в работу",
         service_call=lambda rental_id: admin_rental_service.take_in_progress(
             rental_id=rental_id,
@@ -33,11 +39,16 @@ async def admin_deals_take_in_progress(callback: CallbackQuery, admin_rental_ser
 
 # REQUESTED/IN_PROGRESS → CONFIRMED
 @admin_status_actions_router.callback_query(F.data.startswith(DEALS_CONFIRM_PREFIX))
-async def admin_deals_confirm(callback: CallbackQuery, admin_rental_service: AdminRentalService) -> None:
+async def admin_deals_confirm(
+        callback: CallbackQuery,
+        admin_rental_service: AdminRentalService,
+        notification_service: NotificationService
+) -> None:
     """Подтвердить заявку: REQUESTED/IN_PROGRESS → CONFIRMED."""
     await apply_admin_deal_action(
         callback,
         admin_rental_service,
+        notification_service,
         action_name="Заявка подтверждена",
         service_call=lambda rental_id: admin_rental_service.confirm_rental(
             rental_id=rental_id,
@@ -47,11 +58,16 @@ async def admin_deals_confirm(callback: CallbackQuery, admin_rental_service: Adm
 
 # CONFIRMED → COMPLETED
 @admin_status_actions_router.callback_query(F.data.startswith(DEALS_COMPLETE_PREFIX))
-async def admin_deals_complete(callback: CallbackQuery, admin_rental_service: AdminRentalService) -> None:
+async def admin_deals_complete(
+        callback: CallbackQuery,
+        admin_rental_service: AdminRentalService,
+        notification_service: NotificationService
+) -> None:
     """Завершить подтверждённую аренду: CONFIRMED → COMPLETED."""
     await apply_admin_deal_action(
         callback,
         admin_rental_service,
+        notification_service,
         action_name="Аренда завершена",
         service_call=lambda rental_id: admin_rental_service.complete_rental(
             rental_id=rental_id,
@@ -75,9 +91,14 @@ async def admin_deals_reject_ask(callback: CallbackQuery, state: FSMContext) -> 
 
 # REQUESTED/IN_PROGRESS → REJECTED
 @admin_status_actions_router.message(AdminStates.waiting_rental_reject_reason)
-async def admin_deals_reject_apply(message: Message, state: FSMContext, admin_rental_service: AdminRentalService) -> None:
+async def admin_deals_reject_apply(
+        message: Message,
+        state: FSMContext,
+        admin_rental_service: AdminRentalService,
+        notification_service: NotificationService
+) -> None:
     """Отклонить заявку с причиной: REQUESTED/IN_PROGRESS → REJECTED."""
-    result = get_reasoned_action_payload(message, state)  # тут состояние обнуляется
+    result = await get_reasoned_action_payload(message, state)  # тут состояние обнуляется
     if result is None:
         return
     rental_id, reason = result
@@ -86,6 +107,8 @@ async def admin_deals_reject_apply(message: Message, state: FSMContext, admin_re
     if not ok:
         await message.answer("❌ Нельзя отклонить эту заявку (возможно, статус уже изменился).")
         return
+
+    await notify_user_about_admin_rental_status(admin_rental_service, notification_service, rental_id)
 
     await show_deal_card(message, admin_rental_service, rental_id) # , prefix_text="✅ Заявка отклонена.\n\n")
 
@@ -105,9 +128,14 @@ async def admin_deals_cancel_ask(callback: CallbackQuery, state: FSMContext) -> 
 
 # CONFIRMED → CANCELLED_BY_ADMIN
 @admin_status_actions_router.message(AdminStates.waiting_rental_cancel_reason)
-async def admin_deals_cancel_apply(message: Message,state: FSMContext, admin_rental_service: AdminRentalService) -> None:
+async def admin_deals_cancel_apply(
+        message: Message,
+        state: FSMContext,
+        admin_rental_service: AdminRentalService,
+        notification_service: NotificationService
+) -> None:
     """FSM: Отменить подтверждённую заявку с причиной"""
-    result = get_reasoned_action_payload(message, state) # тут состояние обнуляется
+    result = await get_reasoned_action_payload(message, state) # тут состояние обнуляется
     if result is None:
         return
     rental_id, reason = result
@@ -117,6 +145,8 @@ async def admin_deals_cancel_apply(message: Message,state: FSMContext, admin_ren
         await message.answer("❌ Нельзя отменить подтверждённую заявку (возможно, статус уже изменился).")
         return
 
+    await notify_user_about_admin_rental_status(admin_rental_service, notification_service, rental_id)
+
     await show_deal_card(message, admin_rental_service, rental_id) # , prefix_text="✅ Заявка отклонена.\n\n")
 
 
@@ -124,6 +154,7 @@ async def admin_deals_cancel_apply(message: Message,state: FSMContext, admin_ren
 async def apply_admin_deal_action(
     callback: CallbackQuery,
     admin_rental_service: AdminRentalService,
+    notification_service: NotificationService,
     *,
     action_name: str,
     service_call: AdminRentalAction,
@@ -140,8 +171,19 @@ async def apply_admin_deal_action(
         #await show_deal_card(callback, admin_rental_service, rental_id)
         return
 
+    await notify_user_about_admin_rental_status(admin_rental_service, notification_service, rental_id)
+
     await callback.answer(action_name)
     await show_deal_card(callback, admin_rental_service, rental_id, f"✅ {action_name}.\n\n")
+
+
+async def notify_user_about_admin_rental_status(admin_rental_service: AdminRentalService, notification_service: NotificationService, rental_id: int) -> None:
+    """Загрузить заявку и безопасно уведомить клиента о текущем статусе."""
+    details = await admin_rental_service.get_details(rental_id)
+    if details is None:
+        return
+    await notification_service.notify_user_rental_status_changed(details.user.telegram_id, details)
+
 
 async def get_reasoned_action_payload(message: Message, state: FSMContext) -> tuple[int, str] | None:
     """Достать rental_id и обязательную причину из FSM/message. И чистит состояние!"""

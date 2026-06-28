@@ -6,13 +6,13 @@ from services.admin_service import AdminActionService
 from services.admin_directory_service import AdminDirectoryService
 from services.user_service import UserService
 from services.support_service import SupportService
+from services.notif_service import NotificationService
 from .admin_helpers.show import show_support_ticket_list, show_support_ticket_card_or_not_found
 from .admin_helpers.parse import parse_support_page, parse_support_ticket_id
 from .admin_helpers.texts import format_ticket_card
 
 from .admin_helpers.file_support import (load_open_support_ticket_or_notify, send_support_reply_and_audit,
                                          notify_ticket_closed_and_audit)
-
 from .admin_helpers.keyboard import get_admin_support_ticket_keyboard
 from states.admin_support import AdminSupportStates
 from utils.functions import send_or_edit
@@ -38,6 +38,7 @@ async def admin_support_list(callback: CallbackQuery, support_service: SupportSe
 
 @admin_support_router.callback_query(F.data.startswith("admin:support:page:"))
 async def admin_support_list_page(callback: CallbackQuery, support_service: SupportService, user_service: UserService) -> None:
+    """Показать выбранную страницу списка открытых тикетов поддержки."""
     await callback.answer()
 
     page = parse_support_page(callback.data)
@@ -84,6 +85,7 @@ async def admin_support_reply_send(
     support_service: SupportService,
     admin_service: AdminActionService,
     user_service: UserService,
+    notification_service: NotificationService,
 ) -> None:
     """Отправка ответа пользователю + audit"""
     data = await state.get_data()
@@ -111,9 +113,13 @@ async def admin_support_reply_send(
         return
 
     # 1️⃣ Отправляем ответ пользователю и Audit log
-    await send_support_reply_and_audit(message, admin_service, ticket_user, ticket, reply_text)
+    delivered = await send_support_reply_and_audit(message, admin_service, notification_service, ticket_user, ticket, reply_text)
+    if not delivered:
+        await state.clear()
+        await send_or_edit(message, f"⚠️ Ответ не доставлен пользователю. Тикет #{ticket.id} не помечен как отвеченный.")
+        return
 
-    # 2️⃣ Фиксируем активность админа по тикету
+    # 2️⃣ Фиксируем активность админа по тикету только после успешной доставки
     await support_service.mark_admin_replied(ticket_id=ticket.id)
 
     await state.clear()
@@ -129,6 +135,7 @@ async def admin_support_close(
         admin_service: AdminActionService,
         admin_directory_service: AdminDirectoryService,
         user_service: UserService,
+        notification_service: NotificationService,
 ) -> None:
     """Закрытие тикета (без причины в MVP)"""
     await callback.answer()
@@ -159,13 +166,13 @@ async def admin_support_close(
         return
 
     # Уведомляем пользователя и Audit log
-    await notify_ticket_closed_and_audit(
+    delivered = await notify_ticket_closed_and_audit(
         callback=callback,
         admin_service=admin_service,
+        notification_service=notification_service,
         ticket_user = ticket_user,
         ticket=ticket,
         admin_tg_id=callback.from_user.id,
-        #admin_id=admin.id,
     )
 
     # Перерисовываем карточку тикета
@@ -173,6 +180,7 @@ async def admin_support_close(
 
     await send_or_edit(
         callback,
-        format_ticket_card(updated_ticket),
+        (("⚠️ Тикет закрыт, но пользователя не удалось уведомить.\n\n" if not delivered else "") + format_ticket_card(
+            updated_ticket)), # format_ticket_card(updated_ticket),
         get_admin_support_ticket_keyboard(updated_ticket.id, updated_ticket.status)
     )

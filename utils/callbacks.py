@@ -51,6 +51,8 @@ SEARCH_FILTERS_CB = "search_filters"
 BACK_TO_MENU_CB = "back_to_main_menu" # главное меню show_main_menu()
 
 
+BACK_TO_SETTINGS = "back_to_profile_settings"
+
 # ITEM HANDLER
 CAT_FI_PREFIX = "cat_for_item:"
 SUBCAT_FI_PREFIX = "subcat_for_item:"
