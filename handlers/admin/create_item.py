@@ -4,14 +4,14 @@ from aiogram.fsm.context import FSMContext
 
 #from .router import
 
-from handlers.admin import create_item_helpers as ch
+from handlers.admin import cre_item_helpers as ch
 from handlers.entries import show_main_menu
 from services.item_service import ItemService
 from services.photo_service import PhotoService
 from services.category_service import CategoryService
 from schemas.item import ItemCreateDraft, ItemCreate
 from states.item import ItemCreateStates
-from keyboards.item_kb import get_photos_keyboard, cancel_keyboard
+from keyboards.common import cancel_keyboard
 from utils.functions import send_or_edit
 from utils.errors import ServiceError, ValidationError
 from utils.validators import parse_callback
@@ -236,7 +236,7 @@ async def process_item_rental_period(message: Message, state: FSMContext) -> Non
     # Переход к шагу загрузки фото
     await state.set_state(ItemCreateStates.photos)
 
-    await message.answer(ch.build_item_photo_step_text(), reply_markup=get_photos_keyboard(), parse_mode="HTML")
+    await message.answer(ch.build_item_photo_step_text(), reply_markup=ch.get_photos_keyboard(), parse_mode="HTML")
 
 # ───────────────────────────────────────── ДОБАВЛЕНИЯ ФОТОГРАФИЙ ──────────────────────────────────────────────────────
 @admin_create_item_router.message(ItemCreateStates.photos, F.text == "✅ Готово")
@@ -262,7 +262,7 @@ async def process_item_photos(message: Message, state: FSMContext) -> None:
     photos: list[str] = data.get("photos") or []
 
     if len(photos) >= ADMIN_MAX_PHOTOS:
-        await message.answer(ch.build_item_photo_max_photos_warning(), reply_markup=get_photos_keyboard())
+        await message.answer(ch.build_item_photo_max_photos_warning(), reply_markup=ch.get_photos_keyboard())
         return
 
     # Получаем файловый ID фотографии с наилучшим разрешением
@@ -272,12 +272,12 @@ async def process_item_photos(message: Message, state: FSMContext) -> None:
     photos.append(file_id)
     await state.update_data(photos=photos)
 
-    await message.answer(ch.build_item_photo_success_or_more(len(photos)), reply_markup=get_photos_keyboard())
+    await message.answer(ch.build_item_photo_success_or_more(len(photos)), reply_markup=ch.get_photos_keyboard())
 
 @admin_create_item_router.message(ItemCreateStates.photos)
 async def photos_wrong_input(message: Message):
     """FSM: Обработка неверного ввода (не фото и не команда)"""
-    await message.answer(ch.photo_or_ready, reply_markup=get_photos_keyboard())
+    await message.answer(ch.photo_or_ready, reply_markup=ch.get_photos_keyboard())
 
 # ───────────────────────────────────────── ФИНАЛЬНЫЕ ОБРАБОТКИ ────────────────────────────────────────────────────────
 async def show_item_confirmation(message: Message, state: FSMContext) -> None:

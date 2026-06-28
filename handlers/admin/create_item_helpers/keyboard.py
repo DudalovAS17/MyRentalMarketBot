@@ -1,4 +1,4 @@
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
 
 from utils.callbacks import (CAT_FI_PREFIX, PUBLISH_ITEM_CB, CANCEL_ITEM_CB,
                              SUBCAT_FI_PREFIX, BACK_TO_MENU_CB, BACK_TO_CAT)
@@ -37,3 +37,10 @@ def build_item_confirmation_keyboard() -> InlineKeyboardMarkup:
 
 # build_back_to_my_items_keyboard() - Собрать клавиатуру возврата к списку моих товаров
 # "🔙 Назад (к моим товарам)" - MY_ITEMS_PREFIX
+
+def get_photos_keyboard():
+    return ReplyKeyboardMarkup(
+        resize_keyboard=True,
+        keyboard=[[KeyboardButton(text="✅ Готово")]]
+            #[KeyboardButton(text="🔙 Назад")],
+    )

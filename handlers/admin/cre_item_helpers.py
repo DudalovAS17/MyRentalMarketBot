@@ -3,7 +3,7 @@ from handlers.admin.create_item_helpers.common import (extract_item_available_qu
                                                     format_photos_count, extract_item_money_input)
 
 from handlers.admin.create_item_helpers.keyboard import (build_create_item_categories_keyboard, build_item_confirmation_keyboard,
-                                                      build_create_item_subcategories_keyboard)
+                                                      build_create_item_subcategories_keyboard, get_photos_keyboard)
 
 from handlers.admin.create_item_helpers.load import (load_entity_or_notify, show_create_item_categories_step,
                                                   send_item_confirmation_preview, attach_item_photos_or_warn,

@@ -6,11 +6,10 @@ from aiogram.fsm.context import FSMContext
 from handlers.search.helpers_search import (build_search_prompt_keyboard, validate_search_query, build_search_results_text,
                             normalize_search_query, parse_search_page, fetch_search_page, build_search_prompt_text,
                                             SEARCH_BACK_CB, SEARCH_NEW_QUERY_CB, SEARCH_PAGE_CB_PREFIX,
-                                            build_empty_search_results_text, build_search_results_keyboard)
+                                            build_empty_search_results_text, build_search_keyboard)
 from services.item_service import ItemService
 
 from states.search import SearchStates
-from keyboards.common import build_search_keyboard
 from utils.errors import ServiceError
 from utils.functions import send_or_edit
 
@@ -110,7 +109,7 @@ async def show_search_results(
         await send_or_edit(
             event,
             build_empty_search_results_text(query),
-            build_search_results_keyboard(items, safe_page, has_next),
+            build_search_keyboard(items, safe_page, has_next),
         )
         return
 

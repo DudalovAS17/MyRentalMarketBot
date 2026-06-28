@@ -76,27 +76,32 @@ def build_search_prompt_keyboard() -> InlineKeyboardMarkup:
         inline_keyboard=[[InlineKeyboardButton(text="🔙 Назад", callback_data=SEARCH_BACK_CB )]] # back_to_main_menu
     )
 
-def build_search_results_keyboard(items: Sequence[ItemOut], page: int, has_next: bool) -> InlineKeyboardMarkup:
+def build_search_keyboard(items: Sequence[ItemOut], page: int, has_next: bool) -> InlineKeyboardMarkup:
     """Собрать клавиатуру карточной поисковой выдачи."""
-    buttons: list[list[InlineKeyboardButton]] = []
+    keyboard: list[list[InlineKeyboardButton]] = []
 
-    if items:
-        buttons.append([InlineKeyboardButton(text="🔍 Подробнее", callback_data=f"{ITEM_DETAILS_CB}{items[0].id}")])
+    for item in items:
+        keyboard.append([InlineKeyboardButton(
+            text=f"🔎 Открыть #{item.id}",
+            callback_data=f"show_item_details:{item.id}")]
+        )
 
+    has_prev = page > 1
     nav_row: list[InlineKeyboardButton] = []
-    if page > 1:
+    if has_prev:
         nav_row.append(InlineKeyboardButton(text="⬅️", callback_data=f"{SEARCH_PAGE_CB_PREFIX}{page - 1}"))
     if items:
         nav_row.append(InlineKeyboardButton(text=f"Стр. {page}", callback_data="noop"))
     if has_next:
         nav_row.append(InlineKeyboardButton(text="➡️", callback_data=f"{SEARCH_PAGE_CB_PREFIX}{page + 1}"))
     if nav_row:
-        buttons.append(nav_row)
+        keyboard.append(nav_row)
 
-    buttons.append([InlineKeyboardButton(text="✏️ Новый запрос", callback_data=SEARCH_NEW_QUERY_CB)])
-    buttons.append([InlineKeyboardButton(text="🔙 Назад в меню", callback_data=BACK_TO_MENU_CB)])
+    keyboard.append([InlineKeyboardButton(text="✏️ Новый запрос", callback_data=SEARCH_NEW_QUERY_CB)])
+    #keyboard.append([InlineKeyboardButton(text="🔙 Назад", callback_data="search:back")])
+    keyboard.append([InlineKeyboardButton(text="🔙 Назад в меню", callback_data=BACK_TO_MENU_CB)])
 
-    return InlineKeyboardMarkup(inline_keyboard=buttons)
+    return InlineKeyboardMarkup(inline_keyboard=keyboard)
 
 # ──────────────────────────────────────── Страницу результатов поиска ─────────────────────────────────────────────────
 async def fetch_search_page(query: str, page: int, item_service: ItemService):
