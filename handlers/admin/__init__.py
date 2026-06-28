@@ -14,7 +14,7 @@ from .users_moderation import admin_users_router # пользователи / б
 #     disputes.py # жалобы/споры (если отдельно от deals)
 
 admin_router = Router()
-admin_router.include_router(admin_menu_router)
+admin_router.include_router(admin_menu_router) # +-
 admin_router.include_router(admin_deals_router) # ***** кнопка админки "Заявки на аренду" *****
 admin_router.include_router(admin_support_router) # ***** кнопка админки "Обращения клиентов" *****
 admin_router.include_router(admin_items_router) # ***** кнопка админки "Модерация товаров" *****
@@ -23,3 +23,5 @@ admin_router.include_router(admin_status_actions_router) # *****
 
 admin_router.include_router(admin_create_item_router) # ***** кнопка админки "+Создать товар" *****
 admin_router.include_router(admin_update_item_router) # -
+
+# Нереализовано ***** кнопка админки "Контент/FAQ" *****

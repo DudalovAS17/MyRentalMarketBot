@@ -101,7 +101,7 @@ def format_ticket_card(ticket: SupportTicketOut, user: UserOut = None) -> str:
 
         f"Статус: <b>{status}</b>\n"
         f"👤 <b>Пользователь:</b> {user_line}\n"
-        f"💬 <b>Username:</b> {user.username}\n"
+        #f"💬 <b>Username:</b> {user.username}\n"
         f"{subject_line}"
         f"{item_line}"
         f"{rental_line}"

@@ -50,6 +50,7 @@ async def send_support_reply_and_audit(
     # Audit log
     await admin_service.log_action(
         admin_tg_id=int(message.from_user.id),
+        #admin_id=ticket_user.id,
         action_type="SUPPORT_REPLY",
         entity_type="support_ticket",
         entity_id=ticket.id,
@@ -67,6 +68,7 @@ async def notify_ticket_closed_and_audit(
     ticket_user: UserOut,
     ticket: SupportTicketOut,
     admin_tg_id: int,
+    #admin_id: int
 ) -> None:
     """Уведомить пользователя о закрытии тикета и записать audit log."""
 
@@ -83,8 +85,9 @@ async def notify_ticket_closed_and_audit(
     # Audit log
     await admin_service.log_action(
         admin_tg_id=admin_tg_id,
+        #admin_id=admin_id,
         action_type="SUPPORT_CLOSE",
         entity_type="support_ticket",
         entity_id=ticket.id,
-        payload={"to_user_id": ticket.id, "to_telegram_id": int(ticket_user.telegram_id)},
+        payload={"to_user_id": ticket_user.id, "to_telegram_id": int(ticket_user.telegram_id)},
     )

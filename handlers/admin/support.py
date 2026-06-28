@@ -165,6 +165,7 @@ async def admin_support_close(
         ticket_user = ticket_user,
         ticket=ticket,
         admin_tg_id=callback.from_user.id,
+        #admin_id=admin.id,
     )
 
     # Перерисовываем карточку тикета

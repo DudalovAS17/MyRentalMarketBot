@@ -4,6 +4,9 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from schemas.support import SupportTicketOut
 from schemas.user import UserOut
 
+# render_admin_ticket_message - Сформировать уведомление админам о новом тикете
+#
+
 # ──────────────────────────────────────── Format ──────────────────────────────────────────────────────────────────────
 def format_datetime(dt: datetime | None) -> str:
     """Сформатировать дату для UI поддержки."""
