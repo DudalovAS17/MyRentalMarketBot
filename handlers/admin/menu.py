@@ -5,10 +5,13 @@ from aiogram.types import Message, CallbackQuery
 
 from .admin_helpers.keyboard  import get_admin_menu_keyboard, get_back_to_admin_menu_keyboard
 from utils.functions import send_or_edit
+from utils.callbacks import BACK_TO_MENU_CB, ADMIN_EXIT_PREFIX
 
 logger = logging.getLogger(__name__)
 
 admin_menu_router = Router()
+
+
 
 """
 Интерфейсы
@@ -27,14 +30,14 @@ ADMIN_MENU_TEXT = (
 )
 
 @admin_menu_router.message(Command("admin"))
-@admin_menu_router.callback_query(F.data == "admin:menu")
+@admin_menu_router.callback_query(F.data == BACK_TO_MENU_CB)
 async def show_admin_menu(event: Message | CallbackQuery, user) -> None:
     """Точка входа в админку (/admin)."""
     logger.info("[Admin] User %s opened admin menu", user.id)
     await send_or_edit(event, ADMIN_MENU_TEXT, markup=get_admin_menu_keyboard(), parse_mode="HTML")
 
 # ?
-@admin_menu_router.callback_query(F.data == "admin:exit")
+@admin_menu_router.callback_query(F.data == ADMIN_EXIT_PREFIX)
 async def admin_exit(callback: CallbackQuery): # , user
     """Выход из админки.
 

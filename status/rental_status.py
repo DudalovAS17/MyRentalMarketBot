@@ -104,19 +104,3 @@ def can_transition(old_status: RentalStatus, new_status: RentalStatus) -> bool:
 def status_timestamp_fields(status: RentalStatus) -> tuple[str, ...]:
     """Вернуть поля дат, которые нужно проставить при переводе заявки в статус."""
     return STATUS_TIMESTAMP_FIELDS.get(status, ())
-
-
-"""
-TERMINAL_STATUSES нужен для проверок:
-    можно ли ещё менять заявку?
-    показывать ли заявку как активную?
-    считать ли товар занятым?
-    можно ли отменить заявку?
-
-
-OPEN_STATUSES нужен в:
-    has_open_rentals_for_item()
-    ensure_item_available()
-    list_recent_open_by_item_id()
-    open_statuses() для SQL .in_(...)
-"""

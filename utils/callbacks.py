@@ -23,65 +23,151 @@ async def parse_int_id_from_callback(
         return None
 
 
-RENT_ITEM_CB = "rent_item:"
-SHOW_ALL_PHOTOS_CB = "show_all_photos:"
-MESSAGE_OWNER_CB = "message_owner:"
-REVIEWS_CB = "reviews:"
+# ──────────────────────────────────────────── BASE HANDLER ────────────────────────────────────────────────────────────
+BACK_TO_MENU_CB = "menu:main" # "back_to_menu" / "back_to_main_menu"
+# F.data.in_(["menu:main", "back_to_main_menu"]) - главное меню show_main_menu()
 
-
-CANCEL_RENT_FLOW_CB = "cancel_rent_flow"
-START_DATE_CB = "start_date:"
-CONFIRM_RENT_CB = "confirm_rent"
-
-
-# Константы callback-данных
-# CATEGORY HANDLER
+# ──────────────────────────────────────────── CATEGORY HANDLER ────────────────────────────────────────────────────────
 CAT_CB_PREFIX = "cat:"
 SUBCAT_CB_PREFIX = "subcat:"
 ITEM_DETAILS_CB = "show_item_details:"
-CAROUSEL_NAV_CB = "subcat_items_nav:"
 SHOW_ALL_PHOTOS_CB = "show_all_photos:"
 BACK_TO_CAT = "back_to_categories" # show_categories()
+CAROUSEL_NAV_CB = "subcat_items_nav:"
 
-# будут обработаны в хендлере Search
-ALL_CATEGORY_CB = "all_cat"
-SEARCH_CITY_CB = "search_by_city"
-SEARCH_FILTERS_CB = "search_filters"
-# где?
-BACK_TO_MENU_CB = "back_to_main_menu" # главное меню show_main_menu()
-
-
-BACK_TO_SETTINGS = "back_to_profile_settings"
-
-# ITEM HANDLER
-CAT_FI_PREFIX = "cat_for_item:"
-SUBCAT_FI_PREFIX = "subcat_for_item:"
-
-BACK_TO_MENU_CB = "back_to_main_menu" # "back_to_menu"
-ALL_CATEGORY_CB = "all_cat"
-
-BACK_TO_CAT = "back_to_categories"
-ADD_ITEM_CB = "add_item"
-SHOW_ITEM_CB = "show_item:"
-MY_ITEMS_PREFIX = "my_items"
-
-CREATE_ITEM_MODE = "create_item"
-
-PUBLISH_ITEM_CB = "publish_item:"
-EDIT_ITEM_CB = "edit_item:"
-CANCEL_ITEM_CB = "cancel_item:"
-
-MAX_PHOTOS = 5
-
-# ADMIN CREATE ITEM
+# ───────────────────────────────────────────── ADMIN HANDLER ──────────────────────────────────────────────────────────
+# create item
 ADMIN_CAT_FI_PREFIX = "cat_for_item:"
 ADMIN_SUBCAT_FI_PREFIX = "subcat_for_item:"
 ADMIN_ADD_ITEM_CB = "add_item"
 ADMIN_PUBLISH_ITEM_CB = "publish_item:"
-ADMIN_EDIT_ITEM_CB = "edit_item:"
 ADMIN_CANCEL_ITEM_CB = "cancel_item:"
 ADMIN_MAX_PHOTOS = 5
 ADMIN_CREATE_ITEM_MODE = "create_item"
+
+# deals
+DEALS_PREFIX = "admin:deals"
+DEALS_PAGE_PREFIX = "admin:deals:page:"
+DEALS_VIEW_PREFIX = "admin:deals:view:"
+DEALS_BY_ID_PREFIX = "admin:deals:by_id"
+
+# deals status actions
+DEALS_PROGRESS_PREFIX = "admin:deals:progress:"
+DEALS_CONFIRM_PREFIX = "admin:deals:confirm:"
+DEALS_REJECT_PREFIX = "admin:deals:reject:"
+DEALS_COMPLETE_PREFIX = "admin:deals:complete:"
+DEALS_CANCEL_PREFIX = "admin:deals:cancel:"
+
+# items moderation
+ADMIN_ITEMS_MOD = "admin:items"
+ADMIN_ITEMS_MOD_FILTER = "admin:items:filter:"
+ADMIN_ITEMS_MOD_PAGE = "admin:items:page:"
+ADMIN_ITEMS_MOD_VIEW = "admin:items:view:"
+ADMIN_ITEMS_MOD_APPROVE = "admin:items:approve:"
+ADMIN_ITEMS_MOD_HIDE = "admin:items:hide:"
+ADMIN_ITEMS_MOD_UNHIDE = "admin:items:unhide:"
+ADMIN_ITEMS_MOD_ARCHIVE = "admin:items:archive:"
+
+# support
+ADMIN_SUPPORT = "admin:support"
+ADMIN_SUPPORT_PAGE = "admin:support:page:"
+ADMIN_SUPPORT_VIEW = "admin:support:view:"
+ADMIN_SUPPORT_REPLY = "admin:support:reply:"
+ADMIN_SUPPORT_CLOSE = "admin:support:close:"
+ADMIN_SUPPORT_OPEN = "admin:support:open:"
+
+# update item
+ADMIN_EDIT_ITEM_CB = "edit_item:"
+
+# users moderation
+ADMIN_USERS_MOD = "admin:users"
+ADMIN_USERS_MOD_VIEW = "admin:users:view"
+ADMIN_USERS_MOD_FIND = "admin:users:find"
+ADMIN_USERS_MOD_BAN = "admin:users:ban:"
+ADMIN_USERS_MOD_UNBAN = "admin:users:unban:"
+
+
+ADMIN_EXIT_PREFIX = "admin:exit"
+
+# ────────────────────────────────────────────── AUTH HANDLER ──────────────────────────────────────────────────────────
+# profile
+PROFILE_STATS = "profile_stats"
+PROFILE_ACHIEVEMENTS = "profile_achievements"
+PROFILE_BACK = "back_to_profile"
+
+# settings
+PROFILE_SETTINGS = "profile_settings"
+PROFILE_BACK_TO_SETTINGS = "back_to_profile_settings"
+PROFILE_NOTIFICATIONS = "profile_notifications" # "settings_notifications"
+
+# privacy
+PROFILE_SETTINGS_PRIVACY = "settings_privacy"
+PROFILE_PRIVACY_POLICY = "show_privacy_policy"
+
+# edit profile
+PROFILE_EDIT_NAME = "edit_profile_field:name"
+PROFILE_EDIT_EMAIL = "edit_profile_field:email"
+PROFILE_EDIT_PHONE = "profile_change_phone" #"edit_profile_field:phone"
+PROFILE_EDIT = "settings_edit_profile"
+
+
+# ───────────────────────────────────────────── RENTALS HANDLER ────────────────────────────────────────────────────────
+# flow create
+CONFIRM_RENT_CB = "confirm_rent"
+CANCEL_RENT_FLOW_CB = "cancel_rent_flow" # new
+RENT_ITEM_CB = "rent_item:"
+RENT_PERIOD_CB = "rent_period:"
+
+# details
+MY_RENTALS_CB = "rental_list" # back_to_rentals
+RENTAL_DETAILS_CB = "rental_details:"
+#BACK_TO_RENTALS = "back_to_rentals"
+
+# actions
+CLIENT_CANCEL_RENTAL_CB = "rental_action:canceled_by_client:" # "rental_action:cancel:"
+
+
+# ──────────────────────────────────────────── SEARCH HANDLER ──────────────────────────────────────────────────────────
+SEARCH = "search"
+
+PAGE_SIZE = 8
+QUERY_MIN_LEN = 2
+QUERY_MAX_LEN = 60
+SEARCH_PAGE_CB_PREFIX = "search:page:"
+SEARCH_NEW_QUERY_CB = "search:new_query"
+SEARCH_BACK_CB = "search:back"
+
+ALL_CATEGORY_CB = "all_cat"
+SEARCH_CITY_CB = "search_by_city"
+SEARCH_FILTERS_CB = "search_filters"
+
+# ──────────────────────────────────────────── SUPPORT HANDLER ─────────────────────────────────────────────────────────
+SUPPORT = "support"
+
+SUPPORT_START = "support:start"
+SUPPORT_CANCEL = "support:cancel" # "cancel_support"
+CLIENT_SUPPORT_RENTAL_CB = "rental_action:support_by_client:" # "rental_action:support:"
+
+# ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+# ITEM HANDLER
+SHOW_ITEM_CB = "show_item:"
+MY_ITEMS_PREFIX = "my_items"
+
+# Есть уже, но оставляю пока на всякий
+# CAT_FI_PREFIX = "cat_for_item:"
+# SUBCAT_FI_PREFIX = "subcat_for_item:"
+# ADD_ITEM_CB = "add_item"
+# CREATE_ITEM_MODE = "create_item"
+# PUBLISH_ITEM_CB = "publish_item:"
+# EDIT_ITEM_CB = "edit_item:"
+# CANCEL_ITEM_CB = "cancel_item:"
+
+MAX_PHOTOS = 5
+
+
+REVIEWS_CB = "reviews:"
 
 
 # RENTAL HANDLER
@@ -93,39 +179,20 @@ DISPUTE_CB = "dispute"
 CANCEL_CB = "cancel"
 BACK_CB = "back"
 ITEM_DETAILS = "item_details:"
-RENT_ITEM_CB = "rent_item:"
 START_DATE_CB = "start_date:"
 END_DATE_CB = "end_date:"
-CONFIRM_RENT_CB = "confirm_rent"
 
-BACK_TO_MENU_CB = "back_to_main_menu" # "back_to_menu" # "menu:main"
-MY_RENTALS_CB = "rental_list" # back_to_rentals
-RENTAL_DETAILS_CB = "rental_details:"
-CANCEL_RENT_FLOW_CB = "cancel_rent_flow" # new
+
+
 
 IGNORE_CB = "ignore"
 
 START_DATE_DAYS_AHEAD = 5
 
-
-# deals status action
-DEALS_PROGRESS_PREFIX = "admin:deals:progress:"
-DEALS_CONFIRM_PREFIX = "admin:deals:confirm:"
-DEALS_REJECT_PREFIX = "admin:deals:reject:"
-DEALS_COMPLETE_PREFIX = "admin:deals:complete:"
-DEALS_CANCEL_PREFIX = "admin:deals:cancel:"
-
-
 RENT_PERIOD_CB = "rent_period:"
 CUSTOM_RENT_DATES_CB = "rent_dates:custom"
 CLIENT_CANCEL_RENTAL_CB = "rental_action:canceled_by_client:" # "rental_action:cancel:"
 CLIENT_SUPPORT_RENTAL_CB = "rental_action:support_by_client:" # "rental_action:support:"
-
-# edit_profile.py
-EPF_NAME = "edit_profile_field:name"
-EPF_EMAIL = "edit_profile_field:email"
-EPF_PHONE = "profile_change_phone" #"edit_profile_field:phone"
-SEP = "settings_edit_profile"
 
 
 

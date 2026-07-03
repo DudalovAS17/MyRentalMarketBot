@@ -8,15 +8,11 @@ from .admin_helpers.parse import parse_admin_page, parse_admin_rental_id, parse_
 
 from states.admin import AdminStates
 from utils.functions import send_or_edit
+from utils.callbacks import DEALS_PREFIX, DEALS_PAGE_PREFIX, DEALS_VIEW_PREFIX, DEALS_BY_ID_PREFIX
 
 admin_deals_router = Router()
 
 # ***** кнопка админки "Заявки на аренду" *****
-
-DEALS_PREFIX = "admin:deals"
-DEALS_PAGE_PREFIX = "admin:deals:page:"
-DEALS_VIEW_PREFIX = "admin:deals:view:"
-DEALS_BY_ID_PREFIX = "admin:deals:by_id"
 
 # ─────────────────────────────────────────────── Просмотр заявок ──────────────────────────────────────────────────────
 @admin_deals_router.callback_query(F.data == DEALS_PREFIX)

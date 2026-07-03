@@ -13,10 +13,12 @@ from services.user_service import UserService, StartAction
 
 from keyboards.common import get_main_menu_keyboard
 from texts.base import LEGAL_TEXT, HELP_TEXT, build_unknown_command_text
+from utils.callbacks import BACK_TO_MENU_CB
 
 base_router = Router()
 
 # TODO: Если у пользователя есть непрочитанные уведомления - сообщаем/показываем
+# TODO: если отменено создание объявления - сообщение пользователю: черновик сохранен для будущего использования
 
 # ─────────────────────────────────────────────── /start ───────────────────────────────────────────────────────────────
 @base_router.message(CommandStart())
@@ -49,7 +51,7 @@ async def start(message: Message, state: FSMContext, user_service: UserService) 
     # ✅ Приветствие
     return await show_main_menu(message, result.user)
 
-@base_router.callback_query(F.data.in_(["menu:main", "back_to_main_menu"]))
+@base_router.callback_query(F.data.startswith(BACK_TO_MENU_CB))
 async def show_main_menu_callback(callback: CallbackQuery, user) -> None:
     """Показать главное меню по callback-кнопке"""
     await callback.answer()

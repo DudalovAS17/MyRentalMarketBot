@@ -7,10 +7,11 @@ from .helpers_auth.texts import build_settings_text, build_notification_settings
 from .helpers_auth.keyboards import build_settings_keyboard, build_notification_settings_keyboard
 
 from utils.functions import send_or_edit
+from utils.callbacks import  PROFILE_SETTINGS, PROFILE_BACK_TO_SETTINGS, PROFILE_NOTIFICATIONS
 
 
-@auth_router.callback_query(F.data == "back_to_profile_settings")
-@auth_router.callback_query(F.data == "profile_settings")
+@auth_router.callback_query(F.data == PROFILE_BACK_TO_SETTINGS)
+@auth_router.callback_query(F.data == PROFILE_SETTINGS)
 async def show_settings(callback: CallbackQuery) -> None:
     """Показывает экран настроек пользователя."""
     await callback.answer()
@@ -18,7 +19,7 @@ async def show_settings(callback: CallbackQuery) -> None:
     await send_or_edit(callback, build_settings_text(), build_settings_keyboard())
 
 
-@auth_router.callback_query(F.data == "settings_notifications")
+@auth_router.callback_query(F.data == PROFILE_NOTIFICATIONS)
 async def show_notification_settings(event: Message | CallbackQuery) -> None:
     """Показывает экран настроек уведомлений (только inline)."""
     await event.answer()

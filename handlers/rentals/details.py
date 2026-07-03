@@ -10,12 +10,12 @@ from services.rental_service import RentalService
 from utils.functions import send_or_edit
 from utils.validators import parse_callback
 from utils.errors import ServiceError
-from utils.callbacks import MY_RENTALS_CB, RENTAL_DETAILS_CB
+from utils.callbacks import MY_RENTALS_CB, RENTAL_DETAILS_CB #, BACK_TO_RENTALS
 
 
 @rental_router.message(F.text == "📋 Мои сделки") # Мои заявки
 @rental_router.callback_query(F.data == MY_RENTALS_CB)
-# @rental_router.callback_query(F.data == "back_to_rentals")
+# @rental_router.callback_query(F.data == BACK_TO_RENTALS)
 async def view_my_rentals(event: Message | CallbackQuery, rental_service: RentalService, user) -> None:
     """Открыть клиентский список заявок."""
     await show_my_rentals(event, rental_service, user)

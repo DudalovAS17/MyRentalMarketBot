@@ -1,27 +1,23 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton
 
-EPF_NAME = "edit_profile_field:name"
-EPF_EMAIL = "edit_profile_field:email"
-EPF_PHONE = "profile_change_phone" #"edit_profile_field:phone"
-SEP = "settings_edit_profile"
-BACK_TO_PR_SETTINGS = "back_to_profile_settings"
-BACK_TO_PROFILE = "back_to_profile"
+from utils.callbacks import PROFILE_EDIT_NAME, PROFILE_EDIT_EMAIL, PROFILE_BACK, PROFILE_BACK_TO_SETTINGS # PROFILE_EDIT_PHONE
+
 
 # ────────────────────────────────────────────────── profile ───────────────────────────────────────────────────────────
 def build_back_to_profile_keyboard() -> InlineKeyboardMarkup:
     """Клавиатура возврата в профиль."""
     return InlineKeyboardMarkup(
-        inline_keyboard=[[InlineKeyboardButton(text="🔙 Назад в профиль", callback_data=BACK_TO_PROFILE)]]
+        inline_keyboard=[[InlineKeyboardButton(text="🔙 Назад в профиль", callback_data=PROFILE_BACK)]]
     )
 
 # ────────────────────────────────────────────────── edit profile ──────────────────────────────────────────────────────
 def build_edit_profile_menu_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
-            [InlineKeyboardButton(text="✏️ Изменить имя", callback_data=EPF_NAME)],
-            [InlineKeyboardButton(text="📧 Изменить Email", callback_data=EPF_EMAIL)],
-            # [InlineKeyboardButton(text="📱 Изменить телефон", callback_data=EPF_PHONE)],
-            [InlineKeyboardButton(text="« Назад", callback_data=BACK_TO_PR_SETTINGS)],
+            [InlineKeyboardButton(text="✏️ Изменить имя", callback_data=PROFILE_EDIT_NAME)],
+            [InlineKeyboardButton(text="📧 Изменить Email", callback_data=PROFILE_EDIT_EMAIL)],
+            # [InlineKeyboardButton(text="📱 Изменить телефон", callback_data=PROFILE_EDIT_PHONE)],
+            [InlineKeyboardButton(text="« Назад", callback_data=PROFILE_BACK_TO_SETTINGS)],
         ]
     )
 
@@ -38,7 +34,7 @@ def build_open_profile_keyboard() -> InlineKeyboardMarkup:
     """Собрать клавиатуру возврата в профиль."""
     return InlineKeyboardMarkup(
         inline_keyboard=[
-            [InlineKeyboardButton(text="Открыть профиль", callback_data=BACK_TO_PROFILE)]
+            [InlineKeyboardButton(text="Открыть профиль", callback_data=PROFILE_BACK)]
         ]
     )
 
@@ -97,7 +93,7 @@ def build_settings_keyboard() -> InlineKeyboardMarkup:
             # Меняем кнопку на возврат в профиль, так как это основной экран настроек
             [InlineKeyboardButton(
                 text="🔙 Назад в профиль",
-                callback_data=BACK_TO_PROFILE,
+                callback_data=PROFILE_BACK,
             )],
         ],
     )
@@ -119,7 +115,7 @@ def build_notification_settings_keyboard(notifications_enabled: bool) -> InlineK
             )],
             [InlineKeyboardButton(
                 text="« Назад",
-                callback_data=BACK_TO_PR_SETTINGS,
+                callback_data=PROFILE_BACK_TO_SETTINGS,
             )],
         ],
     )

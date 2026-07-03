@@ -10,13 +10,14 @@ from .admin_helpers.keyboard import get_admin_users_menu_keyboard
 
 from states.admin import AdminStates
 from utils.functions import send_or_edit
+from utils.callbacks import ADMIN_USERS_MOD, ADMIN_USERS_MOD_VIEW, ADMIN_USERS_MOD_FIND, ADMIN_USERS_MOD_BAN, ADMIN_USERS_MOD_UNBAN
 
 admin_users_router = Router()
 
 # ***** кнопка админки "Наши клиенты" *****
 
 # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-@admin_users_router.callback_query(F.data == "admin:users")
+@admin_users_router.callback_query(F.data == ADMIN_USERS_MOD)
 async def admin_users_menu(callback: CallbackQuery, state: FSMContext) -> None:
     """Показать меню управления пользователями"""
     await callback.answer()
@@ -24,7 +25,7 @@ async def admin_users_menu(callback: CallbackQuery, state: FSMContext) -> None:
     await state.clear()
     await send_or_edit(callback, "👥 <b>Управление пользователями</b>", get_admin_users_menu_keyboard())
 
-@admin_users_router.callback_query(F.data.startswith("admin:users:view:"))
+@admin_users_router.callback_query(F.data.startswith(ADMIN_USERS_MOD_VIEW))
 async def admin_users_view(callback: CallbackQuery, user_service: UserService) -> None:
     """Показать карточку пользователя"""
     await callback.answer()
@@ -37,7 +38,7 @@ async def admin_users_view(callback: CallbackQuery, user_service: UserService) -
 
 
 # ────────────────────────────────────── Поиск по клиента по id ────────────────────────────────────────────────────────
-@admin_users_router.callback_query(F.data == "admin:users:find")
+@admin_users_router.callback_query(F.data == ADMIN_USERS_MOD_FIND)
 async def admin_users_find(callback: CallbackQuery, state: FSMContext) -> None:
     """Запросить id для поиска клиента"""
     await callback.answer()
@@ -59,7 +60,7 @@ async def admin_users_find_message(message: Message, state: FSMContext, user_ser
 
 
 # ──────────────────────────────────────── Логика бана ─────────────────────────────────────────────────────────────────
-@admin_users_router.callback_query(F.data.startswith("admin:users:ban:"))
+@admin_users_router.callback_query(F.data.startswith(ADMIN_USERS_MOD_BAN))
 async def admin_users_ban_prompt(callback: CallbackQuery, state: FSMContext) -> None:
     """Запросить причину бана клиента"""
     await callback.answer()
@@ -99,7 +100,7 @@ async def admin_users_ban_apply(message: Message, state: FSMContext, user_servic
 
 
 # ──────────────────────────────────────── Логика разбана ──────────────────────────────────────────────────────────────
-@admin_users_router.callback_query(F.data.startswith("admin:users:unban:"))
+@admin_users_router.callback_query(F.data.startswith(ADMIN_USERS_MOD_UNBAN))
 async def admin_users_unban(callback: CallbackQuery, user_service: UserService) -> None:
     """Разбанить пользователя"""
     await callback.answer()
@@ -114,8 +115,6 @@ async def admin_users_unban(callback: CallbackQuery, user_service: UserService) 
         user_id=user_id,
         action_call=lambda: user_service.unban_user(user_id)
     )
-
-
 
 
 # ──────────────────────────────────────────────── helpers ─────────────────────────────────────────────────────────────

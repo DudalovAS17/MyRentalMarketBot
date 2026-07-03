@@ -21,7 +21,7 @@ from services.rental_service import RentalService
 from schemas.photo import PhotoOut
 from utils.functions import send_or_edit, send_reply
 from utils.errors import ServiceError
-from utils.callbacks import (CAT_CB_PREFIX, SUBCAT_CB_PREFIX, ITEM_DETAILS_CB, SHOW_ALL_PHOTOS_CB, BACK_TO_CAT, CAROUSEL_NAV_CB)
+from utils.callbacks import CAT_CB_PREFIX, SUBCAT_CB_PREFIX, ITEM_DETAILS_CB, SHOW_ALL_PHOTOS_CB, BACK_TO_CAT, CAROUSEL_NAV_CB
 from utils.validators import parse_callback
 
 category_router = Router()
@@ -268,7 +268,7 @@ async def show_all_photos(callback: CallbackQuery, photo_service: PhotoService) 
     )
 
 
-# ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+# ────────────────────────────────────────────────── helper ────────────────────────────────────────────────────────────
 async def send_or_edit_item_card(callback: CallbackQuery, photos: list[PhotoOut], text: str, markup) -> None:
     """Показать карточку товара: с фото, если оно есть, иначе обычным текстом."""
     main_photo = photos[0] if photos else None

@@ -14,7 +14,7 @@ from services.notif_service import NotificationService
 from states.support_ticket import SupportStates
 from schemas.support import SupportTicketCreateInternal
 from utils.functions import send_or_edit
-from utils.callbacks import CLIENT_SUPPORT_RENTAL_CB
+from utils.callbacks import CLIENT_SUPPORT_RENTAL_CB, SUPPORT, SUPPORT_START, SUPPORT_CANCEL
 from utils.errors import ServiceError
 
 """создание тикета + отправка админам"""
@@ -24,12 +24,12 @@ support_router = Router()
 
 # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 # если хочешь reply-кнопку в меню — добавишь "Поддержка"
-@support_router.message(Command("support"))
+@support_router.message(Command(SUPPORT))
 async def support_start(message: Message, state: FSMContext, support_service: SupportService, user) -> None:
     """Старт поддержки через команду /support."""
     await start_support_flow(message, state, support_service, user)
 
-@support_router.callback_query(F.data == "support:start")
+@support_router.callback_query(F.data == SUPPORT_START)
 async def support_start_callback(callback: CallbackQuery, state: FSMContext, support_service: SupportService, user) -> None:
     """Старт поддержки через кнопку."""
     await callback.answer()
@@ -142,7 +142,7 @@ async def receive_support_text(
 
 
 # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-@support_router.callback_query(F.data == "support:cancel") # "cancel_support"
+@support_router.callback_query(F.data == SUPPORT_CANCEL)
 async def cancel_support(callback: CallbackQuery, state: FSMContext, user) -> None:
     """Отменить обращение в поддержку."""
     await callback.answer()

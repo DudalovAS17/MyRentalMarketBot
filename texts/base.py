@@ -65,7 +65,6 @@ COMMAND_SUGGESTIONS = {
     "/сделки": "/rentals",
     "/аренды": "/rentals",
     "/rentals": "/rentals",
-    "/rentals": "/rentals",
 
     # Команды для поиска
     "/найти": "/search",

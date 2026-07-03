@@ -23,8 +23,6 @@ class ValidationError(ServiceError):
 # ValidationError (не путать с Pydantic)
 
 
-
-
 """Рекомендованное правило для проекта
 
 1) ServiceError (ожидаемая ошибка)

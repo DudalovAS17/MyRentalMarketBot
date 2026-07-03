@@ -14,11 +14,11 @@ from services.user_service import UserService
 from keyboards.common import profile_settings_back_keyboard
 from schemas.user import UserUpdate
 from utils.functions import send_or_edit
-from utils.callbacks import EPF_NAME, EPF_PHONE, EPF_EMAIL, SEP
+from utils.callbacks import PROFILE_EDIT_NAME, PROFILE_EDIT_PHONE, PROFILE_EDIT_EMAIL, PROFILE_EDIT
 from states.user import ProfileEditStates
 
 # тут нет вызова для message
-@auth_router.callback_query(F.data == SEP)
+@auth_router.callback_query(F.data == PROFILE_EDIT)
 async def show_edit_profile_settings(event: Message | CallbackQuery, user) -> None:
     """Показывает под-меню редактирования профиля: имя, email, и т.д."""
     if isinstance(event, CallbackQuery):
@@ -27,7 +27,7 @@ async def show_edit_profile_settings(event: Message | CallbackQuery, user) -> No
     await send_or_edit(event, build_edit_profile_menu_text(user), build_edit_profile_menu_keyboard())
 
 # ───────────────────────────────────────────── FSM: edit name ─────────────────────────────────────────────────────────
-@auth_router.callback_query(F.data == EPF_NAME)
+@auth_router.callback_query(F.data == PROFILE_EDIT_NAME)
 async def ask_new_name(callback: CallbackQuery, state: FSMContext) -> None:
     """Запросить новое имя пользователя"""
     await callback.answer()
@@ -70,7 +70,7 @@ async def process_edit_name(message: Message, state: FSMContext, user_service: U
     await message.answer("🔙 Возвращаемся в профиль...", reply_markup=build_back_to_profile_keyboard())
 
 # ───────────────────────────────────────────── FSM: edit email ────────────────────────────────────────────────────────
-@auth_router.callback_query(F.data == EPF_EMAIL)
+@auth_router.callback_query(F.data == PROFILE_EDIT_EMAIL)
 async def ask_new_email(callback: CallbackQuery, state: FSMContext) -> None:
     """Запросить новый email пользователя"""
     await callback.answer()
@@ -111,7 +111,7 @@ async def process_edit_email(message: Message, state: FSMContext, user_service: 
     await message.answer("🔙 Возвращаем вас в профиль...", reply_markup=build_back_to_profile_keyboard())
 
 # ───────────────────────────────────────────── FSM: edit phone ────────────────────────────────────────────────────────
-@auth_router.callback_query(F.data == EPF_PHONE)
+@auth_router.callback_query(F.data == PROFILE_EDIT_PHONE)
 async def request_phone_number_change(callback: CallbackQuery, state: FSMContext) -> None:
     """Запрашивает новый номер телефона для смены номера в профиле"""
     await callback.answer()

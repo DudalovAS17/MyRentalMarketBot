@@ -1,9 +1,5 @@
 import enum
 
-# set() — изменяемое множество
-# frozenset() — неизменяемое множество
-# далее использую frozenset()
-
 class ItemStatus(enum.Enum):
     """ Статус товара в каталоге компании.
 
@@ -26,29 +22,3 @@ ALLOWED_STATUS_TRANSITIONS: dict[ItemStatus, frozenset[ItemStatus]] = {
 def can_transition(old_status: ItemStatus, new_status: ItemStatus) -> bool:
     """Проверить, разрешён ли переход товара из old_status в new_status"""
     return new_status in ALLOWED_STATUS_TRANSITIONS.get(old_status, frozenset())
-
-"""
-    DRAFT → ACTIVE
-    товар подготовили и опубликовали
-    
-    DRAFT → HIDDEN
-    создали, но пока скрыли
-    
-    DRAFT → ARCHIVED
-    создали ошибочно / решили не использовать
-    
-    ACTIVE → HIDDEN
-    временно скрыли из каталога
-    
-    ACTIVE → ARCHIVED
-    товар окончательно сняли с каталога
-    
-    HIDDEN → ACTIVE
-    вернули товар в каталог
-    
-    HIDDEN → ARCHIVED
-    окончательно убрали
-    
-    ARCHIVED → ничего
-    архив — финальное состояние
-"""

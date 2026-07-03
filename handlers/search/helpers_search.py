@@ -6,14 +6,8 @@ from services.item_service import ItemService
 
 from schemas.item import ItemOut
 from utils.functions import format_price
-from utils.callbacks import ITEM_DETAILS_CB, BACK_TO_MENU_CB
-
-PAGE_SIZE = 8
-QUERY_MIN_LEN = 2
-QUERY_MAX_LEN = 60
-SEARCH_PAGE_CB_PREFIX = "search:page:"
-SEARCH_NEW_QUERY_CB = "search:new_query"
-SEARCH_BACK_CB = "search:back"
+from utils.callbacks import (BACK_TO_MENU_CB, PAGE_SIZE, QUERY_MIN_LEN, QUERY_MAX_LEN,
+                             SEARCH_PAGE_CB_PREFIX, SEARCH_NEW_QUERY_CB, SEARCH_BACK_CB)
 
 # ─────────────────────────────────────── Parse and Validate ───────────────────────────────────────────────────────────
 def normalize_search_query(raw: str | None) -> str:

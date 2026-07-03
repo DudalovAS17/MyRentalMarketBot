@@ -43,7 +43,6 @@ class AdminRole(StrEnum):
     MANAGER = "manager" # обработка заявок и поддержка
 
 # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-
 RENTAL_STATUS_ADMIN_ACTIONS: dict[RentalStatus, AdminActionType] = {
     RentalStatus.IN_PROGRESS: AdminActionType.TAKE_RENTAL_IN_PROGRESS,
     RentalStatus.CONFIRMED: AdminActionType.CONFIRM_RENTAL,

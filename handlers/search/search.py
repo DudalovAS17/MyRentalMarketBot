@@ -5,18 +5,18 @@ from aiogram.fsm.context import FSMContext
 
 from handlers.search.helpers_search import (build_search_prompt_keyboard, validate_search_query, build_search_results_text,
                             normalize_search_query, parse_search_page, fetch_search_page, build_search_prompt_text,
-                                            SEARCH_BACK_CB, SEARCH_NEW_QUERY_CB, SEARCH_PAGE_CB_PREFIX,
                                             build_empty_search_results_text, build_search_keyboard)
 from services.item_service import ItemService
 
 from states.search import SearchStates
 from utils.errors import ServiceError
 from utils.functions import send_or_edit
+from utils.callbacks import SEARCH, SEARCH_PAGE_CB_PREFIX, SEARCH_NEW_QUERY_CB, SEARCH_BACK_CB
 
 search_router = Router()
 
 # ───────────────────────────────────────────────── Search ─────────────────────────────────────────────────────────────
-@search_router.message(Command("search"))
+@search_router.message(Command(SEARCH))
 @search_router.message(F.text == "🔎 Поиск")
 async def start_search(message: Message, state: FSMContext) -> None:
     """Запустить поиск и запросить поисковый текст."""

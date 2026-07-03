@@ -5,7 +5,7 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, KeyboardBu
 from schemas.category import CategoryOut
 from status.rental_status import OPEN_STATUSES
 from utils.callbacks import (CAT_CB_PREFIX,  SEARCH_CITY_CB, SEARCH_FILTERS_CB, BACK_TO_MENU_CB, RENTAL_DETAILS_CB,
-                             CANCEL_RENT_FLOW_CB, CONFIRM_RENT_CB, BACK_TO_SETTINGS)
+                             CANCEL_RENT_FLOW_CB, CONFIRM_RENT_CB, PROFILE_BACK_TO_SETTINGS)
 
 # ──────────────────────────────────────────── base ────────────────────────────────────────────────────────────────────
 def get_main_menu_keyboard() -> ReplyKeyboardMarkup:
@@ -154,7 +154,7 @@ def profile_settings_back_keyboard() -> InlineKeyboardMarkup:
     """Кнопка 'Назад в настройки'."""
     return InlineKeyboardMarkup(
         inline_keyboard=[
-            [InlineKeyboardButton(text="« Назад", callback_data=BACK_TO_SETTINGS)]
+            [InlineKeyboardButton(text="« Назад", callback_data=PROFILE_BACK_TO_SETTINGS)]
         ]
     )
 

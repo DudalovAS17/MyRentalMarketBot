@@ -16,18 +16,19 @@ from .admin_helpers.file_support import (load_open_support_ticket_or_notify, sen
 from .admin_helpers.keyboard import get_admin_support_ticket_keyboard
 from states.admin_support import AdminSupportStates
 from utils.functions import send_or_edit
+from utils.callbacks import ADMIN_SUPPORT, ADMIN_SUPPORT_PAGE, ADMIN_SUPPORT_VIEW, ADMIN_SUPPORT_REPLY, ADMIN_SUPPORT_CLOSE # , ADMIN_SUPPORT_OPEN
 
 admin_support_router = Router()
 
 # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-@admin_support_router.callback_query(F.data == "admin:support")
+@admin_support_router.callback_query(F.data == ADMIN_SUPPORT)
 async def admin_support_list(callback: CallbackQuery, support_service: SupportService, user_service: UserService) -> None:
     """Меню поддержки в админке"""
     await callback.answer()
 
     await show_support_ticket_list(callback, user_service, support_service, page=1)
 
-# @admin_support_router.callback_query(F.data == "admin:support:open")
+# @admin_support_router.callback_query(F.data == ADMIN_SUPPORT_OPEN)
 # async def admin_support_open_list(callback: CallbackQuery, state: FSMContext, support_service: SupportService, user):
 #     """Открытые тикеты (страница 1)"""
 #     await callback.answer()
@@ -36,7 +37,7 @@ async def admin_support_list(callback: CallbackQuery, support_service: SupportSe
 #     await render_open_list(callback, support_service, page=1)
 
 
-@admin_support_router.callback_query(F.data.startswith("admin:support:page:"))
+@admin_support_router.callback_query(F.data.startswith(ADMIN_SUPPORT_PAGE))
 async def admin_support_list_page(callback: CallbackQuery, support_service: SupportService, user_service: UserService) -> None:
     """Показать выбранную страницу списка открытых тикетов поддержки."""
     await callback.answer()
@@ -45,7 +46,7 @@ async def admin_support_list_page(callback: CallbackQuery, support_service: Supp
     await show_support_ticket_list(callback, user_service, support_service, page=page)
 
 
-@admin_support_router.callback_query(F.data.startswith("admin:support:view:"))
+@admin_support_router.callback_query(F.data.startswith(ADMIN_SUPPORT_VIEW))
 async def admin_support_view(callback: CallbackQuery, support_service: SupportService, user_service: UserService) -> None:
     """Показывает карточку тикета поддержки"""
     await callback.answer()
@@ -58,7 +59,7 @@ async def admin_support_view(callback: CallbackQuery, support_service: SupportSe
     await show_support_ticket_card_or_not_found(callback, user_service, support_service, ticket_id)
 
 # ────────────────────────────────────────── Ответа на тикет ───────────────────────────────────────────────────────────
-@admin_support_router.callback_query(F.data.startswith("admin:support:reply:"))
+@admin_support_router.callback_query(F.data.startswith(ADMIN_SUPPORT_REPLY))
 async def admin_support_reply_prompt(callback: CallbackQuery, state: FSMContext, support_service: SupportService):
     """Запросить текст ответа на тикет"""
     await callback.answer()
@@ -128,7 +129,7 @@ async def admin_support_reply_send(
 
 # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 #admin_tg_id=callback.from_user.id или admin_tg_id=int(user.telegram_id)
-@admin_support_router.callback_query(F.data.startswith("admin:support:close:"))
+@admin_support_router.callback_query(F.data.startswith(ADMIN_SUPPORT_CLOSE))
 async def admin_support_close(
         callback: CallbackQuery,
         support_service: SupportService,

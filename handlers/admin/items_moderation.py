@@ -8,14 +8,16 @@ from .admin_helpers.parse import get_admin_item_id_or_alert, parse_admin_item_st
 from .admin_helpers.show import show_items_list
 from .admin_helpers.texts import format_item_details
 
-from utils.functions import send_or_edit
 from status.item_status import ItemStatus
+from utils.functions import send_or_edit
+from utils.callbacks import (ADMIN_ITEMS_MOD, ADMIN_ITEMS_MOD_FILTER, ADMIN_ITEMS_MOD_PAGE, ADMIN_ITEMS_MOD_VIEW,
+                             ADMIN_ITEMS_MOD_APPROVE, ADMIN_ITEMS_MOD_HIDE, ADMIN_ITEMS_MOD_UNHIDE, ADMIN_ITEMS_MOD_ARCHIVE)
 
 admin_items_router = Router()
 
 # ***** кнопка админки "Модерация товаров" *****
 
-@admin_items_router.callback_query(F.data == "admin:items")
+@admin_items_router.callback_query(F.data == ADMIN_ITEMS_MOD)
 async def admin_items_list(callback: CallbackQuery) -> None:
     """Меню модерации товаров"""
     await callback.answer()
@@ -26,7 +28,7 @@ async def admin_items_list(callback: CallbackQuery) -> None:
         get_admin_items_menu_keyboard()
     )
 
-@admin_items_router.callback_query(F.data.startswith("admin:items:filter:"))
+@admin_items_router.callback_query(F.data.startswith(ADMIN_ITEMS_MOD_FILTER))
 async def admin_items_filter(callback: CallbackQuery, state: FSMContext, item_service: ItemService) -> None:
     """Список товаров по статусу (страница 1)"""
     await callback.answer()
@@ -36,7 +38,7 @@ async def admin_items_filter(callback: CallbackQuery, state: FSMContext, item_se
 
     await show_items_list(callback, item_service, state, status=status, page=1)
 
-@admin_items_router.callback_query(F.data.startswith("admin:items:page:"))
+@admin_items_router.callback_query(F.data.startswith(ADMIN_ITEMS_MOD_PAGE))
 async def admin_items_page(callback: CallbackQuery, state: FSMContext, item_service: ItemService) -> None:
     """Пагинация списка товаров"""
     await callback.answer()
@@ -51,7 +53,7 @@ async def admin_items_page(callback: CallbackQuery, state: FSMContext, item_serv
 
     await show_items_list(callback, item_service, state, status=status, page=page)
 
-@admin_items_router.callback_query(F.data.startswith("admin:items:view:"))
+@admin_items_router.callback_query(F.data.startswith(ADMIN_ITEMS_MOD_VIEW))
 async def admin_items_view(callback: CallbackQuery, item_service: ItemService) -> None:
     """Карточка товара"""
     await callback.answer()
@@ -72,7 +74,7 @@ async def admin_items_view(callback: CallbackQuery, item_service: ItemService) -
     )
 
 # ───────────── "Активируем" товар ─────────────
-@admin_items_router.callback_query(F.data.startswith("admin:items:approve:"))
+@admin_items_router.callback_query(F.data.startswith(ADMIN_ITEMS_MOD_APPROVE))
 async def admin_items_approve(callback: CallbackQuery, item_service: ItemService) -> None:
     """Перевод товара в ACTIVE"""
     await callback.answer()
@@ -84,7 +86,7 @@ async def admin_items_approve(callback: CallbackQuery, item_service: ItemService
     await apply_item_status_action(callback, item_service, item_id, new_status=ItemStatus.ACTIVE)
 
 # ───────────── Скрыть товар ─────────────
-@admin_items_router.callback_query(F.data.startswith("admin:items:hide:"))
+@admin_items_router.callback_query(F.data.startswith(ADMIN_ITEMS_MOD_HIDE))
 async def admin_items_hide(callback: CallbackQuery, item_service: ItemService) -> None:
     """Скрыть товар (ACTIVE -> HIDDEN)"""
     await callback.answer()
@@ -96,7 +98,7 @@ async def admin_items_hide(callback: CallbackQuery, item_service: ItemService) -
     await apply_item_status_action(callback, item_service, item_id, new_status=ItemStatus.HIDDEN)
 
 # ───────────── Вернуть товар ─────────────
-@admin_items_router.callback_query(F.data.startswith("admin:items:unhide:"))
+@admin_items_router.callback_query(F.data.startswith(ADMIN_ITEMS_MOD_UNHIDE))
 async def admin_items_unhide(callback: CallbackQuery, item_service: ItemService) -> None:
     """Вернуть товар (HIDDEN -> ACTIVE)"""
     await callback.answer()
@@ -108,7 +110,7 @@ async def admin_items_unhide(callback: CallbackQuery, item_service: ItemService)
     await apply_item_status_action(callback, item_service, item_id, new_status=ItemStatus.ACTIVE)
 
 # ───────────── Архивируем товар ─────────────
-@admin_items_router.callback_query(F.data.startswith("admin:items:archive:"))
+@admin_items_router.callback_query(F.data.startswith(ADMIN_ITEMS_MOD_ARCHIVE))
 async def admin_items_archive(callback: CallbackQuery, item_service: ItemService) -> None:
     """Убрать товар в архив (DRAFT/ACTIVE/HIDDEN -> ARCHIVED)."""
     await callback.answer()
