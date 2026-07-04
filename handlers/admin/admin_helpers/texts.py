@@ -3,7 +3,7 @@ from datetime import datetime
 from schemas.support import SupportTicketOut
 from schemas.rental import RentalAdminDetailsOut
 from schemas.user import UserOut
-from utils.functions import format_price
+from utils.validators import format_price
 from status.user_status import AccountStatus
 
 # ──────────────────────────────────────────────────   ─────────────────────────────────────────────────────────────

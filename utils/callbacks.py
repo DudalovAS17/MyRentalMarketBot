@@ -166,6 +166,8 @@ MY_ITEMS_PREFIX = "my_items"
 
 MAX_PHOTOS = 5
 
+MESSAGE_OWNER_CB = "message_owner:" #?
+
 
 REVIEWS_CB = "reviews:"
 
