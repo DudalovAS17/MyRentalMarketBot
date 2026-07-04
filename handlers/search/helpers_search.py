@@ -5,7 +5,7 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from services.item_service import ItemService
 
 from schemas.item import ItemOut
-from utils.functions import format_price
+from utils.validators import format_price
 from utils.callbacks import (BACK_TO_MENU_CB, PAGE_SIZE, QUERY_MIN_LEN, QUERY_MAX_LEN,
                              SEARCH_PAGE_CB_PREFIX, SEARCH_NEW_QUERY_CB, SEARCH_BACK_CB)
 

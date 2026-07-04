@@ -3,7 +3,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from status.rental_status import RentalStatus, STATUS_LABELS
 from schemas.rental import RentalDetailsOut, RentalOut
 from utils.callbacks import MY_RENTALS_CB, BACK_TO_MENU_CB, IGNORE_CB, CLIENT_CANCEL_RENTAL_CB, CLIENT_SUPPORT_RENTAL_CB
-from utils.ui_defaults import ui_str, ui_money
+from utils.validators import ui_str, ui_money
 
 # "✅ Подтвердить получение товара"
 # "📦 Компания Передала товар"

@@ -1,61 +1,43 @@
 from typing import Optional
 from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup
 from aiogram.exceptions import TelegramBadRequest
-from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from aiogram.fsm.context import FSMContext
 
-# Вспомогательная функция для send/edit
-async def send_or_edit(event, text, markup=None, parse_mode="HTML"):
-    """Унифицированная отправка или редактирование сообщения.
-        - CallbackQuery → edit_message_text (при ошибке → send_message)
-        - Message → answer()
-    """
+TgEvent = Message | CallbackQuery
 
-    if isinstance(event, CallbackQuery):
-        try:
-            return await event.message.edit_text(
-                text, reply_markup=markup, parse_mode=parse_mode
-            )
-        except TelegramBadRequest:
-            #logger.warning("Не удалось отредактировать сообщение подкатегорий: %s", e) # списка объявлений # категорий
-            return await event.message.answer(text, reply_markup=markup, parse_mode=parse_mode)
-    else:
-        return await event.answer(text, reply_markup=markup, parse_mode=parse_mode)
+"""
+send_or_edit - Унифицированная отправка/редактирование сообщения:
+    - CallbackQuery → Редактирует сообщение (при ошибке → send_message)
+    - Message → отправляет новое
+    
+send_reply - Унифицированная отправка сообщения
 
-# Вспомогательная функция для send
-async def send_reply(event, text: str, markup=None, parse_mode: str = "HTML"):
-    """Унифицированная отправка сообщения
-        - CallbackQuery → message.answer()
-        - Message → answer()
-    """
-    if isinstance(event, CallbackQuery):
-        return await event.message.answer(text, reply_markup=markup, parse_mode=parse_mode)
-
-    return await event.answer(text, reply_markup=markup, parse_mode=parse_mode)
-
-
-async def deny(
-    event: Message | CallbackQuery,
-    message_text: str,
-    *,
-    alert_text: str | None = None,
-    show_alert: bool = True,
-):
-    """Унифицированный ответ пользователю"""
-    if isinstance(event, CallbackQuery):
-        if alert_text:
-            await event.answer(alert_text, show_alert=show_alert) # убирает "часики" и показывает alert (если задан)
-        return await event.message.answer(message_text)
-
-    """
+deny - Унифицированный ответ пользователю: показывает отказ и оставляет понятное сообщение в чате.
     alert: “Нет доступа” → мгновенно понятно, почему кнопка не работает
     сообщение в чат: “⛔ Доступ запрещён. Только администраторам.” → остаётся, можно перечитать
     👉 Это правильный UX.
-    """
-    return await event.answer(message_text)
 
-# В чём разница между show_alert=True и show_alert=False
+---------------------------------
+
+abort_rent_flow():
+Это функция для аварийного завершения сценария аренды. 
+Например: пользователь начал аренду, но товар уже недоступен, данные в FSM устарели, аренда не может быть продолжена и т.д.
+“Показать ошибку и остановить сценарий аренды”
+
+render_rent_ui - Это функция для обычного отображения UI сценария аренды.
+Почему render_rent_ui не чистит FSM: Это правильно, потому что render_rent_ui используется в нормальном рабочем сценарии аренды. 
+После рендера пользователю нужно продолжить flow: нажать кнопку, выбрать дату, подтвердить аренду и т.д.
+
+Замечание: abort_rent_flow и render_rent_ui содержат Telegram-логику (bot.edit_message_text). 
+Это допустимо для utils (они — часть UI-слоя), но не должны появляться в services.
+
+_send_or_update_rent_ui():
+“У меня есть текст и, возможно, клавиатура. Попробуй показать это в существующем rent-UI сообщении. 
+Если не получилось — создай новое. Верни id актуального сообщения”.
 """
+
+""" В чём разница между show_alert=True и show_alert=False
+
 🔹 show_alert=False (по умолчанию)
     Показывает маленький всплывающий toast внизу экрана
     Автоматически исчезает
@@ -82,127 +64,114 @@ async def deny(
 📌 В админке и проверках прав — почти всегда True.
 """
 
+async def send_or_edit(
+        event: TgEvent,
+        text: str,
+        markup: InlineKeyboardMarkup | None = None,
+        parse_mode: str | None = "HTML",
+) -> Message:
+    """Унифицированная отправка/редактирование сообщения:
+        - CallbackQuery → Редактирует сообщение (при ошибке → send_message)
+        - Message → отправляет новое
+    """
+    if isinstance(event, CallbackQuery):
+        try:
+            return await event.message.edit_text(text, reply_markup=markup, parse_mode=parse_mode)
+        except TelegramBadRequest:
+            return await event.message.answer(text, reply_markup=markup, parse_mode=parse_mode)
+    else:
+        return await event.answer(text, reply_markup=markup, parse_mode=parse_mode)
 
-# ---------------------------------------------------------------------------------------------
-"""
-Замечание: abort_rent_flow и render_rent_ui содержат Telegram-логику (bot.edit_message_text). 
-Это допустимо для utils (они — часть UI-слоя), но не должны появляться в services.
-"""
+async def send_reply(
+        event: TgEvent,
+        text: str,
+        markup: InlineKeyboardMarkup | None = None,
+        parse_mode: str | None = "HTML",
+) -> Message:
+    """Унифицированная отправка сообщения"""
+    if isinstance(event, CallbackQuery):
+        return await event.message.answer(text, reply_markup=markup, parse_mode=parse_mode)
 
+    return await event.answer(text, reply_markup=markup, parse_mode=parse_mode)
+
+async def deny(
+    event: TgEvent,
+    message_text: str,
+    *,
+    alert_text: str | None = None,
+    show_alert: bool = True,
+) -> Message:
+    """Унифицированный ответ пользователю: показывает отказ и оставляет понятное сообщение в чате."""
+    if isinstance(event, CallbackQuery):
+        if alert_text:
+            await event.answer(alert_text, show_alert=show_alert) # убирает "часики" и показывает alert
+        return await event.message.answer(message_text)
+
+    return await event.answer(message_text)
+
+# ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+# err_text = "❌ Ошибка. Попробуйте начать аренду заново."
 async def abort_rent_flow(
-        callback: Message | CallbackQuery,
+        event: TgEvent,
         state: FSMContext,
         err_text: str,
         rent_ui_message_id: Optional[int] = None,
 ) -> None:
-    """Показывает ошибку в rent-UI (если есть) и очищает FSM rent-flow."""
+    """Аварийное завершение сценария аренды: показать ошибку сценария аренды и очистить FSM-данные."""
+    await _send_or_update_rent_ui(event, state, err_text, rent_ui_message_id=rent_ui_message_id)
 
-    message = callback.message if isinstance(callback, CallbackQuery) else callback
-    chat_id = message.chat.id
-
-    # если id не передали — пробуем взять из state
-    if rent_ui_message_id is None:
-        data = await state.get_data()
-        rent_ui_message_id = data.get("rent_ui_message_id")
-
-    if rent_ui_message_id:
-        try:
-            await message.bot.edit_message_text(
-                chat_id=chat_id,
-                message_id=rent_ui_message_id,
-                text=err_text,
-                parse_mode="HTML",
-            )
-        except TelegramBadRequest:
-            await message.answer(err_text, parse_mode="HTML")
-    else:
-        await message.answer(err_text, parse_mode="HTML")
-        # await send_or_edit(callback, err_text)
-
-    await state.clear() # Очищаем некорректные данные
+    await state.clear()
 
 
 async def render_rent_ui(
-    event: Message | CallbackQuery,
+    event: TgEvent,
     state: FSMContext,
-    text: str,
+    err_text: str,
     keyboard: Optional[InlineKeyboardMarkup] = None,
     rent_ui_message_id: Optional[int] = None,
-) -> int:
-    """Обновляет rent-UI сообщение (если есть) или создаёт новое. ✅ НЕ чистит state.
-    Возвращает актуальный message_id"""
+) -> None:
+    """Обычный рендер rent-UI: обновляет или создаёт UI-сообщение аренды и возвращает его id. Не чистит state.
+    Сохраняет новый message_id при необходимости.
+    """
+    await _send_or_update_rent_ui(event, state, err_text,
+        keyboard=keyboard, rent_ui_message_id=rent_ui_message_id, save_message_id=True
+    )
 
+# helper для обеих функций
+async def _send_or_update_rent_ui(
+    event: TgEvent,
+    state: FSMContext,
+    err_text: str,
+    *,
+    keyboard: InlineKeyboardMarkup | None = None,
+    rent_ui_message_id: int | None = None,
+    save_message_id: bool = False,
+) -> int:
+    """Обновляет UI-сообщение аренды или отправляет новое."""
     message = event.message if isinstance(event, CallbackQuery) else event
-    chat_id = message.chat.id
 
     # если id не передали — пробуем взять из state
     if rent_ui_message_id is None:
         data = await state.get_data()
         rent_ui_message_id = data.get("rent_ui_message_id")
 
+    # Если id есть — отредактировать старое сообщение
     if rent_ui_message_id:
         try:
             await message.bot.edit_message_text(
-                chat_id=chat_id,
+                chat_id=message.chat.id,
                 message_id=rent_ui_message_id,
-                text=text, # "❌ Ошибка. Попробуйте начать аренду заново."
+                text=err_text,
                 reply_markup=keyboard,
                 parse_mode="HTML",
             )
-            return rent_ui_message_id
+            return int(rent_ui_message_id)
         except TelegramBadRequest:
             pass
 
-    sent = await message.answer(text, reply_markup=keyboard, parse_mode="HTML")
-    await state.update_data(rent_ui_message_id=sent.message_id)
-    return sent.message_id
-# ---------------------------------------------------------------------------------------------
-
-# def format_price(price: int | float) -> str:
-#     return f"{price:,.2f}".replace(",", " ").replace(".00", "")
-
-# разбери
-def format_price(price: int | float | Decimal | str | None) -> str:
-    """
-    Форматирует цену:
-    - разделители тысяч пробелом
-    - 2 знака после запятой (если они не нули — показываем, иначе убираем)
-    Примеры: 12000 -> "12 000", Decimal("12.50") -> "12.5", Decimal("12.00") -> "12"
-    """
-    if price is None:
-        return "—"
-
-    try:
-        d = price if isinstance(price, Decimal) else Decimal(str(price))
-    except (InvalidOperation, ValueError, TypeError):
-        return "—"
-
-    # Денежное округление до копеек
-    d = d.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-
-    # Строка без экспоненты
-    s = format(d, "f")
-
-    # Убираем хвостовые нули и точку, если стало целым
-    if "." in s:
-        s = s.rstrip("0").rstrip(".")
-
-    # Добавляем разделители тысяч
-    if "." in s:
-        int_part, frac_part = s.split(".", 1)
-        int_part = f"{int(int_part):,}".replace(",", " ")
-        return f"{int_part}.{frac_part}"
-    else:
-        return f"{int(s):,}".replace(",", " ")
-
-def format_days(n: int) -> str:
-    if n % 10 == 1 and n % 100 != 11: # n % 10 == 1 (последняя цифра = 1) пропускает 1, (11), 21, 31, 101
-        return "день"
-    if 2 <= n % 10 <= 4 and not (12 <= n % 100 <= 14):
-        return "дня"
-    return "дней"
-
-def format_step(title: str, step: int, total: int) -> str:
-    """Возвращает форматированный заголовок с прогрессом"""
-    progress = f"<b>Шаг {step} из {total}</b>\n\n"
-    return f"{progress}{title}"
+    # Если отредактировать нельзя — отправляет новое сообщение
+    # (например, если старое сообщение уже нельзя редактировать или Telegram вернул TelegramBadRequest)
+    sent = await message.answer(err_text, reply_markup=keyboard, parse_mode="HTML")
+    if save_message_id: # При необходимости сохраняет новый message_id
+        await state.update_data(rent_ui_message_id=sent.message_id)
+    return sent.message_id # Возвращает актуальный message_id

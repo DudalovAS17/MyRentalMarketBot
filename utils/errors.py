@@ -4,7 +4,7 @@ class ServiceError(Exception):
 
 
 class NotFoundError(ServiceError):
-    """Сущность не найдена (строгий сценарий)."""
+    """Запрошенная сущность не найдена (строгий сценарий)."""
 
 
 class ForbiddenError(ServiceError):
@@ -12,11 +12,11 @@ class ForbiddenError(ServiceError):
 
 
 class ConflictError(ServiceError):
-    """Конфликт состояния (инварианты/статусы/занятость и т.п.)."""
+    """Действие конфликтует с текущим состоянием или инвариантами/статусами/занятость и т.п."""
 
 
 class ValidationError(ServiceError):
-    """Ошибка бизнес-валидации входных данных."""
+    """Входные данные не прошли бизнес-валидацию."""
 
 
 # DomainError

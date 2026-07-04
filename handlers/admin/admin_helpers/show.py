@@ -10,7 +10,8 @@ from .keyboard import (get_admin_deals_list_keyboard, get_admin_deal_details_key
                        get_admin_user_card_keyboard, get_admin_support_ticket_keyboard, get_admin_support_list_keyboard)
 from .texts import format_deal_details, format_user_card, format_ticket_card, format_datetime
 
-from utils.functions import send_or_edit, format_price
+from utils.functions import send_or_edit
+from utils.validators import format_price
 from status.item_status import ItemStatus
 from utils.errors import ServiceError
 

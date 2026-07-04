@@ -1,7 +1,7 @@
 from html import escape
 
 from schemas.item import ItemOut, ItemCharacteristicOut
-from utils.functions import format_price, format_days
+from utils.validators import format_price, format_days
 
 
 not_cat_id = "⚠️ Не удалось распознать категорию."

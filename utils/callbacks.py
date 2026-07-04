@@ -148,8 +148,8 @@ SUPPORT_START = "support:start"
 SUPPORT_CANCEL = "support:cancel" # "cancel_support"
 CLIENT_SUPPORT_RENTAL_CB = "rental_action:support_by_client:" # "rental_action:support:"
 
-# ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 
+# ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 
 # ITEM HANDLER
 SHOW_ITEM_CB = "show_item:"
@@ -179,9 +179,6 @@ DISPUTE_CB = "dispute"
 CANCEL_CB = "cancel"
 BACK_CB = "back"
 ITEM_DETAILS = "item_details:"
-START_DATE_CB = "start_date:"
-END_DATE_CB = "end_date:"
-
 
 
 
@@ -193,16 +190,6 @@ RENT_PERIOD_CB = "rent_period:"
 CUSTOM_RENT_DATES_CB = "rent_dates:custom"
 CLIENT_CANCEL_RENTAL_CB = "rental_action:canceled_by_client:" # "rental_action:cancel:"
 CLIENT_SUPPORT_RENTAL_CB = "rental_action:support_by_client:" # "rental_action:support:"
-
-
-
-# Удалено:
-# "rental_action:confirm:{rental_id}"
-# "rental_action:rejected_by_owner/renter:{rental_id}"
-# "rental_action:cancelled_confirmed_by_owner/renter:{rental_id}"
-# "rental_action:handover_owner/renter:{rental_id}"
-# "rental_action:complete:{rental_id}"
-# "rental_action:receive_renter/renter:{rental_id}"
 
 
 

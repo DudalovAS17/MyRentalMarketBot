@@ -2,7 +2,7 @@ from decimal import Decimal
 from aiogram.types import Message
 
 from keyboards.common import cancel_keyboard
-from utils.functions import format_step, format_price
+from utils.validators import format_step, format_price
 
 # ─────────────────────────────────────────────────show─────────────────────────────────────────────────────────────────
 def get_items_count_str(count: int) -> str:

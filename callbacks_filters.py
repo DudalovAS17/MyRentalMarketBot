@@ -3,7 +3,6 @@ from aiogram.types import Message, CallbackQuery
 
 from config import settings
 from status.user_status import AccountStatus
-from services.user_service import UserService
 
 """
 Тогда в самих category handlers не нужно каждый раз писать:

@@ -1,7 +1,7 @@
 from .common import get_items_count_str, format_money_value, format_deposit_value, format_photos_count
 from .validate import short_description
 
-from utils.functions import format_days, format_price
+from utils.validators import format_days, format_price
 from schemas.item import ItemCreateDraft, ItemOut
 from utils.callbacks import MAX_PHOTOS
 

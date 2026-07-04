@@ -16,3 +16,15 @@
 if text.startswith("🔔 Уведомления"):
     #return lambda: show_notification_settings(message, state)
 ```
+
+
+
+
+
+
+
+@dataclass
+    - автоматически создаёт __init__
+    - хранит данные как у обычного объекта
+    - делает код читаемым и явным
+dataclass = удобная форма записи структуры данных.
