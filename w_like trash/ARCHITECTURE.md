@@ -44,17 +44,6 @@ Handlers: не знают почему что-то происходит, они 
 
 ---
 
-### 3) Пример потока (словами)
-
-1. Handler получает callback/update.
-2. Handler выполняет минимальную обработку ввода и вызывает сервис: `ItemService.get_item_details(item_id)`.
-3. Service выполняет бизнес-проверки (если нужны) и обращается к репозиторию: `ItemRepository.get_by_id(item_id)`.
-4. Repository делает SQLAlchemy-запрос и возвращает ORM.
-5. Service преобразует ORM → DTO/Pydantic и возвращает результат в handler.
-6. Handler форматирует сообщение/клавиатуру и отвечает пользователю.
-
----
-
 ### 4) Скелеты файлов
 
 Готовые шаблоны лежат в `docs/templates/`:
@@ -141,13 +130,6 @@ datetime.now(timezone.utc) # это aware и UTC
 - В Out-схемах: AwareDatetime ✅
 - В Create/Update: лучше datetime (и нормализовать в сервисе) ✅
 *Pydantic v2 и так примет ISO-строку и распарсит в datetime, но AwareDatetime будет требовать tzinfo.*
-
-* class UserCreate(BaseModel)
-* class UserUpdate(BaseModel)
-* class UserAdminUpdate(BaseModel) - изменяет только админ
-* class UserOut(BaseModel)
-* class UserAdminOut(BaseModel) - не обязательно
-*Можно и так: class UserAdminUpdate(UserUpdate) - UserAdminUpdate унаследует и поля из UserUpdate*
 
 **Create/Update схемы не должны позволять клиенту менять то, что он менять не должен.**
 

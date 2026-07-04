@@ -4,13 +4,8 @@ from aiogram.types import Message, CallbackQuery
 from config import settings
 from status.user_status import AccountStatus
 
-"""
-Тогда в самих category handlers не нужно каждый раз писать:
-    проверить, есть ли user;
-    проверить, active ли он;
-    думать, что отвечать незарегистрированному.
-Это убирается на роутинг-уровень.
-"""
+# Не используется. Данная логика реализуется через Middleware
+
 class UserAccessFilter(BaseFilter):
     """
     нет пользователя → не пускаем;
