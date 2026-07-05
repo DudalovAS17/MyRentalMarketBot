@@ -6,7 +6,8 @@ from aiogram.exceptions import TelegramBadRequest
 from handlers.category.category_helpers.keyboard import (build_subcategories_keyboard, build_back_to_item_details_keyboard,
                                                          build_items_carousel_keyboard, build_item_details_kb)
 from handlers.category.category_helpers.load import resolve_entity, load_list_or_notify
-from handlers.category.category_helpers.store import store_selected_category, store_selected_subcategory, store_selected_item
+from handlers.category.category_helpers.store import (store_selected_category, store_selected_subcategory,
+                                                      store_selected_item, store_selected_item_index)
 from handlers.category.category_helpers.texts import (item_details_text, not_cat_id, serv_err_cat, not_cat, not_subcat_id,
                                                       serv_err_subcat, not_subcat, not_item_id, not_item, serv_err_item,
                                                       serv_err_photo, not_photos,  subcategory_item_card_text) # serv_err_items
@@ -31,7 +32,7 @@ async def show_subcategories(callback: CallbackQuery, state: FSMContext, categor
     """Показывает список подкатегорий выбранной категории"""
     await callback.answer()
 
-    category = await resolve_entity(callback, category_service.get_category_by_id, parse_callback(callback.data, CAT_CB_PREFIX),
+    category = await resolve_entity(callback, category_service.get_public_category_by_id, parse_callback(callback.data, CAT_CB_PREFIX),
                                     invalid_id_text=not_cat_id, load_error_text=serv_err_cat, not_found_text=not_cat)
     if category is None:
         return
@@ -64,7 +65,7 @@ async def show_items_in_subcategory(
     """Показывает список товаров в выбранной подкатегории"""
     await callback.answer()
 
-    subcategory = await resolve_entity(callback, category_service.get_category_by_id,
+    subcategory = await resolve_entity(callback, category_service.get_public_category_by_id,
                                        parse_callback(callback.data, SUBCAT_CB_PREFIX),
                                        invalid_id_text=not_subcat_id, load_error_text=serv_err_subcat, not_found_text=not_subcat)
     if subcategory is None:
@@ -83,6 +84,7 @@ async def show_items_in_subcategory(
     # карусель
     current_index = 0
     current_item = items[current_index]
+    await store_selected_item_index(state, current_item.id, current_index) # NEW
     keyboard = build_items_carousel_keyboard(
         current_item_id=current_item.id,
         subcategory_id=subcategory.id,
@@ -112,6 +114,7 @@ async def show_items_in_subcategory(
 @category_router.callback_query(F.data.startswith(CAROUSEL_NAV_CB))
 async def navigate_items_carousel(
     callback: CallbackQuery,
+    state: FSMContext,
     item_service: ItemService,
     category_service: CategoryService,
     photo_service: PhotoService
@@ -130,7 +133,7 @@ async def navigate_items_carousel(
 
     subcategory = await resolve_entity(
         callback,
-        category_service.get_category_by_id,
+        category_service.get_public_category_by_id,
         subcategory_id,
         invalid_id_text=not_subcat_id,
         load_error_text=serv_err_subcat,
@@ -152,7 +155,7 @@ async def navigate_items_carousel(
 
     current_index = current_index % total
     current_item = items[current_index]
-
+    await store_selected_item_index(state, current_item.id, current_index) # NEW
     keyboard = build_items_carousel_keyboard(
         current_item_id=current_item.id,
         subcategory_id=subcategory.id,
@@ -188,7 +191,7 @@ async def show_item_details_in_subcategory(
     """Просмотр карточки конкретного товара"""
     await callback.answer()
 
-    item = await resolve_entity(callback, item_service.get_item_by_id, parse_callback(callback.data, ITEM_DETAILS_CB),
+    item = await resolve_entity(callback, item_service.get_public_item_by_id, parse_callback(callback.data, ITEM_DETAILS_CB),
                                      invalid_id_text=not_item_id, load_error_text=serv_err_item, not_found_text=not_item)
     if item is None:
         return
@@ -200,6 +203,7 @@ async def show_item_details_in_subcategory(
     category_name = data.get("selected_category_name", "Неизвестно")
     subcategory_name = data.get("selected_subcategory_name", "Неизвестно")
     selected_subcategory_id = data.get("selected_subcategory_id")
+    selected_item_index = data.get("selected_item_index")
 
     # Формируем детальную информацию
     characteristics = await item_service.list_item_characteristics_by_item_id(item.id, limit=3)
@@ -215,6 +219,7 @@ async def show_item_details_in_subcategory(
         item_id=item.id,
         is_busy=open_rental is not None,
         selected_subcategory_id=selected_subcategory_id,
+        selected_item_index=selected_item_index, # NEW
         end_date=busy_until_text(open_rental)
     )
 

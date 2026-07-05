@@ -47,6 +47,13 @@ class ItemRepository(BaseRepository):
         async with self._session() as s:
             return await s.get(Item, item_id)
 
+    async def get_public_by_id(self, item_id: int) -> Optional[Item]:
+        """Опубликованный товар, который можно показывать клиенту в каталоге."""
+        async with self._session() as s:
+            stmt = select(Item).where(Item.id == item_id)
+            stmt = self._apply_active_filter(stmt)
+            return await self._one_or_none(s, stmt)
+
     async def list_by_created_admin_id(self, admin_id: int, *, active_only: bool = False) -> list[Item]:
         """Все товары каталога, созданные указанным администратором/менеджером."""
         async with self._session() as s:

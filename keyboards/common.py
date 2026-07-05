@@ -60,7 +60,7 @@ def build_categories_screen_keyboard(categories) -> InlineKeyboardMarkup:
         prefix=CAT_CB_PREFIX,
         extra_buttons=[
             #[InlineKeyboardButton(text="🏙️ Поиск по городу", callback_data=SEARCH_CITY_CB)],
-            [InlineKeyboardButton(text="⚙️ Фильтры", callback_data=SEARCH_FILTERS_CB)],
+            #[InlineKeyboardButton(text="⚙️ Фильтры", callback_data=SEARCH_FILTERS_CB)],
             [InlineKeyboardButton(text="🔙 Назад в меню", callback_data=BACK_TO_MENU_CB)]
         ]
     )

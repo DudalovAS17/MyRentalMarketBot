@@ -43,6 +43,16 @@ class ItemService:
 
         return self._to_out(item)
 
+    async def get_public_item_by_id(self, item_id: int, *, strict: bool = False) -> Optional[ItemOut]:
+        """Вернуть товар, который можно показывать клиенту в публичном каталоге."""
+        item = await self.item_repo.get_public_by_id(item_id)
+        if not item:
+            if strict:
+                raise NotFoundError(f"Товар не найден или недоступен для каталога: id={item_id}")
+            return None
+
+        return self._to_out(item)
+
     #Убрано list_by_items_user_id - Все товары пользователя
 
     async def list_items_by_category(self, category_id: int, *, available_only: bool = True) -> list[ItemOut]:

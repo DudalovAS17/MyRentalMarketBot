@@ -51,6 +51,9 @@ def resolve_main_menu_action(
 
         # Служебные разделы
         #"👤 Профиль": lambda: profile(message, user_service),
+
+        "📋 Мои аренды": lambda: show_my_rentals(message, rental_service, user),
+        "📋 Мои заявки": lambda: show_my_rentals(message, rental_service, user),
         "📋 Мои сделки": lambda: show_my_rentals(message, rental_service, user),
     }
 

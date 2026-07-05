@@ -39,6 +39,16 @@ class CategoryService:
         subs = await self.repo.list_subcategories(category_id)
         return self._to_out_list(subs)
 
+    async def get_public_category_by_id(self, category_id: int, *, strict: bool = False) -> Optional[CategoryOut]:
+        """Вернуть активную категорию/подкатегорию для клиентского каталога."""
+        cat = await self.repo.get_public_by_id(category_id)
+        if not cat:
+            if strict:
+                raise NotFoundError(f"Категория не найдена или скрыта: id={category_id}")
+            return None
+
+        return self._to_out(cat)
+
     async def get_category_by_id(self, category_id: int, *, strict: bool = False) -> Optional[CategoryOut]:
         """Вернуть категорию по id"""
         cat = await self.repo.get_by_id(category_id)

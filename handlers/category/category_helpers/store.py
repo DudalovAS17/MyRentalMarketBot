@@ -18,8 +18,13 @@ async def store_selected_subcategory(state: FSMContext, subcategory: CategoryOut
         selected_subcategory_id=subcategory.id,
         selected_subcategory_name=subcategory.name,
         selected_item_id=None,
+        selected_item_index=0,
     )
 
 async def store_selected_item(state: FSMContext, item_id: int) -> None:
     """Сохранить выбранный товар в FSM"""
     await state.update_data(selected_item_id=item_id)
+
+async def store_selected_item_index(state: FSMContext, item_id: int, index: int) -> None:
+    """Сохранить выбранный товар и его позицию в карусели."""
+    await state.update_data(selected_item_id=item_id, selected_item_index=index)

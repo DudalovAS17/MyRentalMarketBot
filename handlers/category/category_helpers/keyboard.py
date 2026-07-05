@@ -2,8 +2,8 @@ from collections.abc import Sequence
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from keyboards.common import build_category_keyboard
-from utils.callbacks import (SUBCAT_CB_PREFIX, ALL_CATEGORY_CB, BACK_TO_CAT, ITEM_DETAILS_CB, RENT_ITEM_CB,
-                             SHOW_ALL_PHOTOS_CB, MESSAGE_OWNER_CB, REVIEWS_CB)
+from utils.callbacks import (SUBCAT_CB_PREFIX, BACK_TO_CAT, ITEM_DETAILS_CB, RENT_ITEM_CB,
+                             SHOW_ALL_PHOTOS_CB, MESSAGE_OWNER_CB, REVIEWS_CB, CAROUSEL_NAV_CB) # , ALL_CATEGORY_CB
 from schemas.category import CategoryOut
 
 
@@ -71,6 +71,7 @@ def build_item_details_kb(
     *,
     is_busy: bool,
     selected_subcategory_id: int | None,
+    selected_item_index: int | None = None,
     end_date: str | None,
 ) -> InlineKeyboardMarkup:
     buttons: list[list[InlineKeyboardButton]] = []
@@ -86,8 +87,12 @@ def build_item_details_kb(
     buttons.append([InlineKeyboardButton(text="⭐ Отзывы", callback_data=f"{REVIEWS_CB}{item_id}")])
 
     if selected_subcategory_id:
+        if selected_item_index is not None: # NEW
+            back_callback = f"{CAROUSEL_NAV_CB}{selected_subcategory_id}:{selected_item_index}"
+        else:
+            back_callback = f"{SUBCAT_CB_PREFIX}{selected_subcategory_id}"
         buttons.append(
-            [InlineKeyboardButton(text="🔙 Назад (к товарам)", callback_data=f"{SUBCAT_CB_PREFIX}{selected_subcategory_id}")]
+            [InlineKeyboardButton(text="🔙 Назад (к товарам)", callback_data=back_callback)]
         )
     else:
         buttons.append([InlineKeyboardButton(text="🔙 Назад (к категориям)", callback_data=BACK_TO_CAT)])

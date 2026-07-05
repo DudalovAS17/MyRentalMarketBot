@@ -22,7 +22,7 @@ item_not_available_message = f"⛔ Этот товар недоступен"
 def format_rent_period_text(item: ItemOut) -> str:
     """Текст первого экрана заявки."""
     return (
-        f"🤝 <b>Заказ на аренду</b>\n\n"
+        f"🤝 <b>Заявка на аренду</b>\n\n"
         f"Вы собираетесь арендовать: <b>{item.title}</b>\n"
         f"💰 Базовая цена: <b>{item.price} ₽/день</b>\n\n"
         "Выберите срок аренды:"
@@ -31,7 +31,7 @@ def format_rent_period_text(item: ItemOut) -> str:
 def format_rent_details_request_text(item: ItemOut, period_text: str) -> str:
     """Текст запроса дополнительных деталей аренды одним сообщением."""
     return (
-        f"🤝 <b>Заказ на аренду</b>\n\n"
+        f"🤝 <b>Заявка на аренду</b>\n\n"
         f"Вы собираетесь арендовать: <b>{item.title}</b>\n"
         f"⏱️ Выбранный срок: <b>{period_text}</b>\n\n"
         "Напишите в одном сообщении:\n"
@@ -51,7 +51,7 @@ def format_rent_confirmation_text(item: ItemOut, period_text: str, total_price: 
     comment_line = f"💬 <b>{client_comment}</b>\n" if client_comment else ""
 
     return (
-        f"🤝 <b>Подтверждение аренды</b>\n\n"
+        f"🤝 <b>Подтверждение заявка</b>\n\n"
         f"📦 Вы собираетесь арендовать товар: <b>{item.title}</b>\n"
 
         f"<b>Выбранный период:</b>\n"
@@ -83,4 +83,4 @@ def build_success_text(item: ItemOut, period_text: str, total_price: Decimal | N
 
 RENTAL_DETAILS_LOAD_ERROR = "⚠️ Не удалось загрузить детали заявки. Попробуйте позже."
 RENTAL_DETAILS_ACCESS_ERROR = "❌ Заявка не найдена или у вас нет доступа."
-INVALID_RENTAL_ID_TEXT = "Некорректный id сделки."
+INVALID_RENTAL_ID_TEXT = "Некорректный id заявки."

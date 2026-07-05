@@ -4,46 +4,6 @@ from sqlalchemy import select, exists, and_
 from db.models.category import Category
 from db.repositories.base import BaseRepository
 
-"""
-_UNSET = object() для update (убрал update пока)
-Причина: позволяет отличать: "поле не передали", от "поле передали как None".
-Это особенно важно для nullable-полей: emoji/parent_id/slug
-
-
-_slug_within_parent_condition: slug
-отдельный поиск по slug внутри родителя.
-
-
-list_roots с active_only=True:
-Причина: для клиентского каталога по умолчанию логично показывать только активные категории.
-А если админке нужны все.
-
-
-Сортировка стала правильной:
-.order_by(Category.sort_order.asc(), Category.name.asc(), Category.id.asc())
-Причина: sort_order теперь главный порядок каталога, а name/id — стабильные tie-breakers.
-
-
-"""
-
-"""Построить условие поиска категории по имени внутри конкретного родителя.
-
-Используется для проверки уникальности и поиска категории/подкатегории:
-- если parent_id is None — ищем корневую категорию с таким name;
-- если parent_id задан — ищем подкатегорию с таким name внутри указанной категории.
-
-Не выполняет запрос к БД, а только возвращает SQLAlchemy-условие для where().
-"""
-
-"""Построить условие поиска категории по slug внутри конкретного родителя.
-
-Используется для поиска и проверки уникальности машинного имени категории:
-- если parent_id is None — ищем корневую категорию с таким slug;
-- если parent_id задан — ищем подкатегорию с таким slug внутри указанной категории.
-
-Slug нужен для seed-данных, callback/deeplink-навигации и стабильных технических ссылок.
-Не выполняет запрос к БД, а только возвращает SQLAlchemy-условие для where().
-"""
 
 class CategoryRepository(BaseRepository):
     """Репозиторий категорий и подкатегорий каталога."""
@@ -97,6 +57,15 @@ class CategoryRepository(BaseRepository):
         """Получение категории и подкатегории по ID"""
         async with self._session() as s:
             return await s.get(Category, category_id)
+
+    async def get_public_by_id(self, category_id: int) -> Optional[Category]:
+        """Получение активной категории/подкатегории для клиентского каталога."""
+        async with self._session() as s:
+            stmt = select(Category).where(
+                Category.id == category_id,
+                Category.is_active.is_(True),
+            )
+            return await self._one_or_none(s, stmt)
 
     async def list_subcategories(self, parent_id: int, *, active_only: bool = True) -> list[Category]:
         """Получение активных подкатегорий для указанной категории в порядке каталога"""
