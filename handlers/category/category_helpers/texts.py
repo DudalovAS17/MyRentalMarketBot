@@ -1,5 +1,6 @@
 from html import escape
 
+from status.item_status import ItemStatus
 from schemas.item import ItemOut, ItemCharacteristicOut
 from utils.validators import format_price, format_days
 
@@ -56,6 +57,14 @@ def trim_text(value: str | None, limit: int = 260) -> str:
 
     return value[: limit - 3].rstrip() + "..."
 
+def item_availability_text(item: ItemOut) -> str:
+    """Понятный клиентский статус товара для карточки MVP."""
+    if item.status != ItemStatus.ACTIVE:
+        return "⛔ Сейчас недоступно"
+    if item.available_quantity > 0:
+        return f"✅ В наличии: <b>{item.available_quantity} шт.</b>"
+    return "🟡 Наличие уточняет менеджер"
+
 def item_details_text(
     item: ItemOut,
     category_name: str,
@@ -70,7 +79,7 @@ def item_details_text(
     return (
         f"📦 <b>{item.title}</b>\n\n"
         f"💰 <b>{format_price(item.price)} ₽ / день</b>\n"
-        f"✅ В наличии: <b>{item.available_quantity}</b>\n"
+        f"{item_availability_text(item)}\n"
         f"📅 Минимальный срок аренды: <b>{min_period}</b>\n\n"
         f"⚙️ <b>Характеристики</b>\n"
         f"{characteristics_block(characteristics, limit=7)}\n\n"
@@ -104,7 +113,7 @@ def subcategory_item_card_text(
         f"📦 <b>{escape(item.title)}</b>\n\n"
         f"💰 <b>{format_price(item.price)} ₽ / день</b>\n"
         f"📅 Мин. срок: <b>{min_period} {format_days(min_period)}</b>\n"
-        f"✅ В наличии: <b>{item.available_quantity} шт.</b>\n\n"
+        f"{item_availability_text(item)}\n\n"
         f"⚙️ <b>Характеристики:</b>\n"
         f"{characteristics_text}\n\n"
         f"📍 <b>{current_index + 1} из {total_items}</b>"

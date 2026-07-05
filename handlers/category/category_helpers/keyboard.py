@@ -57,6 +57,7 @@ def build_items_carousel_keyboard(
         ])
 
     buttons.append([InlineKeyboardButton(text="🔍 Подробнее", callback_data=f"{item_details_cb_prefix}{current_item_id}")])
+    #buttons.append([InlineKeyboardButton(text="✅ Арендовать", callback_data=f"{RENT_ITEM_CB}{current_item_id}")]) # 🛒 Оставить заявку
 
     if parent_category_id:
         buttons.append([InlineKeyboardButton(text="🔙 Назад (к подкатегориям)", callback_data=f"{cat_cb_prefix}{parent_category_id}")])
@@ -84,7 +85,7 @@ def build_item_details_kb(
 
     buttons.append([InlineKeyboardButton(text="📸 Показать все фото", callback_data=f"{SHOW_ALL_PHOTOS_CB}{item_id}")])
     buttons.append([InlineKeyboardButton(text="💬 Написать менеджеру", callback_data=f"{MESSAGE_OWNER_CB}{item_id}")])
-    buttons.append([InlineKeyboardButton(text="⭐ Отзывы", callback_data=f"{REVIEWS_CB}{item_id}")])
+    #buttons.append([InlineKeyboardButton(text="⭐ Отзывы", callback_data=f"{REVIEWS_CB}{item_id}")])
 
     if selected_subcategory_id:
         if selected_item_index is not None: # NEW

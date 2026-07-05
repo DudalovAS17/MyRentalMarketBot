@@ -72,12 +72,18 @@ async def send_or_edit(
 ) -> Message:
     """Унифицированная отправка/редактирование сообщения:
         - CallbackQuery → Редактирует сообщение (при ошибке → send_message)
+            если Telegram не может превратить фото-сообщение в текст, удаляет старое и отправляет замену
         - Message → отправляет новое
     """
     if isinstance(event, CallbackQuery):
         try:
             return await event.message.edit_text(text, reply_markup=markup, parse_mode=parse_mode)
         except TelegramBadRequest:
+            if event.message.photo:
+                try:
+                    await event.message.delete()
+                except TelegramBadRequest:
+                    pass
             return await event.message.answer(text, reply_markup=markup, parse_mode=parse_mode)
     else:
         return await event.answer(text, reply_markup=markup, parse_mode=parse_mode)

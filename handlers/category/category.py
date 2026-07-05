@@ -186,6 +186,7 @@ async def show_item_details_in_subcategory(
     callback: CallbackQuery,
     state: FSMContext,
     item_service: ItemService,
+    photo_service: PhotoService,
     rental_service: RentalService,
 ) -> None:
     """Просмотр карточки конкретного товара"""
@@ -223,7 +224,9 @@ async def show_item_details_in_subcategory(
         end_date=busy_until_text(open_rental)
     )
 
-    await send_or_edit(callback, item_details, markup=keyboard)
+    photos = await photo_service.get_photos_by_item_id(item.id)
+    await send_or_edit_item_card(callback,photos, text=item_details, markup=keyboard)
+    # await send_or_edit(callback, item_details, markup=keyboard)
 
 
 @category_router.callback_query(F.data == BACK_TO_CAT)
