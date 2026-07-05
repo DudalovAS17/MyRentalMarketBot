@@ -1,5 +1,5 @@
 from typing import Optional
-from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup
+from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, ReplyMarkupUnion
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.fsm.context import FSMContext
 
@@ -85,10 +85,10 @@ async def send_or_edit(
 async def send_reply(
         event: TgEvent,
         text: str,
-        markup: InlineKeyboardMarkup | None = None,
+        markup: ReplyMarkupUnion | None = None, # ReplyMarkupUnion = InlineKeyboardMarkup + ReplyKeyboardMarkup
         parse_mode: str | None = "HTML",
 ) -> Message:
-    """Унифицированная отправка сообщения"""
+    """Унифицированная отправка сообщения с inline- или reply-клавиатурой."""
     if isinstance(event, CallbackQuery):
         return await event.message.answer(text, reply_markup=markup, parse_mode=parse_mode)
 

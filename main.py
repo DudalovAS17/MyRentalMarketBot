@@ -3,6 +3,7 @@ from __future__ import annotations
 import sys
 import asyncio
 import logging
+from contextlib import suppress
 
 from aiogram.client.default import DefaultBotProperties
 from aiogram import Bot, Dispatcher
@@ -19,77 +20,115 @@ from app.middlewares_setup import register_middlewares
 
 logger = logging.getLogger(__name__)
 
-
+# ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 async def build_app() -> tuple[Bot, Dispatcher]:
-    """ Composition root:
-    - initializes DB (fail-fast)
-    - создаём Bot/Dispatcher
-    - подключаем routers/middlewares
-    - собираем services и настраиваем DI
-    """
+    """ Composition root приложения. Делает всю startup-сборку"""
 
     # Инициализация базы данных (Postgres-only: если БД недоступна — выходим сразу)
     await init_db_or_fail()
 
+    # Создать Telegram Bot
     bot = Bot(
         token=settings.token_value,
         default=DefaultBotProperties(parse_mode=ParseMode.HTML),
     )
-    dp = Dispatcher(storage=MemoryStorage())
-    #dp = Dispatcher(storage=RedisStorage.from_url(settings.redis_url))
 
-    # Подключаем роутеры
-    register_routers(dp)
+    try:
+        # Создать Dispatcher
+        dp = Dispatcher(storage=MemoryStorage()) # =RedisStorage.from_url(settings.redis_url)
 
-    # Сессия для репозиториев
-    session_factory = get_session_factory()
+        # Подключаем роутеры
+        register_routers(dp)
 
-    # создаём сервисы
-    services = build_services(bot=bot, session_factory=session_factory)
+        # Сессия для репозиториев
+        session_factory = get_session_factory()
 
-    # Bootstrap доменных профилей админов из ADMIN_IDS: доступ по-прежнему проверяется whitelist middleware.
-    await services.admin_directory_service.sync_admins_from_settings(settings.admin_ids)
+        # создаём сервисы
+        services = build_services(bot=bot, session_factory=session_factory)
 
-    # Middlewares
-    register_middlewares(dp=dp, services=services, admin_ids=settings.admin_ids)
+        # Bootstrap доменных профилей админов из ADMIN_IDS: доступ по-прежнему проверяется whitelist middleware.
+        await services.admin_directory_service.sync_admins_from_settings(settings.admin_ids)
 
-    logger.info("Bot is ready")
-    return bot, dp
+        # Middlewares
+        register_middlewares(dp=dp, services=services, admin_ids=settings.admin_ids)
 
+        logger.info("Application build completed")
+        return bot, dp
+
+    except Exception:
+        # Если ошибка случилась после создания Bot, но до возврата из build_app(), main() ещё не получил bot и не сможет закрыть session самостоятельно.
+        with suppress(Exception):
+            await bot.session.close()
+        raise
+
+# ────────────────────────────────────────────── helpers for main ──────────────────────────────────────────────────────
+def configure_logging() -> None:
+    """Настроить базовое логирование приложения."""
+    logging.basicConfig(
+        level=settings.log_level_value,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        force=True,
+    )
+
+async def close_bot_session(bot: Bot | None) -> None:
+    """Безопасно закрыть HTTP-сессию Telegram Bot (закрываем bot session)"""
+    if bot is None:
+        return
+
+    # noinspection PyBroadException
+    try:
+        await bot.session.close()
+        logger.info("Bot session closed")
+    except Exception:
+        logger.exception("Failed to close bot session")
+
+async def shutdown_application(bot: Bot | None) -> None:
+    """Graceful shutdown приложения (закрываем DB engine)"""
+    await close_bot_session(bot)
+
+    # noinspection PyBroadException
+    try:
+        await shutdown_db()
+        logger.info("Database engine disposed")
+    except Exception:
+        logger.exception("Failed to shutdown database")
+
+# ─────────────────────────────────────────────────── main ─────────────────────────────────────────────────────────────
 async def main():
-    """Запуск aiogram-бота"""
+    """Запустить Telegram-бота в polling-режиме."""
 
     # Логирование
-    logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",level=logging.INFO)
+    configure_logging()
+    settings.log_startup_warnings()
 
     bot: Bot | None = None
+
     try:
         # Создаём бота
         bot, dp = await build_app()
-        # Запуск
-        await dp.start_polling(bot) # , allowed_updates=Update.ALL_TYPES
-        logger.info("Бот запущен")
+
+        logger.info("Starting bot polling")
+        await bot.delete_webhook(drop_pending_updates=settings.drop_pending_updates)
+        await dp.start_polling(
+            bot,
+            allowed_updates=dp.resolve_used_update_types() # , allowed_updates=Update.ALL_TYPES
+        )
+        logger.info("Bot polling stopped")
+
     except (KeyboardInterrupt, asyncio.CancelledError):
         logger.info("Бот остановлен пользователем 🛑")
     except Exception:
         logger.exception("Ошибка при запуске бота")
         raise
-    finally:
-        # 1) закрываем bot session
-        if bot is not None:
-            try:
-                await bot.session.close()
-            except Exception:
-                logger.exception("Failed to close bot session")
 
-        # 2) закрываем DB engine
-        try:
-            await shutdown_db()
-        except Exception:
-            logger.exception("Failed to shutdown database")
+    finally:
+        await shutdown_application(bot)
 
 if __name__ == '__main__':
+    # noinspection PyBroadException
     try:
         asyncio.run(main())
+    except KeyboardInterrupt:
+        pass
     except Exception:
         sys.exit(1)
