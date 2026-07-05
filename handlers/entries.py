@@ -37,7 +37,7 @@ async def show_categories(event: Message | CallbackQuery, category_service: Cate
 
     await send_reply(
         event,
-        "🔍 <b>Арендовать</b>\n\nВыберите категорию:",
+        "🛠 <b>Каталог товаров</b>\n\nВыберите категорию:",
         markup=build_categories_screen_keyboard(categories)
     )
 

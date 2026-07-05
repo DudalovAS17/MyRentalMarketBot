@@ -10,73 +10,6 @@ from schemas.item import ItemCreate, ItemUpdate
 from status.item_status import ItemStatus
 
 
-"""
-exclude_none=True делает хорошую вещь:
-если в ItemCreate какое-то nullable-поле = None, оно просто не попадёт в Item(...)
-
-
-Но важное условие
-Это хорошо работает, если в ItemCreate у тебя уже стоят нормальные defaults:
-
-available_quantity: int = Field(1, ge=0)
-is_featured: bool = False
-sort_order: int = Field(0, ge=0)
-min_rental_period: int = Field(1, ge=1)
-
-Тогда они не None, и exclude_none=True их не выкинет.
-
-Единственный нюанс
-
-exclude_none=True также выкинет nullable-поля, которые ты специально хотел записать как None.
-
-Для create это обычно нормально.
-
-Например, если товар создаётся без подкатегории:
-
-subcategory_id=None
-
-можно просто не передавать это поле — в БД всё равно будет NULL.
-"""
-
-"""
-data = update_data.model_dump(exclude_unset=True)
-- взять из ItemUpdate только те поля, которые были реально переданы.
-
-(exclude_unset=True защищает от случайного обновления всех полей в None.)
-
-
-"changed = False" = были ли реальные изменения?
-
-    changed = False
-    for field_name, value in data.items():
-        if getattr(obj, field_name) != value:
-            setattr(obj, field_name, value)
-            changed = True
-
-    if not changed:
-        return obj
-        
-Он нужен, чтобы не делать лишний commit, если значения пришли такие же, как уже есть в БД.        
-
-if getattr(obj, field_name) != value:
-Сравниваем старое и новое значение.
-Если старое значение отличается от нового — значит реально надо обновлять.
-
-Обновляем поле:
-setattr(obj, field_name, value)
-changed = True
-
-Например: setattr(obj, "title", "Перфоратор Bosch"),
-то же самое, что: obj.title = "Перфоратор Bosch"
-
-
-Записываем, кто обновил товар:
-if updated_by_admin_id is not None:
-    obj.updated_by_admin_id = updated_by_admin_id
-    
-"""
-
-
 class ItemRepository(BaseRepository):
     """Репозиторий товаров каталога компании."""
 
@@ -84,12 +17,12 @@ class ItemRepository(BaseRepository):
     @staticmethod
     def _apply_active_filter(stmt):
         """Оставить только опубликованные/активные товары каталога."""
-        return stmt.where(Item.status == ItemStatus.ACTIVE)
+        return stmt.where(Item.status == ItemStatus.ACTIVE, Item.available_quantity > 0)
 
     @staticmethod
     def _apply_catalog_order(stmt):
         """Стабильный порядок выдачи товаров в каталоге."""
-        return stmt.order_by(Item.sort_order.asc(), Item.id.desc())
+        return stmt.order_by(Item.sort_order.asc(), Item.title.asc(), Item.id.desc())
 
     @staticmethod
     def _apply_pagination(stmt, *, limit: Optional[int], offset: int):
@@ -155,7 +88,7 @@ class ItemRepository(BaseRepository):
             return await self._list(s, stmt)
 
     async def search(self, query: str, *, active_only: bool = True, limit: int = 50, offset: int = 0) -> list[Item]:
-        """Поиск объявлений по тексту. По названию ИЛИ описанию"""
+        """Поиск товаров по тексту: по названию или описанию."""
         q = f"%{query.strip()}%"
         async with self._session() as s:
             stmt = select(Item).where(

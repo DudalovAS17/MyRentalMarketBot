@@ -58,6 +58,26 @@ class RentalService:
     #     if data.start_date and data.end_date and data.end_date <= data.start_date:
     #         raise ValidationError("Дата окончания аренды должна быть позже даты начала")
 
+    # async def _validate_create(self, data: RentalCreate) -> None:
+    #     """Проверить бизнес-условия создания заявки."""
+    #     if data.quantity < 1:
+    #         raise ValidationError("Количество товара должно быть не меньше 1")
+    #
+    #     item = await self.item_repo.get_by_id(data.item_id)
+    #     if item is None:
+    #         raise NotFoundError(f"Товар не найден: id={data.item_id}")
+    #
+    #     if item.status != ItemStatus.ACTIVE:
+    #         raise ConflictError("Товар сейчас недоступен для аренды")
+    #
+    #     if item.available_quantity <= 0:
+    #         raise ConflictError("Товара сейчас нет в наличии")
+    #
+    #     if data.quantity > item.available_quantity:
+    #         raise ConflictError("Запрошенное количество больше доступного наличия")
+    #
+    #     await self.ensure_item_available(data.item_id)
+
     # ────────────────────────────────────────── Read methods ──────────────────────────────────────────────────────────
     async def get_by_id(self, rental_id: int, *, strict: bool = False) -> Optional[RentalOut]:
         """Вернуть заявку по ID"""
@@ -94,6 +114,8 @@ class RentalService:
     async def create(self, data: RentalCreate) -> RentalOut:
         """Создать новую заявку клиента."""
         #self._validate_date_create(data)
+        #await self._validate_create(data)
+
         rental = await self.repo.create(data)
 
         dto = self._to_out(rental)

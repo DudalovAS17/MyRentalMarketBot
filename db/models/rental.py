@@ -42,6 +42,7 @@ class Rental(Base, TimestampMixin):
         default=RentalStatus.REQUESTED # ?
     )
 
+    # сколько единиц хочет арендовать клиент
     quantity: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
 
     # Доставка

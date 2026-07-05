@@ -42,7 +42,7 @@ def resolve_main_menu_action(
 
     # 🧭 маршрутизация
     routes = {
-        "🔍 Арендовать": lambda: show_categories(message, category_service),
+        "🛠 Каталог товаров": lambda: show_categories(message, category_service),
         "🔎 Поиск": lambda: start_search(message, state),
         "📞 Поддержка": lambda: support_start(message, state, support_service, user), # start_support_dialog
         #"❓ Помощь": lambda: help_command(message),

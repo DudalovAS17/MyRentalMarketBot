@@ -1,6 +1,6 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-from utils.callbacks import ITEM_DETAILS, BACK_TO_MENU_CB, MY_RENTALS_CB, RENT_PERIOD_CB
+from utils.callbacks import ITEM_DETAILS_CB, BACK_TO_MENU_CB, MY_RENTALS_CB, RENT_PERIOD_CB
 
 PERIOD_OPTIONS: tuple[tuple[str, str, int | None], ...] = (
     ("1d", "1 день", 1),
@@ -20,7 +20,7 @@ def build_rent_period_keyboard(item_id: int) -> InlineKeyboardMarkup:
     rows.extend(
         [
             #[InlineKeyboardButton(text="✍️ Ввести кол-во дней", callback_data=CUSTOM_RENT_DATES_CB)],
-            [InlineKeyboardButton(text="🔙 Назад к товару", callback_data=f"{ITEM_DETAILS}{item_id}")],
+            [InlineKeyboardButton(text="🔙 Назад к товару", callback_data=f"{ITEM_DETAILS_CB}{item_id}")],
         ]
     )
     return InlineKeyboardMarkup(inline_keyboard=rows)
@@ -30,7 +30,7 @@ def build_rent_cancel_keyboard(item_id: int | None) -> InlineKeyboardMarkup:
     rows: list[list[InlineKeyboardButton]] = []
 
     if item_id is not None:
-        rows.append([InlineKeyboardButton(text="🔙 Назад к товару", callback_data=f"{ITEM_DETAILS}{item_id}")])
+        rows.append([InlineKeyboardButton(text="🔙 Назад к товару", callback_data=f"{ITEM_DETAILS_CB}{item_id}")])
 
     rows.append([InlineKeyboardButton(text="🏠 Главное меню", callback_data=BACK_TO_MENU_CB)])
 

@@ -24,8 +24,7 @@ async def parse_int_id_from_callback(
 
 
 # ──────────────────────────────────────────── BASE HANDLER ────────────────────────────────────────────────────────────
-BACK_TO_MENU_CB = "menu:main" # "back_to_menu" / "back_to_main_menu"
-# F.data.in_(["menu:main", "back_to_main_menu"]) - главное меню show_main_menu()
+BACK_TO_MENU_CB = "back_to_main_menu" # "back_to_menu"
 
 # ──────────────────────────────────────────── CATEGORY HANDLER ────────────────────────────────────────────────────────
 CAT_CB_PREFIX = "cat:"
@@ -36,6 +35,8 @@ BACK_TO_CAT = "back_to_categories" # show_categories()
 CAROUSEL_NAV_CB = "subcat_items_nav:"
 
 # ───────────────────────────────────────────── ADMIN HANDLER ──────────────────────────────────────────────────────────
+BACK_TO_ADMIN_MENU_CB = "menu:main"
+
 # create item
 ADMIN_CAT_FI_PREFIX = "cat_for_item:"
 ADMIN_SUBCAT_FI_PREFIX = "subcat_for_item:"
@@ -153,7 +154,7 @@ CLIENT_SUPPORT_RENTAL_CB = "rental_action:support_by_client:" # "rental_action:s
 
 # ITEM HANDLER
 SHOW_ITEM_CB = "show_item:"
-MY_ITEMS_PREFIX = "my_items"
+
 
 # Есть уже, но оставляю пока на всякий
 # CAT_FI_PREFIX = "cat_for_item:"

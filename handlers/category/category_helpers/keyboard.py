@@ -13,8 +13,6 @@ build_subcategories_keyboard - показ подкатегорий - SUBCAT_CB_P
 build_items_carousel_keyboard - показ товаров (каруселью)
 build_item_details_kb - показ деталей товара
 build_back_to_item_details_keyboard - возврата к деталям товара - {ITEM_DETAILS_CB}{item_id}
-
-удалена: build_items_keyboard - показ товаров (переделана под карусель)
 """
 
 def build_subcategories_keyboard(subcategories: Sequence[CategoryOut], category: CategoryOut) -> InlineKeyboardMarkup:
@@ -23,9 +21,9 @@ def build_subcategories_keyboard(subcategories: Sequence[CategoryOut], category:
         subcategories,
         prefix=SUBCAT_CB_PREFIX,
         extra_buttons=[
-            [InlineKeyboardButton(
-                text=f"📋 Все в категории {category.name}",
-                callback_data=f"{ALL_CATEGORY_CB}:{category.id}")],
+            # [InlineKeyboardButton(
+            #     text=f"📋 Все в категории {category.name}",
+            #     callback_data=f"{ALL_CATEGORY_CB}:{category.id}")],
             [InlineKeyboardButton(
                 text="🔙 Назад (к категориям)",
                 callback_data=BACK_TO_CAT)],

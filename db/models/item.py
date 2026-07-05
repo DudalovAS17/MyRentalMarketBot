@@ -45,7 +45,7 @@ class Item(Base, TimestampMixin):
     price: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False) # price_per_day
     price_text: Mapped[Optional[str]] = mapped_column(String(100), nullable=True) # NEW
 
-    # Количество в наличии
+    # сколько единиц товара доступно у компании
     available_quantity: Mapped[int] = mapped_column(Integer, nullable=False, default=1) # NEW
 
     # Рекомендуемый товар?
