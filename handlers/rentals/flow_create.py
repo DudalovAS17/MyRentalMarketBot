@@ -29,7 +29,7 @@ async def start_rent_process(callback: CallbackQuery, state: FSMContext, item_se
     if item is None:
         return
 
-    if await ch.abort_if_item_unavailable(callback, rental_service, item.id):
+    if await ch.abort_if_item_unavailable(callback, rental_service, item):
         return # вещь недоступна
 
     draft = RentalCreateDraft(
@@ -83,7 +83,7 @@ async def process_fixed_period(
     if item is None:
         return
 
-    if await ch.abort_if_item_unavailable(callback, rental_service, item.id):
+    if await ch.abort_if_item_unavailable(callback, rental_service, item):
         return # вещь недоступна
 
     # сохраняем period_text, total_price в draft (Считаем итоговую стоимость)
@@ -134,7 +134,7 @@ async def process_rent_details_message(
     if item is None:
         return
 
-    if await ch.abort_if_item_unavailable(message, rental_service, item.id):
+    if await ch.abort_if_item_unavailable(message, rental_service, item):
         return
 
     await ch.store_rent_details_message(state, draft, client_comment) # format_fixed_period_confirmation_text
@@ -176,9 +176,8 @@ async def confirm_rent(
     if item is None:
         return
 
-    if await ch.abort_if_item_unavailable(callback, rental_service, draft.item_id):
+    if await ch.abort_if_item_unavailable(callback, rental_service, item): # draft.item_id
         return # вещь занята
-
 
     try:
         payload = RentalCreate(

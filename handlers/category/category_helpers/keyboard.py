@@ -1,11 +1,12 @@
 from collections.abc import Sequence
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
+from schemas.category import CategoryOut
+from schemas.item import ItemOut
 from keyboards.common import build_category_keyboard
 from utils.callbacks import (SUBCAT_CB_PREFIX, BACK_TO_CAT, ITEM_DETAILS_CB, RENT_ITEM_CB,
-                             SHOW_ALL_PHOTOS_CB, MESSAGE_OWNER_CB, REVIEWS_CB, CAROUSEL_NAV_CB) # , ALL_CATEGORY_CB
-from schemas.category import CategoryOut
-
+                             SHOW_ALL_PHOTOS_CB, MESSAGE_OWNER_CB, CAROUSEL_NAV_CB) # , REVIEWS_CB, ALL_CATEGORY_CB
+from utils.item_availability import can_request_item, item_unavailable_text
 
 """
 build_category_keyboard - показ категорий
@@ -68,23 +69,25 @@ def build_items_carousel_keyboard(
 
 
 def build_item_details_kb(
-    item_id: int,
+    item: ItemOut,
     *,
-    is_busy: bool,
+    has_open_rental: bool, #is_busy: bool,
     selected_subcategory_id: int | None,
     selected_item_index: int | None = None,
     end_date: str | None,
 ) -> InlineKeyboardMarkup:
     buttons: list[list[InlineKeyboardButton]] = []
 
-    if is_busy:
-        button_text = f"⛔ Сейчас занято (до {end_date})" if end_date else "⛔ Сейчас занято"
-        buttons.append([InlineKeyboardButton(text=button_text, callback_data="noop")])
-    else:
-        buttons.append([InlineKeyboardButton(text="✅ Арендовать", callback_data=f"{RENT_ITEM_CB}{item_id}")])
+    if can_request_item(item, has_open_rental=has_open_rental):
+        buttons.append([InlineKeyboardButton(text="✅ Арендовать", callback_data=f"{RENT_ITEM_CB}{item.id}")])
+    else: # if is_busy
+        buttons.append([InlineKeyboardButton(
+            text=item_unavailable_text(item, has_open_rental=has_open_rental, busy_until=end_date),
+            callback_data="noop",
+        )])
 
-    buttons.append([InlineKeyboardButton(text="📸 Показать все фото", callback_data=f"{SHOW_ALL_PHOTOS_CB}{item_id}")])
-    buttons.append([InlineKeyboardButton(text="💬 Написать менеджеру", callback_data=f"{MESSAGE_OWNER_CB}{item_id}")])
+    buttons.append([InlineKeyboardButton(text="📸 Показать все фото", callback_data=f"{SHOW_ALL_PHOTOS_CB}{item.id}")])
+    buttons.append([InlineKeyboardButton(text="💬 Написать менеджеру", callback_data=f"{MESSAGE_OWNER_CB}{item.id}")])
     #buttons.append([InlineKeyboardButton(text="⭐ Отзывы", callback_data=f"{REVIEWS_CB}{item_id}")])
 
     if selected_subcategory_id:

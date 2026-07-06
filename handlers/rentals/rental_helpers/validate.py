@@ -6,8 +6,9 @@ from handlers.rentals.rental_helpers.texts import item_not_available_message
 from handlers.rentals.rental_helpers.keyboard import PERIOD_LABELS, RENT_PERIOD_CB
 from services.rental_service import RentalService
 
+from schemas.item import ItemOut
 from utils.domain_exceptions import ItemNotAvailable
-
+from utils.item_availability import can_request_item, item_unavailable_text
 
 CUSTOM_DATES_RE = re.compile(r"^\s*(\d{2}\.\d{2}\.\d{4})\s*[-—–]\s*(\d{2}\.\d{2}\.\d{4})\s*$")
 # ──────────────────────────────────────── PARSE ───────────────────────────────────────────────────────────────────────
@@ -143,11 +144,18 @@ async def _parse_accessible_rental_id(
     return rental_id
 """
 # ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-async def abort_if_item_unavailable(event: CallbackQuery | Message, rental_service: RentalService, item_id: int) -> bool:
-    """Проверить доступность товара и показать понятное сообщение, если товар занят."""
+async def abort_if_item_unavailable(event: CallbackQuery | Message, rental_service: RentalService, item: ItemOut) -> bool:
     """Вернуть True, если rent-flow нужно остановить из-за недоступности товара."""
+
+    message = event.message if isinstance(event, CallbackQuery) else event
+
+    if not can_request_item(item):
+        if message:
+            await message.answer(item_unavailable_text(item))
+        return True
+
     try:
-        await rental_service.ensure_item_available(item_id)
+        await rental_service.ensure_item_available(item.id)
     except ItemNotAvailable:
         message = event.message if isinstance(event, CallbackQuery) else event
         if message:

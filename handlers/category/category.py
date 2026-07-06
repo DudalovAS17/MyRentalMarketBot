@@ -217,8 +217,8 @@ async def show_item_details_in_subcategory(
         open_rental = None  # если проверка не удалась — не блокируем UX
 
     keyboard = build_item_details_kb(
-        item_id=item.id,
-        is_busy=open_rental is not None,
+        item=item,
+        has_open_rental=open_rental is not None, # is_busy
         selected_subcategory_id=selected_subcategory_id,
         selected_item_index=selected_item_index, # NEW
         end_date=busy_until_text(open_rental)
