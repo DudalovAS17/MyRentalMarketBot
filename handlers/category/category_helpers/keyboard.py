@@ -26,7 +26,7 @@ def build_subcategories_keyboard(subcategories: Sequence[CategoryOut], category:
             #     text=f"📋 Все в категории {category.name}",
             #     callback_data=f"{ALL_CATEGORY_CB}:{category.id}")],
             [InlineKeyboardButton(
-                text="🔙 Назад (к категориям)",
+                text="🔙 Назад в каталог",
                 callback_data=BACK_TO_CAT)],
         ],
     )
@@ -58,12 +58,12 @@ def build_items_carousel_keyboard(
         ])
 
     buttons.append([InlineKeyboardButton(text="🔍 Подробнее", callback_data=f"{item_details_cb_prefix}{current_item_id}")])
-    #buttons.append([InlineKeyboardButton(text="✅ Арендовать", callback_data=f"{RENT_ITEM_CB}{current_item_id}")]) # 🛒 Оставить заявку
+    buttons.append([InlineKeyboardButton(text="✅ Арендовать", callback_data=f"{RENT_ITEM_CB}{current_item_id}")]) # 🛒 Оставить заявку
 
     if parent_category_id:
-        buttons.append([InlineKeyboardButton(text="🔙 Назад (к подкатегориям)", callback_data=f"{cat_cb_prefix}{parent_category_id}")])
+        buttons.append([InlineKeyboardButton(text="🔙 Назад", callback_data=f"{cat_cb_prefix}{parent_category_id}")])
     else:
-        buttons.append([InlineKeyboardButton(text="🔙 Назад (к подкатегориям)", callback_data=f"{subcat_cb_prefix}{subcategory_id}")])
+        buttons.append([InlineKeyboardButton(text="🔙 Назад", callback_data=f"{subcat_cb_prefix}{subcategory_id}")])
 
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
@@ -96,10 +96,10 @@ def build_item_details_kb(
         else:
             back_callback = f"{SUBCAT_CB_PREFIX}{selected_subcategory_id}"
         buttons.append(
-            [InlineKeyboardButton(text="🔙 Назад (к товарам)", callback_data=back_callback)]
+            [InlineKeyboardButton(text="🔙 Назад (к товару)", callback_data=back_callback)]
         )
     else:
-        buttons.append([InlineKeyboardButton(text="🔙 Назад (к категориям)", callback_data=BACK_TO_CAT)])
+        buttons.append([InlineKeyboardButton(text="🔙 Назад в каталог", callback_data=BACK_TO_CAT)])
 
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
