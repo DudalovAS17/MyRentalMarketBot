@@ -54,18 +54,33 @@ class SupportTicketRepository(BaseRepository):
         """Оставить только обращения, закрытые указанным администратором/менеджером."""
         return stmt.where(SupportTicket.closed_by_admin_id == admin_id)
 
+    @staticmethod
+    def _apply_ticket_kind_filter(stmt, kind: str):
+        """Оставить обращения нужного клиентского контура."""
+        if kind == "items":
+            return stmt.where(SupportTicket.item_id.is_not(None), SupportTicket.rental_id.is_(None))
+        if kind == "rentals":
+            return stmt.where(SupportTicket.rental_id.is_not(None))
+        if kind == "general":
+            return stmt.where(SupportTicket.item_id.is_(None), SupportTicket.rental_id.is_(None))
+        return stmt
+
     # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
     async def get_by_id(self, ticket_id: int) -> Optional[SupportTicket]:
         """Получить обращение по ID."""
         async with self._session() as s:
             return await s.get(SupportTicket, ticket_id)
 
-    async def get_open_by_user_id(self, user_id: int, *, offset: int = 0) -> Optional[SupportTicket]:
+    async def get_open_by_user_id(self, user_id: int, *, kind: str | None = None, offset: int = 0) -> Optional[SupportTicket]:
         """Получить последнее открытое обращение клиента, если оно существует."""
         async with self._session() as s:
             stmt = select(SupportTicket)
             stmt = self._apply_user_filter(stmt, user_id)
             stmt = self._apply_status_filter(stmt, SupportTicketStatus.OPEN)
+
+            if kind:
+                stmt = self._apply_ticket_kind_filter(stmt, kind)
+
             stmt = self._apply_recent_order(stmt)
             stmt = self._apply_pagination(stmt, limit=1, offset=offset)
             return await self._one_or_none(s, stmt)
@@ -78,9 +93,17 @@ class SupportTicketRepository(BaseRepository):
             stmt = self._apply_pagination(stmt, limit=limit, offset=offset)
             return await self._list(s, stmt)
 
-    async def list_open(self, *, limit: Optional[int] = None, offset: int = 0) -> list[SupportTicket]:
+    async def list_open(self, *, kind: str | None = None, limit: Optional[int] = None, offset: int = 0) -> list[SupportTicket]:
         """Вернуть открытые обращения клиентов."""
-        return await self.list_by_status(SupportTicketStatus.OPEN, limit=limit, offset=offset)
+        async with self._session() as s:
+            stmt = select(SupportTicket)
+            stmt = self._apply_status_filter(stmt, SupportTicketStatus.OPEN)
+            if kind:
+                stmt = self._apply_ticket_kind_filter(stmt, kind)
+            stmt = self._apply_recent_order(stmt)
+            stmt = self._apply_pagination(stmt, limit=limit, offset=offset)
+            return await self._list(s, stmt)
+        #return await self.list_by_status(SupportTicketStatus.OPEN, limit=limit, offset=offset)
 
     async def list_by_status(self, status: SupportTicketStatus,
                              *, limit: Optional[int] = None, offset: int = 0) -> list[SupportTicket]:

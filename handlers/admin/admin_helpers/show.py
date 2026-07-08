@@ -124,12 +124,20 @@ async def show_support_ticket_list(
         event: Message | CallbackQuery,
         user_service: UserService,
         support_service: SupportService,
-        page: int
+        page: int,
+        kind: str,
 ) -> None:
     """Показать список открытых тикетов поддержки"""
 
-    tickets, has_next = await support_service.list_open_tickets(page)
-    lines = [f"📭 <b>Открытые тикеты</b> (стр. {page})\n"]
+    tickets, has_next = await support_service.list_open_tickets(page, kind=kind)
+
+    title_by_kind = {
+        "items": "📦 Вопросы по товарам",
+        "rentals": "📄 Вопросы по арендам",
+        "general": "🆘 Общие обращения",
+    }
+    title = title_by_kind.get(kind, "🆘 Обращения")
+    lines = [f"📭 <b>{title}</b> (стр. {page})\n"]
 
     if not tickets:
         lines.append("Пока нет открытых тикетов.")
@@ -143,15 +151,23 @@ async def show_support_ticket_list(
             elif ticket_user:
                 uname = f"user_id={ticket.user_id}"
             else:
-                uname = f"tg_id={ticket_user.telegram_id}"
+                #uname = f"tg_id={ticket_user.telegram_id}"
+                uname = f"user_id={ticket.user_id}"
 
-            lines.append(f"•🎫• <b>#{ticket.id}</b> — {uname} — {created_at}")
+            if ticket.item_id:
+                context = f"товар #{ticket.item_id}"
+            elif ticket.rental_id:
+                context = f"аренда #{ticket.rental_id}"
+            else:
+                context = "общий вопрос"
+
+            lines.append(f"•🎫• <b>#{ticket.id}</b> — {context} — {uname} — {created_at}")
 
     rows = [{"ticket": ticket} for ticket in tickets]
     await send_or_edit(
         event,
         "\n".join(lines),
-        get_admin_support_list_keyboard(rows, page=page, has_next=has_next),
+        get_admin_support_list_keyboard(rows, page=page, has_next=has_next, kind=kind),
     )
 
 async def show_support_ticket_card_or_not_found(

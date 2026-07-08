@@ -33,9 +33,10 @@ ITEM_DETAILS_CB = "show_item_details:"
 SHOW_ALL_PHOTOS_CB = "show_all_photos:"
 BACK_TO_CAT = "back_to_categories" # show_categories()
 CAROUSEL_NAV_CB = "subcat_items_nav:"
+PHOTO_NAV_CB = "item_photo_nav:" # Логика N1
 
 # ───────────────────────────────────────────── ADMIN HANDLER ──────────────────────────────────────────────────────────
-BACK_TO_ADMIN_MENU_CB = "menu:main"
+BACK_TO_ADMIN_MENU_CB = "menu:main" # "admin:menu" / admin_menu
 
 # create item
 ADMIN_CAT_FI_PREFIX = "cat_for_item:"
@@ -71,6 +72,9 @@ ADMIN_ITEMS_MOD_ARCHIVE = "admin:items:archive:"
 
 # support
 ADMIN_SUPPORT = "admin:support"
+ADMIN_SUPPORT_ITEMS = "admin:support:items"
+ADMIN_SUPPORT_RENTALS = "admin:support:rentals"
+ADMIN_SUPPORT_GENERAL = "admin:support:general"
 ADMIN_SUPPORT_PAGE = "admin:support:page:"
 ADMIN_SUPPORT_VIEW = "admin:support:view:"
 ADMIN_SUPPORT_REPLY = "admin:support:reply:"
@@ -87,6 +91,7 @@ ADMIN_USERS_MOD_FIND = "admin:users:find"
 ADMIN_USERS_MOD_BAN = "admin:users:ban:"
 ADMIN_USERS_MOD_UNBAN = "admin:users:unban:"
 
+ADMIN_CONTENT = "admin:content" # - "Контент/FAQ"
 
 ADMIN_EXIT_PREFIX = "admin:exit"
 

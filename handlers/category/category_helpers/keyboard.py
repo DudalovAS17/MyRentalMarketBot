@@ -4,8 +4,8 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from schemas.category import CategoryOut
 from schemas.item import ItemOut
 from keyboards.common import build_category_keyboard
-from utils.callbacks import (SUBCAT_CB_PREFIX, BACK_TO_CAT, ITEM_DETAILS_CB, RENT_ITEM_CB,
-                             SHOW_ALL_PHOTOS_CB, MESSAGE_OWNER_CB, CAROUSEL_NAV_CB) # , REVIEWS_CB, ALL_CATEGORY_CB
+from utils.callbacks import (SUBCAT_CB_PREFIX, BACK_TO_CAT, ITEM_DETAILS_CB, RENT_ITEM_CB, # SHOW_ALL_PHOTOS_CB,
+                             MESSAGE_OWNER_CB, CAROUSEL_NAV_CB, PHOTO_NAV_CB) # , REVIEWS_CB, ALL_CATEGORY_CB
 from utils.item_availability import can_request_item, item_unavailable_text
 
 """
@@ -75,6 +75,8 @@ def build_item_details_kb(
     selected_subcategory_id: int | None,
     selected_item_index: int | None = None,
     end_date: str | None,
+    photo_count: int = 0, # Логика N1
+    photo_index: int = 0 # Логика N1
 ) -> InlineKeyboardMarkup:
     buttons: list[list[InlineKeyboardButton]] = []
 
@@ -86,7 +88,22 @@ def build_item_details_kb(
             callback_data="noop",
         )])
 
-    buttons.append([InlineKeyboardButton(text="📸 Показать все фото", callback_data=f"{SHOW_ALL_PHOTOS_CB}{item.id}")])
+    # Логика N1
+    if photo_count > 1:
+        safe_photo_index = photo_index % photo_count
+        prev_photo_index = (safe_photo_index - 1) % photo_count
+        next_photo_index = (safe_photo_index + 1) % photo_count
+        buttons.append([
+            InlineKeyboardButton(text="⬅️ Фото", callback_data=f"{PHOTO_NAV_CB}{item.id}:{prev_photo_index}"),
+            InlineKeyboardButton(text=f"{safe_photo_index + 1} / {photo_count}", callback_data="noop"),
+            InlineKeyboardButton(text="➡️ Фото", callback_data=f"{PHOTO_NAV_CB}{item.id}:{next_photo_index}"),
+        ])
+    elif photo_count == 1:
+        buttons.append([InlineKeyboardButton(text="📸 Фото 1 / 1", callback_data="noop")])
+
+    # Логика N2
+    #buttons.append([InlineKeyboardButton(text="📸 Показать все фото", callback_data=f"{SHOW_ALL_PHOTOS_CB}{item.id}")])
+
     buttons.append([InlineKeyboardButton(text="💬 Написать менеджеру", callback_data=f"{MESSAGE_OWNER_CB}{item.id}")])
     #buttons.append([InlineKeyboardButton(text="⭐ Отзывы", callback_data=f"{REVIEWS_CB}{item_id}")])
 

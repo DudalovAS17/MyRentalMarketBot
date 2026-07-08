@@ -5,7 +5,8 @@ from status.rental_status import RentalStatus
 from status.user_status import AccountStatus
 from status.support_ticket_status import SupportTicketStatus
 from schemas.rental import RentalAdminDetailsOut
-from utils.callbacks import ADMIN_ADD_ITEM_CB
+from utils.callbacks import (ADMIN_ADD_ITEM_CB, BACK_TO_ADMIN_MENU_CB, ADMIN_SUPPORT, ADMIN_SUPPORT_ITEMS, ADMIN_SUPPORT_RENTALS,
+                             ADMIN_EXIT_PREFIX, DEALS_PREFIX, ADMIN_USERS_MOD, ADMIN_CONTENT, ADMIN_ITEMS_MOD, ADMIN_SUPPORT_GENERAL)
 
 
 # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -13,19 +14,19 @@ def get_admin_menu_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                InlineKeyboardButton(text="📄 Заявки на аренду", callback_data="admin:deals"),
-                InlineKeyboardButton(text="📦 Модерация объявлений", callback_data="admin:items"),
+                InlineKeyboardButton(text="📄 Заявки на аренду", callback_data=DEALS_PREFIX),
+                InlineKeyboardButton(text="📦 Модерация объявлений", callback_data=ADMIN_ITEMS_MOD),
             ],
             [
-                InlineKeyboardButton(text="👥 Наши клиенты", callback_data="admin:users"),
+                InlineKeyboardButton(text="👥 Наши клиенты", callback_data=ADMIN_USERS_MOD),
                 InlineKeyboardButton(text="➕ Создать объявление", callback_data=ADMIN_ADD_ITEM_CB),
             ],
             [
-                InlineKeyboardButton(text="🆘 Обращения клиентов", callback_data="admin:support"),
-                InlineKeyboardButton(text="📚 Контент/FAQ", callback_data="admin:content"),
+                InlineKeyboardButton(text="🆘 Обращения клиентов", callback_data=ADMIN_SUPPORT),
+                InlineKeyboardButton(text="📚 Контент/FAQ", callback_data=ADMIN_CONTENT),
             ],
             [
-                InlineKeyboardButton(text="🔙 Назад в меню", callback_data="admin:exit"),
+                InlineKeyboardButton(text="🔙 Назад в меню", callback_data=ADMIN_EXIT_PREFIX),
             ],
             # 📊 Статистика,
             # 📢 Рассылка сообщений,
@@ -36,7 +37,7 @@ def get_admin_menu_keyboard() -> InlineKeyboardMarkup:
 def get_back_to_admin_menu_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
-            [InlineKeyboardButton(text="🔙 Назад в админ-меню", callback_data="admin:menu")]
+            [InlineKeyboardButton(text="🔙 Назад в админ-меню", callback_data=BACK_TO_ADMIN_MENU_CB)]
         ]
     )
 
@@ -174,7 +175,17 @@ def get_admin_dispute_target_keyboard(rental_id: int) -> InlineKeyboardMarkup:
 
 
 # ───────────────────────────────────────────────── ADMIN SUPPORT ──────────────────────────────────────────────────────
-def get_admin_support_list_keyboard(tickets_rows: list[dict], page: int, has_next: bool) -> InlineKeyboardMarkup:
+def get_admin_support_sections_keyboard() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="📦 Вопросы по товарам", callback_data=ADMIN_SUPPORT_ITEMS)],
+            [InlineKeyboardButton(text="📄 Вопросы по арендам", callback_data=ADMIN_SUPPORT_RENTALS)],
+            [InlineKeyboardButton(text="🆘 Общие обращения", callback_data=ADMIN_SUPPORT_GENERAL)],
+            [InlineKeyboardButton(text="🔙 Назад в админ-меню", callback_data=BACK_TO_ADMIN_MENU_CB)],
+        ]
+    )
+
+def get_admin_support_list_keyboard(tickets_rows: list[dict], page: int, has_next: bool, kind: str) -> InlineKeyboardMarkup:
     kb = []
 
     for row in tickets_rows:
@@ -185,13 +196,13 @@ def get_admin_support_list_keyboard(tickets_rows: list[dict], page: int, has_nex
 
     nav = []
     if page > 1:
-        nav.append(InlineKeyboardButton(text="⬅️ Пред", callback_data=f"admin:support:page:{page-1}"))
+        nav.append(InlineKeyboardButton(text="⬅️ Пред", callback_data=f"admin:support:page:{kind}:{page-1}"))
     if has_next:
-        nav.append(InlineKeyboardButton(text="➡️ След", callback_data=f"admin:support:page:{page+1}"))
+        nav.append(InlineKeyboardButton(text="➡️ След", callback_data=f"admin:support:page:{kind}:{page+1}"))
     if nav:
         kb.append(nav)
 
-    kb.append([InlineKeyboardButton(text="🔙 Назад в админ-меню", callback_data="admin:menu")]) # admin:support
+    kb.append([InlineKeyboardButton(text="🔙 Назад", callback_data=ADMIN_SUPPORT)])
     return InlineKeyboardMarkup(inline_keyboard=kb)
 #get_admin_support_list_kb
 
@@ -202,7 +213,7 @@ def get_admin_support_ticket_keyboard(ticket_id: int, status: SupportTicketStatu
         kb.append([InlineKeyboardButton(text="✉️ Ответить", callback_data=f"admin:support:reply:{ticket_id}")])
         kb.append([InlineKeyboardButton(text="✅ Закрыть", callback_data=f"admin:support:close:{ticket_id}")])
 
-    kb.append([InlineKeyboardButton(text="🔙 К списку", callback_data="admin:support")])
+    kb.append([InlineKeyboardButton(text="🔙 К разделам обращений", callback_data=ADMIN_SUPPORT)])
     return InlineKeyboardMarkup(inline_keyboard=kb)
 
 

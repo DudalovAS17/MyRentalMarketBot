@@ -9,18 +9,28 @@ def format_datetime(dt: datetime | None) -> str:
     return dt.strftime("%d.%m.%Y %H:%M")
 
 # ─────────────────────────────────────────── Text ─────────────────────────────────────────────────────────────────────
-def build_support_request_text() -> str:
+def build_support_request_text(item_title: str | None = None) -> str:
     """Сформировать prompt обращения в поддержку."""
+    context = f"Вопрос по товару: <b>{item_title}</b>\n\n" if item_title else ""
     return (
         "📞 <b>Поддержка</b>\n\n"
+        f"{context}"
         "Опишите вашу проблему или вопрос как можно подробнее.\n"
         "Мы постараемся помочь как можно скорее."
     )
 
-def build_support_already_open_text(ticket_id: int) -> str:
+def support_kind_name(kind: str | None) -> str:
+    """Клиентское название контура поддержки."""
+    if kind == "items":
+        return "по товару"
+    if kind == "rentals":
+        return "по аренде"
+    return "в поддержке"
+
+def build_support_already_open_text(ticket_id: int, *, kind: str | None = None) -> str:
     """Сформировать текст ошибки уже открытого тикета."""
     return (
-        f"⚠️ У вас уже есть открытое обращение (тикет #{ticket_id}).\n"
+        f"⚠️ У вас уже есть открытое обращение {support_kind_name(kind)}.\n"
         "Дождитесь ответа поддержки или создайте новое после закрытия."
     )
 

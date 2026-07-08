@@ -42,8 +42,17 @@ class SupportService:
             raise ValidationError(f"{field_name} не может быть пустым")
         return normalized
 
-    async def _ensure_user_has_no_open_ticket(self, user_id: int) -> None:
-        open_ticket = await self.repo.get_open_by_user_id(user_id)
+    @staticmethod
+    def ticket_kind_for_data(ticket_data: SupportTicketCreateInternal) -> str:
+        """Определить клиентский контур обращения для ограничения дублей."""
+        if ticket_data.rental_id is not None:
+            return "rentals"
+        if ticket_data.item_id is not None:
+            return "items"
+        return "general"
+
+    async def _ensure_user_has_no_open_ticket(self, user_id: int, *, kind: str | None = None) -> None:
+        open_ticket = await self.repo.get_open_by_user_id(user_id, kind=kind)
         if open_ticket:
             raise TicketAlreadyOpen(ticket_id=open_ticket.id)
 
@@ -58,17 +67,17 @@ class SupportService:
 
         return self._to_out(obj)
 
-    async def list_open_tickets(self, page: int) -> tuple[list[SupportTicketOut], bool]:
+    async def list_open_tickets(self, page: int, *, kind: str | None = None) -> tuple[list[SupportTicketOut], bool]:
         """Вернуть список открытых обращений в поддержку с пагинацией."""
         limit, offset = self._page_window(page)
-        tickets = await self.repo.list_open(limit=limit + 1, offset=offset)
+        tickets = await self.repo.list_open(kind=kind, limit=limit + 1, offset=offset)
 
         has_next = len(tickets) > limit
         return self._to_out_list(tickets[:limit]), has_next
 
-    async def get_open_ticket_by_user(self, user_id: int, *, strict: bool = False) -> Optional[SupportTicketOut]:
+    async def get_open_ticket_by_user(self, user_id: int, *, kind: str | None = None, strict: bool = False) -> Optional[SupportTicketOut]:
         """Вернуть открытое обращение пользователя, если оно существует."""
-        obj = await self.repo.get_open_by_user_id(user_id)
+        obj = await self.repo.get_open_by_user_id(user_id, kind=kind)
         if not obj:
             if strict:
                 raise NotFoundError(f"Открытое обращение в поддержку не найдено для user_id={user_id}")
@@ -78,8 +87,11 @@ class SupportService:
 
     # ─────────────────────────────────────────── write methods ────────────────────────────────────────────────────────
     async def create(self, *, ticket_data: SupportTicketCreateInternal) -> SupportTicketOut:
-        """Создать обращение, если у пользователя нет открытого обращения."""
-        await self._ensure_user_has_no_open_ticket(ticket_data.user_id)
+        """Создать обращение, если у пользователя нет открытого обращения в этом контуре."""
+        await self._ensure_user_has_no_open_ticket(
+            ticket_data.user_id,
+            kind=self.ticket_kind_for_data(ticket_data),
+        )
 
         ticket = await self.repo.create(ticket_data)
         return self._to_out(ticket)

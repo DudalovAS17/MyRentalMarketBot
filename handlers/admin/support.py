@@ -13,20 +13,38 @@ from .admin_helpers.texts import format_ticket_card
 
 from .admin_helpers.file_support import (load_open_support_ticket_or_notify, send_support_reply_and_audit,
                                          notify_ticket_closed_and_audit)
-from .admin_helpers.keyboard import get_admin_support_ticket_keyboard
+from .admin_helpers.keyboard import get_admin_support_ticket_keyboard, get_admin_support_sections_keyboard
 from states.admin_support import AdminSupportStates
 from utils.functions import send_or_edit
-from utils.callbacks import ADMIN_SUPPORT, ADMIN_SUPPORT_PAGE, ADMIN_SUPPORT_VIEW, ADMIN_SUPPORT_REPLY, ADMIN_SUPPORT_CLOSE # , ADMIN_SUPPORT_OPEN
+from utils.callbacks import (ADMIN_SUPPORT, ADMIN_SUPPORT_PAGE, ADMIN_SUPPORT_VIEW, ADMIN_SUPPORT_REPLY,
+                             ADMIN_SUPPORT_CLOSE, ADMIN_SUPPORT_ITEMS, ADMIN_SUPPORT_RENTALS, ADMIN_SUPPORT_GENERAL) # , ADMIN_SUPPORT_OPEN
 
 admin_support_router = Router()
 
 # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 @admin_support_router.callback_query(F.data == ADMIN_SUPPORT)
-async def admin_support_list(callback: CallbackQuery, support_service: SupportService, user_service: UserService) -> None:
-    """Меню поддержки в админке"""
+async def admin_support_menu(callback: CallbackQuery) -> None:
+    """Меню поддержки в админке: показать разделы обращений клиентов."""
     await callback.answer()
 
-    await show_support_ticket_list(callback, user_service, support_service, page=1)
+    await send_or_edit(
+        callback,
+        "🆘 <b>Обращения клиентов</b>\n\nВыберите тип обращений:",
+        get_admin_support_sections_keyboard(),
+    )
+
+@admin_support_router.callback_query(F.data.in_({ADMIN_SUPPORT_ITEMS, ADMIN_SUPPORT_RENTALS, ADMIN_SUPPORT_GENERAL}))
+async def admin_support_list(callback: CallbackQuery, support_service: SupportService, user_service: UserService) -> None:
+    """Показать выбранный список обращений клиентов."""
+    await callback.answer()
+
+    kind = {
+        ADMIN_SUPPORT_ITEMS: "items",
+        ADMIN_SUPPORT_RENTALS: "rentals",
+        ADMIN_SUPPORT_GENERAL: "general",
+    }[callback.data]
+
+    await show_support_ticket_list(callback, user_service, support_service, page=1, kind=kind)
 
 # @admin_support_router.callback_query(F.data == ADMIN_SUPPORT_OPEN)
 # async def admin_support_open_list(callback: CallbackQuery, state: FSMContext, support_service: SupportService, user):
@@ -42,8 +60,8 @@ async def admin_support_list_page(callback: CallbackQuery, support_service: Supp
     """Показать выбранную страницу списка открытых тикетов поддержки."""
     await callback.answer()
 
-    page = parse_support_page(callback.data)
-    await show_support_ticket_list(callback, user_service, support_service, page=page)
+    kind, page = parse_support_page(callback.data)
+    await show_support_ticket_list(callback, user_service, support_service, page=page, kind=kind)
 
 
 @admin_support_router.callback_query(F.data.startswith(ADMIN_SUPPORT_VIEW))

@@ -71,13 +71,19 @@ async def get_admin_user_id_or_alert(callback: CallbackQuery) -> int | None:
         return None
 
 # ───────────────────────────────────────────────── support ────────────────────────────────────────────────────────────
-def parse_support_page(raw: str | None, *, default: int = 1) -> int:
-    """Распарсить номер страницы из callback data поддержки"""
+def parse_support_page(raw: str | None, *, default: int = 1) -> tuple[str, int]:
+    """Распарсить тип и номер страницы из callback data поддержки."""
+    parts = (raw or "").split(":")
     try:
-        page = int((raw or "").split(":")[-1])
+        kind = parts[-2]
+        page = int(parts[-1])
     except (ValueError, IndexError):
-        return default
-    return max(1, page)
+        return "items", default
+
+    if kind not in {"items", "rentals", "general"}:
+        kind = "items"
+    return kind, max(1, page)
+
 
 def parse_support_ticket_id(raw: str | None) -> int | None:
     """Распарсить ticket_id из callback data поддержки"""

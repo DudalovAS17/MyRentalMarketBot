@@ -22,10 +22,13 @@ from services.rental_service import RentalService
 from schemas.photo import PhotoOut
 from utils.functions import send_or_edit, send_reply
 from utils.errors import ServiceError
-from utils.callbacks import CAT_CB_PREFIX, SUBCAT_CB_PREFIX, ITEM_DETAILS_CB, SHOW_ALL_PHOTOS_CB, BACK_TO_CAT, CAROUSEL_NAV_CB
+from utils.callbacks import (CAT_CB_PREFIX, SUBCAT_CB_PREFIX, ITEM_DETAILS_CB, SHOW_ALL_PHOTOS_CB, BACK_TO_CAT,
+                             CAROUSEL_NAV_CB, PHOTO_NAV_CB)
 from utils.validators import parse_callback
 
 category_router = Router()
+# Логика N1: "Карусель фото" - СЕЙЧАС
+# Логика N2: "Все фото товара" - СТОП
 
 @category_router.callback_query(F.data.startswith(CAT_CB_PREFIX))
 async def show_subcategories(callback: CallbackQuery, state: FSMContext, category_service: CategoryService) -> None:
@@ -216,16 +219,19 @@ async def show_item_details_in_subcategory(
     except ServiceError:
         open_rental = None  # если проверка не удалась — не блокируем UX
 
+    photos = await photo_service.get_photos_by_item_id(item.id)
+
     keyboard = build_item_details_kb(
         item=item,
         has_open_rental=open_rental is not None, # is_busy
         selected_subcategory_id=selected_subcategory_id,
         selected_item_index=selected_item_index, # NEW
-        end_date=busy_until_text(open_rental)
+        end_date=busy_until_text(open_rental),
+        photo_count=len(photos), # Логика N1
+        photo_index=0, # Логика N1
     )
 
-    photos = await photo_service.get_photos_by_item_id(item.id)
-    await send_or_edit_item_card(callback,photos, text=item_details, markup=keyboard)
+    await send_or_edit_item_card(callback, photos, text=item_details, markup=keyboard, photo_index=0) # photo_index=0 - Логика N1
     # await send_or_edit(callback, item_details, markup=keyboard)
 
 
@@ -235,7 +241,70 @@ async def back_to_categories(callback: CallbackQuery, category_service: Category
     await show_categories(callback, category_service)
 
 
+# Логика N1
+@category_router.callback_query(F.data.startswith(PHOTO_NAV_CB))
+async def navigate_item_photos(
+    callback: CallbackQuery,
+    state: FSMContext,
+    item_service: ItemService,
+    photo_service: PhotoService,
+    rental_service: RentalService,
+) -> None:
+    """Переключить фото внутри подробной карточки товара без отправки новой галереи."""
+    await callback.answer()
 
+    try:
+        payload = callback.data.removeprefix(PHOTO_NAV_CB)
+        item_id_str, photo_index_str = payload.split(":", maxsplit=1)
+        item_id = int(item_id_str)
+        photo_index = int(photo_index_str)
+    except (ValueError, AttributeError):
+        await callback.answer(not_item_id, show_alert=True)
+        return
+
+    item = await resolve_entity(callback, item_service.get_public_item_by_id, item_id,
+                                invalid_id_text=not_item_id, load_error_text=serv_err_item, not_found_text=not_item)
+    if item is None:
+        return
+
+    photos = await load_list_or_notify(callback, photo_service.get_photos_by_item_id, item.id, invalid_id_text=not_item_id,
+                                       load_error_text=serv_err_photo, not_found_text=not_photos)
+    if photos is None:
+        return
+
+    total_photos = len(photos)
+    if total_photos == 0:
+        await callback.answer(not_photos, show_alert=True)
+        return
+
+    safe_photo_index = photo_index % total_photos
+    data = await state.get_data()
+    category_name = data.get("selected_category_name", "Неизвестно")
+    subcategory_name = data.get("selected_subcategory_name", "Неизвестно")
+    selected_subcategory_id = data.get("selected_subcategory_id")
+    selected_item_index = data.get("selected_item_index")
+
+    characteristics = await item_service.list_item_characteristics_by_item_id(item.id, limit=3)
+    item_details = item_details_text(item, category_name, subcategory_name, characteristics)
+
+    try:
+        open_rental = await rental_service.get_open_rental_for_item(item.id)
+    except ServiceError:
+        open_rental = None
+
+    keyboard = build_item_details_kb(
+        item=item,
+        has_open_rental=open_rental is not None,
+        selected_subcategory_id=selected_subcategory_id,
+        selected_item_index=selected_item_index,
+        end_date=busy_until_text(open_rental),
+        photo_count=total_photos,
+        photo_index=safe_photo_index,
+    )
+
+    await send_or_edit_item_card(callback, photos, text=item_details, markup=keyboard, photo_index=safe_photo_index)
+
+# Логика N2
 @category_router.callback_query(F.data.startswith(SHOW_ALL_PHOTOS_CB))
 async def show_all_photos(callback: CallbackQuery, photo_service: PhotoService) -> None:
     """Показать все фотографии товара"""
@@ -277,9 +346,14 @@ async def show_all_photos(callback: CallbackQuery, photo_service: PhotoService) 
 
 
 # ────────────────────────────────────────────────── helper ────────────────────────────────────────────────────────────
-async def send_or_edit_item_card(callback: CallbackQuery, photos: list[PhotoOut], text: str, markup) -> None:
+async def send_or_edit_item_card(callback: CallbackQuery, photos: list[PhotoOut], text: str, markup, photo_index: int = 0) -> None:
     """Показать карточку товара: с фото, если оно есть, иначе обычным текстом."""
-    main_photo = photos[0] if photos else None
+
+    # Логика N2
+    #main_photo = photos[0] if photos else None
+    # Логика N1
+    main_photo = photos[photo_index % len(photos)] if photos else None
+
     photo_source = get_photo_source(main_photo)
 
     if not photo_source:

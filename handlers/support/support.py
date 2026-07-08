@@ -8,13 +8,14 @@ from handlers.support.helpers_support import (build_support_request_text, build_
                                               build_support_already_open_text, build_support_already_open_after_create_text)
 from handlers.admin.admin_helpers.keyboard import get_admin_support_ticket_notification_keyboard
 from services.support_service import SupportService, TicketAlreadyOpen
+from services.item_service import ItemService
 from services.rental_service import RentalService
 from services.notif_service import NotificationService
 
 from states.support_ticket import SupportStates
 from schemas.support import SupportTicketCreateInternal
 from utils.functions import send_or_edit
-from utils.callbacks import CLIENT_SUPPORT_RENTAL_CB, SUPPORT, SUPPORT_START, SUPPORT_CANCEL
+from utils.callbacks import CLIENT_SUPPORT_RENTAL_CB, SUPPORT, SUPPORT_START, SUPPORT_CANCEL, MESSAGE_OWNER_CB
 from utils.errors import ServiceError
 
 """создание тикета + отправка админам"""
@@ -36,6 +37,38 @@ async def support_start_callback(callback: CallbackQuery, state: FSMContext, sup
 
     await start_support_flow(callback, state, support_service, user)
 
+# Вопрос клиента по любому товару
+@support_router.callback_query(F.data.startswith(MESSAGE_OWNER_CB))
+async def support_start_item_callback(
+    callback: CallbackQuery,
+    state: FSMContext,
+    support_service: SupportService,
+    item_service: ItemService,
+    user,
+) -> None:
+    """Старт поддержки из карточки товара с привязкой обращения к item_id."""
+    await callback.answer()
+
+    raw_item_id = (callback.data or "").removeprefix(MESSAGE_OWNER_CB)
+    try:
+        item_id = int(raw_item_id)
+    except ValueError:
+        await callback.answer("Некорректный товар.", show_alert=True)
+        return
+
+    try:
+        item = await item_service.get_public_item_by_id(item_id)
+    except ServiceError:
+        await callback.answer("Ошибка. Попробуйте позже.", show_alert=True)
+        return
+
+    if item is None:
+        await callback.answer("Товар не найден или сейчас недоступен.", show_alert=True)
+        return
+
+    await start_support_flow(callback, state, support_service, user, item_id=item.id, item_title=item.title)
+
+# Вопрос клиента внутри его аренды
 @support_router.callback_query(F.data.startswith(CLIENT_SUPPORT_RENTAL_CB))
 async def support_start_rental_callback(
     callback: CallbackQuery,
@@ -68,6 +101,7 @@ async def support_start_rental_callback(
 
 
 # ──────────────────────────────────────────────── FSM-поддержки ───────────────────────────────────────────────────────
+# обрабатывает оба варианта "вопроса клиента"
 async def start_support_flow(
         event: Message | CallbackQuery,
         state: FSMContext,
@@ -75,18 +109,30 @@ async def start_support_flow(
         user,
         *,
         rental_id: int | None = None,
+        item_id: int | None = None,
+        item_title: str | None = None
 ) -> None:
     """Единый вход в поддержку"""
 
-    open_ticket = await support_service.get_open_ticket_by_user(user.id)
+    if rental_id is not None:
+        ticket_kind = "rentals"
+    elif item_id is not None:
+        ticket_kind = "items"
+    else:
+        ticket_kind = "general"
+
+    open_ticket = await support_service.get_open_ticket_by_user(user.id, kind=ticket_kind)
     if open_ticket:
-        await send_or_edit(event, build_support_already_open_text(open_ticket.id), None)
+        await send_or_edit(event, build_support_already_open_text(open_ticket.id, kind=ticket_kind), None)
         return
 
     await state.set_state(SupportStates.waiting_text)
-    await state.update_data(support_rental_id=rental_id) # ???
+    await state.update_data(
+        support_rental_id=rental_id,
+        support_item_id=item_id
+    ) # ???
 
-    await send_or_edit(event, build_support_request_text(), build_support_cancel_keyboard()) # None
+    await send_or_edit(event, build_support_request_text(item_title), build_support_cancel_keyboard()) # None
 
 @support_router.message(SupportStates.waiting_text, F.text)
 async def receive_support_text(
@@ -106,6 +152,14 @@ async def receive_support_text(
 
     data = await state.get_data()
     rental_id = data.get("support_rental_id")
+    item_id = data.get("support_item_id")
+
+    if item_id:
+        subject = f"Вопрос по товару #{item_id}"
+    elif rental_id:
+        subject = f"Заявка на аренду #{rental_id}"
+    else:
+        subject = None
 
     try:
         internal = SupportTicketCreateInternal(
@@ -113,7 +167,8 @@ async def receive_support_text(
                 #telegram_id=int(user.telegram_id),
                 #username=user.username,
                 text=text,
-                subject=f"Заявка на аренду #{rental_id}" if rental_id else None,
+                subject=subject,
+                item_id=item_id,
                 rental_id=rental_id,
             )
         ticket = await support_service.create(ticket_data=internal)
