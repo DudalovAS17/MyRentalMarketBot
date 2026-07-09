@@ -58,7 +58,7 @@ async def show_deal_card(
     await send_or_edit(
         event,
         f"{prefix_text}{format_deal_details(details)}", # f"✅ {action_name}.\n\n" + format_deal_details(details)
-        get_admin_deal_details_keyboard(rental_id=rental_id, status=details.rental.status)
+        get_admin_deal_details_keyboard(rental_id, status=details.rental.status, user_telegram_id=details.user.telegram_id)
     )
 
 # ────────────────────────────────────────────────── items moderation ─────────────────────────────────────────────────────────────

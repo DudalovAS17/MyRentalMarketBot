@@ -112,7 +112,6 @@ async def start_rent_process(callback: CallbackQuery, state: FSMContext, item_se
 @rental_router.callback_query(RentalCreateStates.quantity, F.data.startswith(RENT_QUANTITY_CB))
 async def process_quantity_button(callback: CallbackQuery, state: FSMContext, item_service: ItemService) -> None:
     """Обработать callback выбора количества и перейти к сроку аренды."""
-    await callback.answer()
 
     ctx = await load_context(callback, state, item_service)
     if ctx is None:
@@ -122,6 +121,8 @@ async def process_quantity_button(callback: CallbackQuery, state: FSMContext, it
     if (callback.data or "").endswith("manual"):
         await callback.answer("Введите количество сообщением.", show_alert=True)
         return
+
+    await callback.answer()
 
     quantity = ch.parse_rent_quantity_code(callback.data)
     if quantity is None or not ch.is_quantity_available(quantity, item.available_quantity):
@@ -380,7 +381,7 @@ async def confirm_rent(
 
     # Создаём аренду
     try:
-        rental = await rental_service.create(payload)
+        rental = await rental_service.create(payload, item=item)
     except ServiceError:
         await send_or_edit(callback, "❌ Не удалось создать заявку. Попробуйте позже.")
         return

@@ -6,9 +6,10 @@ from db.repositories.rental import RentalRepository
 from schemas.rental import RentalCreate, RentalUpdate, RentalOut, RentalDetailsOut
 from schemas.item import ItemOut
 from schemas.user import UserOut
+from status.item_status import ItemStatus
 from status.rental_status import RentalStatus, is_open_status, can_transition
 from utils.domain_exceptions import ItemNotAvailable
-from utils.errors import NotFoundError, ForbiddenError, ConflictError #, ValidationError
+from utils.errors import NotFoundError, ForbiddenError, ConflictError, ValidationError
 
 """
     list_rentals_by_renter - Возвращает все аренды, где пользователь — арендатор
@@ -16,7 +17,6 @@ from utils.errors import NotFoundError, ForbiddenError, ConflictError #, Validat
 
     list_user_rentals - Возвращает все сделки пользователя (как арендатор + как владелец) с указанием роли пользователя 
     в каждой сделке
-    
 """
 
 logger = logging.getLogger(__name__)
@@ -58,25 +58,24 @@ class RentalService:
     #     if data.start_date and data.end_date and data.end_date <= data.start_date:
     #         raise ValidationError("Дата окончания аренды должна быть позже даты начала")
 
-    # async def _validate_create(self, data: RentalCreate) -> None:
-    #     """Проверить бизнес-условия создания заявки."""
-    #     if data.quantity < 1:
-    #         raise ValidationError("Количество товара должно быть не меньше 1")
-    #
-    #     item = await self.item_repo.get_by_id(data.item_id)
-    #     if item is None:
-    #         raise NotFoundError(f"Товар не найден: id={data.item_id}")
-    #
-    #     if item.status != ItemStatus.ACTIVE:
-    #         raise ConflictError("Товар сейчас недоступен для аренды")
-    #
-    #     if item.available_quantity <= 0:
-    #         raise ConflictError("Товара сейчас нет в наличии")
-    #
-    #     if data.quantity > item.available_quantity:
-    #         raise ConflictError("Запрошенное количество больше доступного наличия")
-    #
-    #     await self.ensure_item_available(data.item_id)
+    async def _validate_create(self, data: RentalCreate, *, item: ItemOut) -> None:
+        """Проверить бизнес-условия создания заявки."""
+        if data.quantity < 1:
+            raise ValidationError("Количество товара должно быть не меньше 1")
+
+        if item.id != data.item_id:
+            raise ValidationError("Товар заявки не совпадает с проверяемым товаром")
+
+        if item.status != ItemStatus.ACTIVE:
+            raise ConflictError("Товар сейчас недоступен для аренды")
+
+        if item.available_quantity <= 0:
+            raise ConflictError("Товара сейчас нет в наличии")
+
+        if data.quantity > item.available_quantity:
+            raise ConflictError("Запрошенное количество больше доступного наличия")
+
+        await self.ensure_item_available(data.item_id)
 
     # ────────────────────────────────────────── Read methods ──────────────────────────────────────────────────────────
     async def get_by_id(self, rental_id: int, *, strict: bool = False) -> Optional[RentalOut]:
@@ -111,10 +110,10 @@ class RentalService:
         return self._to_details(rental)
 
     # ─────────────────────────────────────────── write methods ────────────────────────────────────────────────────────
-    async def create(self, data: RentalCreate) -> RentalOut:
+    async def create(self, data: RentalCreate, *, item: ItemOut) -> RentalOut:
         """Создать новую заявку клиента."""
         #self._validate_date_create(data)
-        #await self._validate_create(data)
+        await self._validate_create(data, item=item)
 
         rental = await self.repo.create(data)
 

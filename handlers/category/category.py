@@ -84,8 +84,14 @@ async def show_items_in_subcategory(
     if items is None:
         return
 
-    # карусель
+
     current_index = 0
+    total = len(items)
+    if total == 0:
+        await send_or_edit(callback, not_items)
+        return
+
+    # карусель
     current_item = items[current_index]
     await store_selected_item_index(state, current_item.id, current_index) # NEW
     keyboard = build_items_carousel_keyboard(
@@ -93,7 +99,7 @@ async def show_items_in_subcategory(
         subcategory_id=subcategory.id,
         parent_category_id=subcategory.parent_id,
         current_index=current_index,
-        total_items=len(items),
+        total_items=total,
         nav_cb_prefix=CAROUSEL_NAV_CB,
         item_details_cb_prefix=ITEM_DETAILS_CB,
         subcat_cb_prefix=SUBCAT_CB_PREFIX,
@@ -106,11 +112,11 @@ async def show_items_in_subcategory(
     await send_or_edit_item_card(
         callback=callback,
         photos=photos,
-        text=subcategory_item_card_text(current_item, current_index, len(items), characteristics),
+        text=subcategory_item_card_text(current_item, current_index, total, characteristics),
         markup=keyboard,
     )
 
-    #await send_or_edit(callback, subcategory_item_card_text(current_item, current_index, len(items)), markup=keyboard)
+    #await send_or_edit(callback, subcategory_item_card_text(current_item, current_index, total), markup=keyboard)
 
 
 # карусель

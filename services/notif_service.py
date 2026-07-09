@@ -119,9 +119,9 @@ class NotificationService:
         """Уведомить клиента, что его заявка на аренду создана."""
         return await self.send_to_user(user_telegram_id, format_user_rental_created(rental_details))
 
-    async def notify_user_rental_status_changed(self, user_telegram_id: int, rental_details: RentalDetailsOut | RentalAdminDetailsOut, old_status=None) -> bool:
+    async def notify_user_rental_status_changed(self, user_telegram_id: int, rental_details: RentalDetailsOut | RentalAdminDetailsOut) -> bool: # , old_status=None
         """Уведомить клиента о новом статусе заявки на аренду."""
-        return await self.send_to_user(user_telegram_id, format_user_rental_status_changed(rental_details, old_status))
+        return await self.send_to_user(user_telegram_id, format_user_rental_status_changed(rental_details)) # , old_status
 
     async def notify_user_rental_cancelled(self, user_telegram_id: int, rental_details: RentalDetailsOut | RentalAdminDetailsOut) -> bool:
         """Уведомить клиента об успешной отмене заявки с его стороны."""
@@ -135,9 +135,9 @@ class NotificationService:
         """Уведомить администраторов о новом обращении в поддержку."""
         return await self.send_to_admins(admin_ids, format_new_support_ticket(ticket, user), reply_markup=reply_markup)
 
-    async def notify_user_support_ticket_created(self, user_telegram_id: int, ticket: SupportTicketOut) -> bool:
+    async def notify_user_support_ticket_created(self, user_telegram_id: int) -> bool: # , ticket: SupportTicketOut
         """Уведомить клиента, что обращение в поддержку создано."""
-        return await self.send_to_user(user_telegram_id, format_user_support_created(ticket))
+        return await self.send_to_user(user_telegram_id, format_user_support_created()) # ticket
 
     async def notify_admins_support_user_reply(self, admin_ids: Iterable[int], ticket: SupportTicketOut, user: UserOut, reply_text: str, *, reply_markup=None) -> dict[int | str, bool]:
         """Уведомить администраторов о новом сообщении клиента в открытом тикете."""

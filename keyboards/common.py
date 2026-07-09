@@ -3,7 +3,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton, ReplyKeyboardMarkup
 
 from schemas.category import CategoryOut
-from status.rental_status import OPEN_STATUSES
+from status.rental_status import OPEN_STATUSES, STATUS_LABELS
 from utils.callbacks import (CAT_CB_PREFIX, SEARCH_FILTERS_CB, BACK_TO_MENU_CB, RENTAL_DETAILS_CB, CANCEL_RENT_FLOW_CB,
                              CONFIRM_RENT_CB, PROFILE_BACK_TO_SETTINGS, RENT_BACK_CB, RENT_CHANGE_CB) # SEARCH_CITY_CB,
 
@@ -89,10 +89,10 @@ def build_my_rentals_keyboard(rentals, *, current_user_id: int, limit: int = 30)
     """Собрать клавиатуру списка сделок пользователя"""
     rows: list[list[InlineKeyboardButton]] = []
 
-    for rental in sort_rentals_for_list(rentals)[:limit]: # MVP-ограничение списка
-        button_text = build_rental_list_button_text(rental, current_user_id=current_user_id)
+    sorted_rentals = sort_rentals_for_list(rentals)
+    for user_rental_number, rental in enumerate(sorted_rentals[:limit], start=1): # MVP-ограничение списка
+        button_text = build_rental_list_button_text(rental, user_rental_number=user_rental_number)
         rows.append([InlineKeyboardButton(text=button_text[:64], callback_data=f"{RENTAL_DETAILS_CB}{rental.id}")])
-
     rows.append([InlineKeyboardButton(text="🏠 Главное меню", callback_data=BACK_TO_MENU_CB)])
 
     return InlineKeyboardMarkup(inline_keyboard=rows)
@@ -181,15 +181,10 @@ def sort_rentals_for_list(rentals):
         )
     )
 
-def build_rental_list_button_text(rental, current_user_id: int) -> str:
-    """Собрать текст кнопки заявки для списка"""
-
-    role_label = "Ваша заявка" if rental.user_id == current_user_id else "Заявка"
-    status_label = rental.status.value #STATUS_LABELS.get(rental.status, rental.status.value)
-    item_label = f"Товар #{rental.item_id}"
-
-    return f"# Заявка {rental.id} • {role_label} • {item_label} • 🔖 Статус: {status_label}"
-
+def build_rental_list_button_text(rental, *, user_rental_number: int) -> str:
+    """Собрать текст кнопки заявки для списка."""
+    status_label = STATUS_LABELS.get(rental.status, rental.status.value) # • {rental.item_id}
+    return f"# Заявка {user_rental_number} • 🏷 Статус: {status_label}"
 
 # ───────────────────────────────────────────── общая ────────────────────────────────────────────────────────────────
 def cancel_keyboard() -> InlineKeyboardMarkup:
