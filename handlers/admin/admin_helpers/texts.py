@@ -24,14 +24,22 @@ def format_deal_details(details: RentalAdminDetailsOut) -> str:
     item_title = item.title or f"item_id={r.item_id}"
     status_val = r.status.value
 
+    delivery = "нужна" if r.delivery_needed else "не нужна"
+    address_line = f"• Адрес доставки: {r.delivery_address or '—'}\n" if r.delivery_needed else ""
+    username = f"@{client.username}" if client and client.username else "—"
+
     return (
         f"🧾 <b>Заявка #{r.id}</b>\n\n"
         f"• Статус: <b>{status_val}</b>\n"
         f"• Товар: <b>{item_title}</b>\n"
+        f"• Количество: <b>{r.quantity}</b>\n"
         f"• Период: {r.rental_period_text or '—'}\n"
+        f"• Доставка: {delivery}\n"
+        f"{address_line}"
         f"• Расчётная стоимость: {r.total_price or '—'}\n"
         f"• Финальная стоимость: {r.final_price or '—'}\n\n"
-        f"{format_user_line('👤 Клиент', client)}\n"
+        f"👤 Клиент: {r.client_name or '—'}\n"
+        f"Telegram: {username} / tg_id={getattr(client, 'telegram_id', '—')}\n"
         f"☎️ Телефон: {r.client_phone or '—'}\n"
         f"💬 Комментарий клиента: {r.client_comment or '—'}\n"
         f"📝 Комментарий менеджера: {r.manager_comment or '—'}\n"

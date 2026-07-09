@@ -15,10 +15,12 @@ from handlers.notification import (
     format_new_support_ticket,
     format_support_closed,
     format_support_reply,
+    format_support_user_reply,
     format_user_rental_created,
     format_user_rental_status_changed,
     format_user_support_created,
 )
+from handlers.support.helpers_support import build_support_continue_keyboard
 
 logger = logging.getLogger(__name__)
 
@@ -137,9 +139,17 @@ class NotificationService:
         """Уведомить клиента, что обращение в поддержку создано."""
         return await self.send_to_user(user_telegram_id, format_user_support_created(ticket))
 
+    async def notify_admins_support_user_reply(self, admin_ids: Iterable[int], ticket: SupportTicketOut, user: UserOut, reply_text: str, *, reply_markup=None) -> dict[int | str, bool]:
+        """Уведомить администраторов о новом сообщении клиента в открытом тикете."""
+        return await self.send_to_admins(admin_ids, format_support_user_reply(ticket, user, reply_text), reply_markup=reply_markup)
+
     async def notify_user_support_reply(self, user_telegram_id: int, ticket: SupportTicketOut, reply_text: str) -> bool:
         """Отправить клиенту ответ сотрудника по обращению в поддержку."""
-        return await self.send_to_user(user_telegram_id, format_support_reply(ticket, reply_text))
+        return await self.send_to_user(
+            user_telegram_id,
+            format_support_reply(ticket, reply_text),
+            reply_markup=build_support_continue_keyboard(ticket.id)
+        )
 
     async def notify_user_support_ticket_closed(self, user_telegram_id: int, ticket: SupportTicketOut) -> bool:
         """Уведомить клиента, что его обращение в поддержку закрыто."""

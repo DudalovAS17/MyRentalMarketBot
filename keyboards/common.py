@@ -4,8 +4,8 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, KeyboardBu
 
 from schemas.category import CategoryOut
 from status.rental_status import OPEN_STATUSES
-from utils.callbacks import (CAT_CB_PREFIX, SEARCH_FILTERS_CB, BACK_TO_MENU_CB, RENTAL_DETAILS_CB,
-                             CANCEL_RENT_FLOW_CB, CONFIRM_RENT_CB, PROFILE_BACK_TO_SETTINGS) # SEARCH_CITY_CB,
+from utils.callbacks import (CAT_CB_PREFIX, SEARCH_FILTERS_CB, BACK_TO_MENU_CB, RENTAL_DETAILS_CB, CANCEL_RENT_FLOW_CB,
+                             CONFIRM_RENT_CB, PROFILE_BACK_TO_SETTINGS, RENT_BACK_CB, RENT_CHANGE_CB) # SEARCH_CITY_CB,
 
 # ──────────────────────────────────────────── base ────────────────────────────────────────────────────────────────────
 def get_main_menu_keyboard() -> ReplyKeyboardMarkup:
@@ -110,6 +110,8 @@ def build_rent_confirmation_keyboard() -> InlineKeyboardMarkup: # start_date: st
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [InlineKeyboardButton(text="✅ Отправить заявку менеджеру", callback_data=CONFIRM_RENT_CB)],
+            [InlineKeyboardButton(text="✏️ Изменить", callback_data=RENT_CHANGE_CB)],
+            [InlineKeyboardButton(text="⬅️ Назад", callback_data=RENT_BACK_CB)],
             [InlineKeyboardButton(text="❌ Отменить аренду", callback_data=CANCEL_RENT_FLOW_CB)], # или f"{ITEM_DETAILS}{item_id}"???
         ]
     )

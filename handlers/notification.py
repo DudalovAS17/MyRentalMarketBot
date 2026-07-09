@@ -24,6 +24,19 @@ def rental_id(details: RentalDetailsOut | RentalAdminDetailsOut) -> int:
     """Вернуть ID заявки из клиентского или админского details DTO."""
     return details.rental.id
 
+def support_context(ticket: SupportTicketOut) -> str:
+    """Вернуть человекочитаемый контекст тикета поддержки."""
+    if ticket.rental_id:
+        return f"Аренда #{ticket.rental_id}"
+    if ticket.item_id:
+        return f"Товар #{ticket.item_id}"
+    return "Общий вопрос"
+
+def format_support_user(user: UserOut) -> str:
+    """Сформировать подпись клиента для админского уведомления."""
+    username = f"@{safe(user.username)}" if user.username else "без username"
+    return f"{username} · 🆔 {user.id}"
+
 # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 def format_new_rental_request(details: RentalDetailsOut | RentalAdminDetailsOut) -> str:
     """Сформировать уведомление админам о новой заявке."""
@@ -31,17 +44,20 @@ def format_new_rental_request(details: RentalDetailsOut | RentalAdminDetailsOut)
     user = details.user
     item = details.item
     username = f"@{safe(user.username)}" if user.username else "—"
-    period = safe(rental.rental_period_text)
-    comment = safe(rental.client_comment)
+    delivery = "нужна" if rental.delivery_needed else "не нужна"
+    address_line = f"Адрес: {safe(rental.delivery_address)}\n" if rental.delivery_needed else ""
     return (
-        "🔔 <b>Новая заявка на аренду</b>\n\n"
-        f"🆕 Заявка №{rental.id}\n"
-        f"Клиент: {safe(rental.client_name) or username}\n"
-        f"Telegram: {username}\n"
-        f"Телефон: {safe(rental.client_phone)}\n"
+        f"🆕 <b>Новая заявка #{rental.id}</b>\n\n"
         f"Товар: {safe(item.title)}\n"
-        f"Период: {period}\n"
-        f"Комментарий: {comment}\n\n"
+        f"Количество: {rental.quantity}\n"
+        f"Срок: {safe(rental.rental_period_text)}\n"
+        f"Доставка: {delivery}\n"
+        f"{address_line}\n"
+        f"Клиент: {safe(rental.client_name)}\n"
+        f"Телефон: {safe(rental.client_phone)}\n"
+        f"Telegram: {username}\n\n"
+        f"Комментарий:\n{safe(rental.client_comment)}\n\n"
+        f"Статус: {escape(STATUS_LABELS.get(rental.status, rental.status.value))}"
         "Откройте админку для обработки."
     )
 
@@ -96,15 +112,24 @@ def format_client_cancelled_rental(details: RentalDetailsOut | RentalAdminDetail
 
 def format_new_support_ticket(ticket: SupportTicketOut, user: UserOut) -> str:
     """Сформировать уведомление админам о новом тикете поддержки."""
-    username = f"@{safe(user.username)} (🆔 id={user.id})" if user.username else "—"
-    rental = f"#{ticket.rental_id}" if ticket.rental_id else "—"
     return (
         "💬 <b>Новое обращение в поддержку</b>\n\n"
         f"🎫 Тикет №{ticket.id}\n"
         #f"📅 <b>Создан:</b> {format_datetime(ticket.created_at)}\n"
-        f"👤 <b>Клиент</b>: {username}\n"
-        f"📝 <b>Текст:</b>: {safe(ticket.text)}\n"
-        f"📄 Связанная заявка: {rental}"
+        f"👤 <b>Клиент</b>: {format_support_user(user)}\n"
+        f"📌 <b>Контекст:</b> {support_context(ticket)}\n"
+        f"📝 <b>Сообщение:</b>\n{safe(ticket.text)}"
+        #f"📄 Связанная заявка: {rental}"
+    )
+
+def format_support_user_reply(ticket: SupportTicketOut, user: UserOut, reply_text: str) -> str:
+    """Сформировать уведомление админам о новом сообщении клиента в открытом тикете."""
+    return (
+        "💬 <b>Новое сообщение в открытом тикете</b>\n\n"
+        f"🎫 <b>Тикет:</b> №{ticket.id}\n"
+        f"👤 <b>Клиент:</b> {format_support_user(user)}\n"
+        f"📌 <b>Контекст:</b> {support_context(ticket)}\n"
+        f"📝 <b>Сообщение клиента:</b>\n{safe(reply_text)}"
     )
 
 def format_user_support_created(ticket: SupportTicketOut) -> str:
@@ -113,7 +138,11 @@ def format_user_support_created(ticket: SupportTicketOut) -> str:
 
 def format_support_reply(ticket: SupportTicketOut, reply_text: str) -> str:
     """Сформировать сообщение клиенту с ответом поддержки."""
-    return f"💬 <b>Ответ поддержки</b>\n\n{safe(reply_text)}"
+    return (
+        f"💬 <b>Ответ поддержки по тикету №{ticket.id}</b>\n\n"
+        f"{safe(reply_text)}\n\n"
+        "Если нужно уточнить детали, ответьте в этот же тикет кнопкой ниже."
+    )
 
 def format_support_closed(ticket: SupportTicketOut) -> str:
     """Сформировать уведомление клиенту о закрытии тикета поддержки."""

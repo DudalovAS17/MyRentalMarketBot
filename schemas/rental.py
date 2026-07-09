@@ -28,7 +28,7 @@ class RentalCreate(BaseModel):
     #end_date: Optional[AwareDatetime] = None
     rental_period_text: Optional[str] = Field(None, max_length=100)
 
-    #quantity: int = Field(1, ge=1)
+    quantity: int = Field(1, ge=1)
 
     delivery_needed: Optional[bool] = None
     delivery_address: Optional[str] = None
@@ -144,7 +144,7 @@ class RentalCreateDraft(BaseModel):
     #end_date: Optional[str] = None
 
     rental_period_text: Optional[str] = Field(default=None, max_length=100)
-    #quantity: Optional[int] = Field(default=None, ge=1)
+    quantity: Optional[int] = Field(default=None, ge=1)
 
     delivery_needed: Optional[bool] = None
     delivery_address: Optional[str] = None

@@ -196,6 +196,18 @@ class SupportTicketRepository(BaseRepository):
             return await self._execute_update_commit(s, stmt)
 
     # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+    async def append_user_reply(self, *, ticket_id: int, reply_text: str) -> Optional[SupportTicket]:
+        """Добавить сообщение клиента в открытый тикет и обновить время активности."""
+        async with self._session() as s:
+            obj: Optional[SupportTicket] = await s.get(SupportTicket, ticket_id)
+            if not obj or obj.status != SupportTicketStatus.OPEN:
+                return None
+
+            normalized = reply_text.strip()
+            obj.text = f"{obj.text.rstrip()}\n\n— Дополнение клиента —\n{normalized}"
+            return await self._commit_refresh(s, obj)
+
+    # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
     async def create(self, ticket_data: SupportTicketCreateInternal) -> SupportTicket:
         """Создать новое обращение клиента в поддержку."""
         payload = ticket_data.model_dump()

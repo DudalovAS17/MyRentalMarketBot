@@ -1,6 +1,8 @@
 from datetime import datetime
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
+from utils.callbacks import SUPPORT_CONTINUE
+
 # ──────────────────────────────────────── Format ──────────────────────────────────────────────────────────────────────
 def format_datetime(dt: datetime | None) -> str:
     """Сформатировать дату для UI поддержки."""
@@ -31,7 +33,8 @@ def build_support_already_open_text(ticket_id: int, *, kind: str | None = None) 
     """Сформировать текст ошибки уже открытого тикета."""
     return (
         f"⚠️ У вас уже есть открытое обращение {support_kind_name(kind)}.\n"
-        "Дождитесь ответа поддержки или создайте новое после закрытия."
+        #"Дождитесь ответа поддержки или создайте новое после закрытия."
+        "Если хотите добавить сообщение в этот тикет, нажмите кнопку ниже."
     )
 
 def build_support_already_open_after_create_text(ticket_id: int) -> str:
@@ -47,5 +50,13 @@ def build_support_cancel_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [InlineKeyboardButton(text="❌ Отмена", callback_data="support:cancel")] # "cancel_support"
+        ]
+    )
+
+def build_support_continue_keyboard(ticket_id: int) -> InlineKeyboardMarkup:
+    """Собрать клавиатуру для продолжения открытого тикета клиентом."""
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="✉️ Ответить в тикет", callback_data=f"{SUPPORT_CONTINUE}{ticket_id}")]
         ]
     )

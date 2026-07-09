@@ -1,6 +1,7 @@
 from decimal import Decimal
 from aiogram.types import CallbackQuery, Message
 from aiogram.fsm.context import FSMContext
+from pydantic import ValidationError as PydanticValidationError
 
 from utils.functions import abort_rent_flow
 from utils.errors import ValidationError
@@ -25,7 +26,7 @@ async def get_rent_draft_context_or_abort(
 
     try:
         draft = RentalCreateDraft.model_validate(draft_dict)
-    except ValidationError: # PydanticValidationError
+    except PydanticValidationError: # ValidationError
         await abort_rent_flow(event, state, data_err, rent_ui_message_id) # rent_data_err
         return None
 

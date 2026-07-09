@@ -59,6 +59,7 @@ DEALS_CONFIRM_PREFIX = "admin:deals:confirm:"
 DEALS_REJECT_PREFIX = "admin:deals:reject:"
 DEALS_COMPLETE_PREFIX = "admin:deals:complete:"
 DEALS_CANCEL_PREFIX = "admin:deals:cancel:"
+DEALS_COMMENT_PREFIX = "admin:deals:comment:"
 
 # items moderation
 ADMIN_ITEMS_MOD = "admin:items"
@@ -124,6 +125,14 @@ CANCEL_RENT_FLOW_CB = "cancel_rent_flow" # new
 RENT_ITEM_CB = "rent_item:"
 RENT_PERIOD_CB = "rent_period:"
 
+RENT_QUANTITY_CB = "rent_quantity:"
+RENT_DELIVERY_CB = "rent_delivery:"
+RENT_BACK_CB = "rent_back"
+RENT_USE_PROFILE_NAME_CB = "rent_use_profile_name"
+RENT_USE_PROFILE_PHONE_CB = "rent_use_profile_phone"
+RENT_SKIP_COMMENT_CB = "rent_skip_comment"
+RENT_CHANGE_CB = "rent_change"
+
 # details
 MY_RENTALS_CB = "rental_list" # back_to_rentals
 RENTAL_DETAILS_CB = "rental_details:"
@@ -152,6 +161,7 @@ SUPPORT = "support"
 
 SUPPORT_START = "support:start"
 SUPPORT_CANCEL = "support:cancel" # "cancel_support"
+SUPPORT_CONTINUE = "support:continue:"
 CLIENT_SUPPORT_RENTAL_CB = "rental_action:support_by_client:" # "rental_action:support:"
 
 

@@ -143,7 +143,7 @@ async def _parse_accessible_rental_id(
 
     return rental_id
 """
-# ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+# ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 async def abort_if_item_unavailable(event: CallbackQuery | Message, rental_service: RentalService, item: ItemOut) -> bool:
     """Вернуть True, если rent-flow нужно остановить из-за недоступности товара."""
 
@@ -182,3 +182,65 @@ def calculate_price_for_fixed_period_total(
         return period_prices[period_code]
 
     return item_price if isinstance(item_price, Decimal) else Decimal(str(item_price)).quantize(Decimal("0.01"))
+
+# ────────────────────────────────────── NEW: Structured MVP rental request helpers ────────────────────────────────────
+def parse_positive_int(text: str | None) -> int | None:
+    if not text:
+        return None
+    value = text.strip()
+    if not value.isdigit():
+        return None
+    parsed = int(value)
+    return parsed if parsed >= 1 else None
+
+def parse_rent_quantity_code(data: str | None) -> int | None:
+    from utils.callbacks import RENT_QUANTITY_CB
+
+    if not data or not data.startswith(RENT_QUANTITY_CB):
+        return None
+    raw = data.removeprefix(RENT_QUANTITY_CB)
+    if raw == "manual":
+        return None
+    return parse_positive_int(raw)
+
+def is_quantity_available(quantity: int, available_quantity: int | None) -> bool:
+    return quantity >= 1 and (available_quantity is None or quantity <= available_quantity)
+
+def parse_delivery_choice(data: str | None) -> bool | None:
+    from utils.callbacks import RENT_DELIVERY_CB
+
+    if not data or not data.startswith(RENT_DELIVERY_CB):
+        return None
+    raw = data.removeprefix(RENT_DELIVERY_CB)
+    if raw == "yes":
+        return True
+    if raw == "no":
+        return False
+    return None
+
+def normalize_phone(text: str | None) -> str | None:
+    if not text:
+        return None
+    value = text.strip()
+    digits = re.sub(r"\D", "", value)
+    if len(digits) < 10 or len(digits) > 15:
+        return None
+    if value.startswith("+"):
+        return "+" + digits
+    if len(digits) == 11 and digits.startswith("8"):
+        return "+7" + digits[1:]
+    if len(digits) == 10:
+        return "+7" + digits
+    return "+" + digits
+
+def is_rent_draft_complete(draft) -> bool:
+    return bool(
+        draft.item_id
+        and draft.quantity
+        and draft.quantity >= 1
+        and draft.rental_period_text
+        and draft.delivery_needed is not None
+        and (not draft.delivery_needed or draft.delivery_address)
+        and draft.client_name
+        and draft.client_phone
+    )

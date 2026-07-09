@@ -4,7 +4,7 @@ from typing import Optional
 from db.repositories.rental import RentalRepository
 from services.admin_service import AdminActionService
 
-from schemas.rental import RentalOut, RentalAdminDetailsOut
+from schemas.rental import RentalOut, RentalAdminDetailsOut, RentalUpdate
 from schemas.item import ItemOut
 from schemas.user import UserOut
 from status.admin_status import AdminEntityType, admin_action_for_rental_status
@@ -250,16 +250,26 @@ class AdminRentalService:
             strict=strict,
         )
 
+    async def update_manager_comment( self, *, rental_id: int, admin_tg_id: int, manager_comment: str, strict: bool = False,
+    ) -> Optional[RentalOut]:
+        """Обновить внутренний комментарий менеджера без смены статуса."""
+        normalized_comment = self._validate_non_empty_text(manager_comment, "Комментарий менеджера")
+        updated = await self.repo.update(rental_id, RentalUpdate(manager_comment=normalized_comment))
+        if not updated:
+            if strict:
+                raise NotFoundError(f"Заявка не найдена: id={rental_id}")
+            return None
+
+        await self.admin_service.log_action(
+            admin_tg_id=admin_tg_id,
+            action_type=admin_action_for_rental_status(updated.status),
+            entity_type=AdminEntityType.RENTAL,
+            entity_id=rental_id,
+            note=f"Сотрудник обновил комментарий менеджера заявки #{rental_id}",
+            payload={"manager_comment": normalized_comment},
+        )
+        return self._to_rental_out(updated)
+
     # На будущее:
         # Переход (начало аренды [менеджер выдал товар клиенту]): CONFIRMED → ACTIVE / ISSUED - start_rental()
         # Переход (Открыть спор: может owner или renter): ACTIVE → DISPUTED - open_dispute()
-
-"""
-    В нашем новом домене компания сама управляет выдачей товара. Если когда-нибудь понадобится выдача/возврат:
-        AdminRentalService.mark_item_issued()
-        AdminRentalService.mark_item_returned()
-    
-    это аналог из rental_service (удалены)
-        confirm_handover_by_owner - Владелец нажал 'Передал вещь' (CONFIRMED)
-        confirm_receive_by_renter - Арендатор нажал 'Получил вещь' (CONFIRMED)
-"""

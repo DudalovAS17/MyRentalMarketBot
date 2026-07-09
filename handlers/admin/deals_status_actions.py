@@ -10,7 +10,8 @@ from .admin_helpers.parse import parse_admin_rental_id
 
 from states.admin import AdminStates
 from utils.functions import send_or_edit
-from utils.callbacks import DEALS_PROGRESS_PREFIX, DEALS_CONFIRM_PREFIX, DEALS_REJECT_PREFIX, DEALS_COMPLETE_PREFIX, DEALS_CANCEL_PREFIX
+from utils.callbacks import (DEALS_PROGRESS_PREFIX, DEALS_CONFIRM_PREFIX, DEALS_REJECT_PREFIX, DEALS_COMPLETE_PREFIX,
+                             DEALS_CANCEL_PREFIX, DEALS_COMMENT_PREFIX)
 
 admin_status_actions_router = Router()
 
@@ -148,6 +149,44 @@ async def admin_deals_cancel_apply(
     await notify_user_about_admin_rental_status(admin_rental_service, notification_service, rental_id)
 
     await show_deal_card(message, admin_rental_service, rental_id) # , prefix_text="✅ Заявка отклонена.\n\n")
+
+# ─────────── FSM: 📝 Комментарий менеджера ──────────────
+@admin_status_actions_router.callback_query(F.data.startswith(DEALS_COMMENT_PREFIX))
+async def admin_deals_comment_ask(callback: CallbackQuery, state: FSMContext) -> None:
+    """FSM: Запросить внутренний комментарий менеджера."""
+    rental_id = parse_admin_rental_id(callback.data)
+    if rental_id is None:
+        await callback.answer("Некорректный ID заявки", show_alert=True)
+        return
+
+    await callback.answer()
+    await state.set_state(AdminStates.waiting_rental_manager_comment)
+    await state.update_data(rental_id=rental_id)
+    await send_or_edit(callback, f"📝 Введите комментарий менеджера для заявки #{rental_id}:", None)
+
+
+@admin_status_actions_router.message(AdminStates.waiting_rental_manager_comment)
+async def admin_deals_comment_apply(
+        message: Message,
+        state: FSMContext,
+        admin_rental_service: AdminRentalService,
+) -> None:
+    """Сохранить внутренний комментарий менеджера."""
+    result = await get_reasoned_action_payload(message, state)
+    if result is None:
+        return
+    rental_id, comment = result
+
+    updated = await admin_rental_service.update_manager_comment(
+        rental_id=rental_id,
+        admin_tg_id=message.from_user.id,
+        manager_comment=comment,
+    )
+    if not updated:
+        await message.answer("❌ Не удалось сохранить комментарий менеджера.")
+        return
+
+    await show_deal_card(message, admin_rental_service, rental_id, "✅ Комментарий менеджера сохранён.\n\n")
 
 
 # ─────────────────────────────────────────────────── helpers ──────────────────────────────────────────────────────────

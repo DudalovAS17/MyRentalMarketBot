@@ -1,6 +1,9 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-from utils.callbacks import ITEM_DETAILS_CB, BACK_TO_MENU_CB, MY_RENTALS_CB, RENT_PERIOD_CB
+from utils.callbacks import (ITEM_DETAILS_CB, BACK_TO_MENU_CB, MY_RENTALS_CB, RENT_PERIOD_CB,
+                             RENT_QUANTITY_CB, RENT_DELIVERY_CB, RENT_BACK_CB,
+                             CANCEL_RENT_FLOW_CB, CONFIRM_RENT_CB, RENT_SKIP_COMMENT_CB, RENT_CHANGE_CB)
+
 
 PERIOD_OPTIONS: tuple[tuple[str, str, int | None], ...] = (
     ("1d", "1 день", 1),
@@ -11,19 +14,84 @@ PERIOD_OPTIONS: tuple[tuple[str, str, int | None], ...] = (
 PERIOD_LABELS: dict[str, str] = {code: label for code, label, _ in PERIOD_OPTIONS}
 PERIOD_DAYS: dict[str, int | None] = {code: days for code, _, days in PERIOD_OPTIONS}
 
+
+def build_rent_step_keyboard(*, include_back: bool = True) -> InlineKeyboardMarkup:
+    rows: list[list[InlineKeyboardButton]] = []
+    #if include_back:
+    #    rows.append([InlineKeyboardButton(text="⬅️ Назад", callback_data=RENT_BACK_CB)])
+    rows.append([InlineKeyboardButton(text="❌ Отменить", callback_data=CANCEL_RENT_FLOW_CB)])
+    return InlineKeyboardMarkup(inline_keyboard=rows)
+
+# кол-во товара
+def build_rent_quantity_keyboard(available_quantity: int) -> InlineKeyboardMarkup:
+    quick_values = [value for value in (1, 2, 3) if value <= max(available_quantity, 1)]
+    rows = [[InlineKeyboardButton(text=str(value), callback_data=f"{RENT_QUANTITY_CB}{value}") for value in quick_values]]
+
+    rows.append([InlineKeyboardButton(text="✍️ Ввести другое количество сообщением", callback_data=f"{RENT_QUANTITY_CB}manual")])
+    rows.append([InlineKeyboardButton(text="❌ Отменить", callback_data=CANCEL_RENT_FLOW_CB)])
+    return InlineKeyboardMarkup(inline_keyboard=rows)
+
+# диапазон дат
 def build_rent_period_keyboard(item_id: int) -> InlineKeyboardMarkup:
     """Собрать клавиатуру выбора фиксированного диапазона аренды."""
     rows = [
         [InlineKeyboardButton(text=label, callback_data=f"{RENT_PERIOD_CB}{code}")]
         for code, label, _ in PERIOD_OPTIONS
     ]
-    rows.extend(
-        [
-            #[InlineKeyboardButton(text="✍️ Ввести кол-во дней", callback_data=CUSTOM_RENT_DATES_CB)],
-            [InlineKeyboardButton(text="🔙 Назад к товару", callback_data=f"{ITEM_DETAILS_CB}{item_id}")],
+    #rows.append([InlineKeyboardButton(text="⬅️ Назад", callback_data=RENT_BACK_CB)])
+    rows.append([InlineKeyboardButton(text="❌ Отменить", callback_data=CANCEL_RENT_FLOW_CB)]) # "🔙 Назад к товару": f"{ITEM_DETAILS_CB}{item_id}"
+    return InlineKeyboardMarkup(inline_keyboard=rows)
+
+# доставка
+def build_rent_delivery_keyboard() -> InlineKeyboardMarkup:
+    """Собрать клавиатуру выбора условий доставки."""
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="🚚 Нужна доставка", callback_data=f"{RENT_DELIVERY_CB}yes")],
+            [InlineKeyboardButton(text="🚫 Самовывоз / без доставки", callback_data=f"{RENT_DELIVERY_CB}no")],
+            #[InlineKeyboardButton(text="⬅️ Назад", callback_data=RENT_BACK_CB)],
+            [InlineKeyboardButton(text="❌ Отменить", callback_data=CANCEL_RENT_FLOW_CB)],
         ]
     )
+
+# телефон
+def build_rent_contact_keyboard(use_profile_callback: str | None) -> InlineKeyboardMarkup:
+    """Собрать клавиатуру выбора телефона."""
+    rows: list[list[InlineKeyboardButton]] = []
+    if use_profile_callback:
+        rows.append([InlineKeyboardButton(text="✅ Использовать из профиля", callback_data=use_profile_callback)])
+    #rows.append([InlineKeyboardButton(text="⬅️ Назад", callback_data=RENT_BACK_CB)])
+    rows.append([InlineKeyboardButton(text="❌ Отменить", callback_data=CANCEL_RENT_FLOW_CB)])
     return InlineKeyboardMarkup(inline_keyboard=rows)
+
+# комментарий
+def build_rent_comment_keyboard() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="⏭️ Без комментария", callback_data=RENT_SKIP_COMMENT_CB)],
+            #[InlineKeyboardButton(text="⬅️ Назад", callback_data=RENT_BACK_CB)],
+            [InlineKeyboardButton(text="❌ Отменить", callback_data=CANCEL_RENT_FLOW_CB)],
+        ]
+    )
+
+def build_rent_confirmation_keyboard() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="✅ Отправить заявку", callback_data=CONFIRM_RENT_CB)],
+            #[InlineKeyboardButton(text="✏️ Изменить", callback_data=RENT_CHANGE_CB)],
+            #[InlineKeyboardButton(text="⬅️ Назад", callback_data=RENT_BACK_CB)],
+            [InlineKeyboardButton(text="❌ Отменить", callback_data=CANCEL_RENT_FLOW_CB)],
+        ]
+    )
+
+def build_rent_success_keyboard() -> InlineKeyboardMarkup:
+    """Собрать клавиатуру после успешной отправки заявки."""
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="📋 Мои аренды", callback_data=MY_RENTALS_CB)],
+            [InlineKeyboardButton(text="🏠 Главное меню", callback_data=BACK_TO_MENU_CB)],
+        ]
+    )
 
 def build_rent_cancel_keyboard(item_id: int | None) -> InlineKeyboardMarkup:
     """Собрать клавиатуру экрана отмены rent-flow"""
@@ -35,12 +103,3 @@ def build_rent_cancel_keyboard(item_id: int | None) -> InlineKeyboardMarkup:
     rows.append([InlineKeyboardButton(text="🏠 Главное меню", callback_data=BACK_TO_MENU_CB)])
 
     return InlineKeyboardMarkup(inline_keyboard=rows)
-
-def build_rent_success_keyboard() -> InlineKeyboardMarkup:
-    """Собрать клавиатуру после успешной отправки заявки."""
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [InlineKeyboardButton(text="📋 Мои аренды", callback_data=MY_RENTALS_CB)],
-            [InlineKeyboardButton(text="🏠 Главное меню", callback_data=BACK_TO_MENU_CB)],
-        ]
-    )

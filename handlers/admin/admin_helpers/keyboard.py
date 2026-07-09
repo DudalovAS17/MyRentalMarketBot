@@ -6,7 +6,8 @@ from status.user_status import AccountStatus
 from status.support_ticket_status import SupportTicketStatus
 from schemas.rental import RentalAdminDetailsOut
 from utils.callbacks import (ADMIN_ADD_ITEM_CB, BACK_TO_ADMIN_MENU_CB, ADMIN_SUPPORT, ADMIN_SUPPORT_ITEMS, ADMIN_SUPPORT_RENTALS,
-                             ADMIN_EXIT_PREFIX, DEALS_PREFIX, ADMIN_USERS_MOD, ADMIN_CONTENT, ADMIN_ITEMS_MOD, ADMIN_SUPPORT_GENERAL)
+                             ADMIN_EXIT_PREFIX, DEALS_PREFIX, ADMIN_USERS_MOD, ADMIN_CONTENT, ADMIN_ITEMS_MOD, ADMIN_SUPPORT_GENERAL,
+                             DEALS_VIEW_PREFIX, DEALS_PROGRESS_PREFIX, DEALS_CONFIRM_PREFIX, DEALS_REJECT_PREFIX, DEALS_COMMENT_PREFIX)
 
 
 # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -159,8 +160,21 @@ def get_admin_deal_details_keyboard(rental_id: int, status: RentalStatus) -> Inl
     # if status == RentalStatus.DISPUTED:
     #     kb.append([InlineKeyboardButton(text="✅ Закрыть спор", callback_data=f"admin:deals:resolve:{rental_id}")])
 
+    kb.append([InlineKeyboardButton(text="📝 Комментарий", callback_data=f"{DEALS_COMMENT_PREFIX}{rental_id}")])
     kb.append([InlineKeyboardButton(text="🔙 К списку", callback_data="admin:deals")])
 
+    return InlineKeyboardMarkup(inline_keyboard=kb)
+
+def get_admin_new_rental_notification_keyboard(rental_id: int, user_telegram_id: int | None = None) -> InlineKeyboardMarkup:
+    """Клавиатура уведомления админам о новой заявке на аренду."""
+    kb = [
+        [InlineKeyboardButton(text="🔎 Открыть заявку", callback_data=f"{DEALS_VIEW_PREFIX}{rental_id}")],
+        [InlineKeyboardButton(text="✅ Взять в работу", callback_data=f"{DEALS_PROGRESS_PREFIX}{rental_id}")],
+        [InlineKeyboardButton(text="✅ Подтвердить", callback_data=f"{DEALS_CONFIRM_PREFIX}{rental_id}")],
+        [InlineKeyboardButton(text="❌ Отклонить", callback_data=f"{DEALS_REJECT_PREFIX}{rental_id}")],
+    ]
+    if user_telegram_id:
+        kb.append([InlineKeyboardButton(text="📞 Контакт клиента", url=f"tg://user?id={user_telegram_id}")])
     return InlineKeyboardMarkup(inline_keyboard=kb)
 
 def get_admin_dispute_target_keyboard(rental_id: int) -> InlineKeyboardMarkup:
@@ -172,7 +186,6 @@ def get_admin_dispute_target_keyboard(rental_id: int) -> InlineKeyboardMarkup:
             [InlineKeyboardButton(text="🔙 Отмена", callback_data=f"admin:deals:view:{rental_id}")],
         ]
     )
-
 
 # ───────────────────────────────────────────────── ADMIN SUPPORT ──────────────────────────────────────────────────────
 def get_admin_support_sections_keyboard() -> InlineKeyboardMarkup:

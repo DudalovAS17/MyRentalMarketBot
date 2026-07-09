@@ -109,6 +109,25 @@ class SupportService:
 
 
     # ─────────────────────────────────────────── Service actions ──────────────────────────────────────────────────────
+    async def append_user_reply(self, *, ticket_id: int, user_id: int, reply_text: str, strict: bool = False) -> \
+    Optional[SupportTicketOut]:
+        """Добавить сообщение клиента в существующий открытый тикет."""
+        normalized = self._normalize_required_text(reply_text, "Ответ")
+        ticket = await self.get_ticket_by_id(ticket_id)
+        if not ticket or ticket.user_id != user_id:
+            if strict:
+                raise NotFoundError(f"Открытое обращение в поддержку не найдено: id={ticket_id}")
+            return None
+
+        obj = await self.repo.append_user_reply(ticket_id=ticket_id, reply_text=normalized)
+        if not obj:
+            if strict:
+                raise ConflictError("Обращение в поддержку не найдено или уже закрыто")
+            return None
+
+        #logger.info("Клиент добавил сообщение в тикет поддержки: id=%s user_id=%s", ticket_id, user_id)
+        return self._to_out(obj)
+
     async def mark_admin_replied(self, *, ticket_id: int, strict: bool = False) -> bool:
         """Отметить, что администратор/менеджер ответил по обращению."""
         ok = await self.repo.touch_admin_reply(ticket_id=ticket_id)
