@@ -4,7 +4,8 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, KeyboardBu
 
 from schemas.category import CategoryOut
 from status.rental_status import OPEN_STATUSES, STATUS_LABELS
-from utils.callbacks import CAT_CB_PREFIX, BACK_TO_MENU_CB, RENTAL_DETAILS_CB, PROFILE_BACK_TO_SETTINGS, MY_RENTALS_CB
+from utils.callbacks import (CAT_CB_PREFIX, BACK_TO_MENU_CB, RENTAL_DETAILS_CB, PROFILE_BACK_TO_SETTINGS, MY_RENTALS_CB,
+                             BACK_TO_CAT, SUPPORT_START)
 # SEARCH_CITY_CB, SEARCH_FILTERS_CB, CANCEL_RENT_FLOW_CB, CONFIRM_RENT_CB, RENT_BACK_CB, RENT_CHANGE_CB,
 
 # ──────────────────────────────────────────── base ────────────────────────────────────────────────────────────────────
@@ -13,11 +14,29 @@ def get_main_menu_keyboard() -> ReplyKeyboardMarkup:
     keyboard = [
         [KeyboardButton(text="🛠 Каталог товаров"), KeyboardButton(text="🔎 Поиск оборудования")],
         [KeyboardButton(text="📋 Мои аренды"), KeyboardButton(text="👤 Профиль")],
-        [KeyboardButton(text="📞 Поддержка"), KeyboardButton(text="❓ Помощь")], # ℹ️ Условия аренды
+        [KeyboardButton(text="📞 Связаться с менеджером"), KeyboardButton(text="❓ FAQ")], # "📞 Поддержка"
     ]
 
     return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True, input_field_placeholder="Выберите действие")
 
+def build_info_page_keyboard() -> InlineKeyboardMarkup:
+    """Inline-навигация для простых информационных текстов из главного меню."""
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="🏗 Каталог", callback_data=BACK_TO_CAT)],
+            [InlineKeyboardButton(text="💬 Поддержка", callback_data=SUPPORT_START)],
+            [InlineKeyboardButton(text="🏠 Главное меню", callback_data=BACK_TO_MENU_CB)],
+        ]
+    )
+
+def build_faq_sections_keyboard() -> ReplyKeyboardMarkup:
+    """Reply-клавиатура подразделов FAQ/информации."""
+    keyboard = [
+        [KeyboardButton(text="ℹ️ Условия аренды"), KeyboardButton(text="🚚 Доставка и оплата")],
+        [KeyboardButton(text="📍 Как получить оборудование"), KeyboardButton(text="📞 Связаться с менеджером")],
+        [KeyboardButton(text="🏠 Главное меню")],
+    ]
+    return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True, input_field_placeholder="Выберите раздел")
 
 # ───────────────────────────────────────────── category ───────────────────────────────────────────────────────────────
 def build_category_keyboard(
@@ -85,7 +104,7 @@ def build_empty_my_rentals_keyboard() -> InlineKeyboardMarkup:
     )
 
 
-def build_my_rentals_keyboard(rentals, *, limit: int = 30) -> InlineKeyboardMarkup:
+def build_my_rentals_keyboard(rentals, *, current_user_id: int, limit: int = 30) -> InlineKeyboardMarkup:
     """Собрать клавиатуру списка сделок пользователя"""
     rows: list[list[InlineKeyboardButton]] = []
 
@@ -128,7 +147,7 @@ def get_profile_keyboard() -> InlineKeyboardMarkup:
     #builder.button(text="🏆 Достижения", callback_data="achievements")
     #builder.button(text ="📊 Статистика", callback_data="profile_stats")
 
-    #builder.button(text="🕘 История обращений", callback_data=PROFILE_SUPPORT_HISTORY)
+    #builder.button(text="🕘 История заявок", callback_data=PROFILE_SUPPORT_HISTORY)
     builder.button(text="🔔 Уведомления", callback_data="profile_notifications")  # "settings_notifications"
 
     builder.button(text = "⬅️ В главное меню", callback_data=BACK_TO_MENU_CB)

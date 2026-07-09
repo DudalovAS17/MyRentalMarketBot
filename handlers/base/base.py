@@ -2,6 +2,7 @@ from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 from aiogram.filters import CommandStart
+from aiogram.exceptions import TelegramBadRequest
 
 from handlers.base.helpers_base import (resolve_main_menu_action, normalize_menu_text, safe_answer_for_blocked,
                                         CANCELLED_TO_MAIN_MENU_TEXT, UNKNOWN_MAIN_MENU_TEXT)
@@ -55,6 +56,11 @@ async def start(message: Message, state: FSMContext, user_service: UserService) 
 async def show_main_menu_callback(callback: CallbackQuery, user) -> None:
     """Показать главное меню по callback-кнопке"""
     await callback.answer()
+
+    try: # NEW
+        await callback.message.delete()
+    except TelegramBadRequest:
+        pass
 
     await show_main_menu(callback, user)
 

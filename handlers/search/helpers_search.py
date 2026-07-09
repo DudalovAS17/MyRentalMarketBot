@@ -9,6 +9,15 @@ from utils.validators import format_price
 from utils.callbacks import (BACK_TO_MENU_CB, PAGE_SIZE, QUERY_MIN_LEN, QUERY_MAX_LEN, SEARCH_PAGE_CB_PREFIX,
                              SEARCH_NEW_QUERY_CB, SEARCH_BACK_CB, BACK_TO_CAT)
 
+def truncate_text(text: str, max_len: int) -> str:
+    """Обрезать текст без разрыва слов и добавить многоточие."""
+    normalized = " ".join((text or "").split())
+    if len(normalized) <= max_len:
+        return normalized
+
+    truncated = normalized[:max_len].rsplit(" ", 1)[0].strip()
+    return f"{truncated or normalized[:max_len].strip()}…"
+
 # ─────────────────────────────────────── Parse and Validate ───────────────────────────────────────────────────────────
 def normalize_search_query(raw: str | None) -> str:
     """Нормализовать поисковый запрос."""
@@ -54,24 +63,31 @@ def build_empty_search_results_text(query: str) -> str:
 def build_search_results_text(query: str, items, page: int) -> str:
     """Сформировать текст страницы результатов поиска."""
 
-    header = (
-        f"🔍 <b>Поиск оборудования:</b> {escape(query)}\n"
-        f"Найдено товаров на странице: {len(items)}\n"
-        f"Страница: {page}\n\n"
-        "Выберите оборудование из списка:\n"
-    )
     if not items:
         return build_empty_search_results_text(query)
 
-    lines = []
-    for item in items:
+    header = (
+        f"🔍 <b>Поиск оборудования</b>\n"
+        f"Запрос: <i>{escape(query)}</i>\n"
+        f"Страница: {page} • Показано: {len(items)} товаров\n\n"
+        "Выберите подходящий товар ниже:\n"
+    )
+
+    cards = []
+    for index, item in enumerate(items, start=1):
         short_description = getattr(item, "short_description", None) or getattr(item, "description", "") or ""
-        short_description = " ".join(short_description.split())
-        description_suffix = f" — {escape(short_description[:80])}" if short_description else ""
-        lines.append(f"• <b>{escape(item.title)}</b> — {format_price(item.price)} ₽{description_suffix}")
+        short_description = truncate_text(short_description, 95)
 
+        card_lines = [
+            f"<b>{index}. {escape(item.title)}</b>",
+            f"💰 {format_price(item.price)} ₽/сутки",
+        ]
+        if short_description:
+            card_lines.append(f"📝 {escape(short_description)}")
 
-    return header + "\n".join(lines)
+        cards.append("\n".join(card_lines))
+
+    return header + "\n".join(cards)
 
 # ─────────────────────────────────────────────── Keyboard ─────────────────────────────────────────────────────────────
 def build_search_prompt_keyboard() -> InlineKeyboardMarkup:
