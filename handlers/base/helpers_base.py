@@ -43,7 +43,7 @@ def resolve_main_menu_action(
     # 🧭 маршрутизация
     routes = {
         "🛠 Каталог товаров": lambda: show_categories(message, category_service),
-        "🔎 Поиск": lambda: start_search(message, state),
+        "🔎 Поиск оборудования": lambda: start_search(message, state),
         "📞 Поддержка": lambda: support_start(message, state, support_service, user), # start_support_dialog
         #"❓ Помощь": lambda: help_command(message),
         "⬅️ Вернуться в меню": lambda: show_main_menu(message, user),

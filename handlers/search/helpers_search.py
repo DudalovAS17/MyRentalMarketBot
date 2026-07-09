@@ -6,8 +6,8 @@ from services.item_service import ItemService
 
 from schemas.item import ItemOut
 from utils.validators import format_price
-from utils.callbacks import (BACK_TO_MENU_CB, PAGE_SIZE, QUERY_MIN_LEN, QUERY_MAX_LEN,
-                             SEARCH_PAGE_CB_PREFIX, SEARCH_NEW_QUERY_CB, SEARCH_BACK_CB)
+from utils.callbacks import (BACK_TO_MENU_CB, PAGE_SIZE, QUERY_MIN_LEN, QUERY_MAX_LEN, SEARCH_PAGE_CB_PREFIX,
+                             SEARCH_NEW_QUERY_CB, SEARCH_BACK_CB, BACK_TO_CAT)
 
 # ─────────────────────────────────────── Parse and Validate ───────────────────────────────────────────────────────────
 def normalize_search_query(raw: str | None) -> str:
@@ -38,28 +38,38 @@ def parse_search_page(raw: str | None) -> int | None:
 def build_search_prompt_text() -> str:
     """Сформировать prompt ввода поискового запроса."""
     return (
-        "🔎 <b>Поиск по каталогу</b>\n\n"
-        "Введите название вещи или ключевое слово.\n"
-        "Например: <i>сварка</i>, <i>болгарка</i>, <i>дрель</i>."
+        "🔎 <b>Поиск оборудования</b>\n\n"
+        "Введите название оборудования или ключевое слово.\n"
+        "Например: <i>виброплита</i>, <i>генератор</i>, <i>перфоратор</i>."
     )
 
 def build_empty_search_results_text(query: str) -> str:
     """Сформировать текст пустой выдачи."""
     return (
         f"🔍 <b>Поиск:</b> {escape(query)}\n\n"
-        "📭 Ничего не найдено. Попробуйте изменить запрос."
+        "По вашему запросу ничего не найдено.\n"
+        "Попробуйте другое название или откройте каталог."
     )
 
 def build_search_results_text(query: str, items, page: int) -> str:
     """Сформировать текст страницы результатов поиска."""
 
-    header = f"🔍 <b>Поиск:</b> {escape(query)}\n Страница: {page}\n\n"
+    header = (
+        f"🔍 <b>Поиск оборудования:</b> {escape(query)}\n"
+        f"Найдено товаров на странице: {len(items)}\n"
+        f"Страница: {page}\n\n"
+        "Выберите оборудование из списка:\n"
+    )
     if not items:
-        return f"{header} 📭 Ничего не найдено. Попробуйте изменить запрос."
+        return build_empty_search_results_text(query)
 
     lines = []
     for item in items:
-        lines.append(f"• {escape(item.title)} — {format_price(item.price)} ₽")
+        short_description = getattr(item, "short_description", None) or getattr(item, "description", "") or ""
+        short_description = " ".join(short_description.split())
+        description_suffix = f" — {escape(short_description[:80])}" if short_description else ""
+        lines.append(f"• <b>{escape(item.title)}</b> — {format_price(item.price)} ₽{description_suffix}")
+
 
     return header + "\n".join(lines)
 
@@ -67,7 +77,7 @@ def build_search_results_text(query: str, items, page: int) -> str:
 def build_search_prompt_keyboard() -> InlineKeyboardMarkup:
     """Собрать клавиатуру prompt-экрана поиска."""
     return InlineKeyboardMarkup(
-        inline_keyboard=[[InlineKeyboardButton(text="🔙 Назад", callback_data=SEARCH_BACK_CB )]] # back_to_main_menu
+        inline_keyboard=[[InlineKeyboardButton(text="🏠 Главное меню", callback_data=BACK_TO_MENU_CB)]]
     )
 
 def build_search_keyboard(items: Sequence[ItemOut], page: int, has_next: bool) -> InlineKeyboardMarkup:
@@ -76,7 +86,7 @@ def build_search_keyboard(items: Sequence[ItemOut], page: int, has_next: bool) -
 
     for item in items:
         keyboard.append([InlineKeyboardButton(
-            text=f"🔎 Открыть #{item.id}",
+            text=f"🔎 Открыть товар #{item.id}",
             callback_data=f"show_item_details:{item.id}")]
         )
 
@@ -91,9 +101,11 @@ def build_search_keyboard(items: Sequence[ItemOut], page: int, has_next: bool) -
     if nav_row:
         keyboard.append(nav_row)
 
-    keyboard.append([InlineKeyboardButton(text="✏️ Новый запрос", callback_data=SEARCH_NEW_QUERY_CB)])
-    #keyboard.append([InlineKeyboardButton(text="🔙 Назад", callback_data="search:back")])
-    keyboard.append([InlineKeyboardButton(text="🔙 Назад в меню", callback_data=BACK_TO_MENU_CB)])
+    keyboard.append([InlineKeyboardButton(text="🔎 Новый поиск", callback_data=SEARCH_NEW_QUERY_CB)])
+    if not items:
+        keyboard.insert(0, [InlineKeyboardButton(text="🏗 Открыть каталог", callback_data=BACK_TO_CAT)])
+    keyboard.append([InlineKeyboardButton(text="🏠 Главное меню", callback_data=BACK_TO_MENU_CB)])
+    # "🔙 Назад" - callback_data="search:back"
 
     return InlineKeyboardMarkup(inline_keyboard=keyboard)
 

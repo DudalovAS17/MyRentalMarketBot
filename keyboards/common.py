@@ -11,7 +11,7 @@ from utils.callbacks import CAT_CB_PREFIX, BACK_TO_MENU_CB, RENTAL_DETAILS_CB, P
 def get_main_menu_keyboard() -> ReplyKeyboardMarkup:
     """Клавиатура главного меню клиента (с учетом информации о нем)"""
     keyboard = [
-        [KeyboardButton(text="🛠 Каталог товаров"), KeyboardButton(text="🔎 Поиск")],
+        [KeyboardButton(text="🛠 Каталог товаров"), KeyboardButton(text="🔎 Поиск оборудования")],
         [KeyboardButton(text="📋 Мои аренды"), KeyboardButton(text="👤 Профиль")],
         [KeyboardButton(text="📞 Поддержка"), KeyboardButton(text="❓ Помощь")], # ℹ️ Условия аренды
     ]

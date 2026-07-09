@@ -95,16 +95,31 @@ class ItemRepository(BaseRepository):
             return await self._list(s, stmt)
 
     async def search(self, query: str, *, active_only: bool = True, limit: int = 50, offset: int = 0) -> list[Item]:
-        """Поиск товаров по тексту: по названию или описанию."""
+        """Поиск товаров по тексту: по названию, описанию или характеристикам."""
         q = f"%{query.strip()}%"
         async with self._session() as s:
-            stmt = select(Item).where(
-                or_(
-                    Item.title.ilike(q),
-                    Item.description.ilike(q),
-                    Item.short_description.ilike(q),
+            stmt = (
+                select(Item)
+                .outerjoin(ItemCharacteristic, ItemCharacteristic.item_id == Item.id)
+                .where(
+                    or_(
+                        Item.title.ilike(q),
+                        Item.description.ilike(q),
+                        Item.short_description.ilike(q),
+                        ItemCharacteristic.name.ilike(q),
+                        ItemCharacteristic.value.ilike(q),
+                    )
                 )
+                .distinct()
             )
+
+            # stmt = select(Item).where(
+            #     or_(
+            #         Item.title.ilike(q),
+            #         Item.description.ilike(q),
+            #         Item.short_description.ilike(q),
+            #     )
+            # )
             if active_only:
                 stmt = self._apply_active_filter(stmt)
 
