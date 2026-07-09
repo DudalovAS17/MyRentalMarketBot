@@ -58,7 +58,6 @@ def format_new_rental_request(details: RentalDetailsOut | RentalAdminDetailsOut)
         f"Telegram: {username}\n\n"
         f"Комментарий:\n{safe(rental.client_comment)}\n\n"
         f"Статус: {escape(STATUS_LABELS.get(rental.status, rental.status.value))}"
-        "Откройте админку для обработки."
     )
 
 def format_user_rental_created(details: RentalDetailsOut | RentalAdminDetailsOut) -> str:
@@ -70,7 +69,7 @@ def format_user_rental_created(details: RentalDetailsOut | RentalAdminDetailsOut
         "Менеджер скоро свяжется с вами."
     )
 
-def format_user_rental_status_changed(details: RentalDetailsOut | RentalAdminDetailsOut, old_status: RentalStatus | None = None) -> str:
+def format_user_rental_status_changed(details: RentalDetailsOut | RentalAdminDetailsOut) -> str: # , old_status: RentalStatus | None = None
     """Сформировать уведомление клиенту о смене статуса заявки."""
     rental = details.rental
     item_title = safe(details.item.title)
@@ -132,7 +131,7 @@ def format_support_user_reply(ticket: SupportTicketOut, user: UserOut, reply_tex
         f"📝 <b>Сообщение клиента:</b>\n{safe(reply_text)}"
     )
 
-def format_user_support_created(ticket: SupportTicketOut) -> str:
+def format_user_support_created() -> str: # ticket: SupportTicketOut
     """Сформировать подтверждение клиенту о создании тикета поддержки."""
     return "✅ Ваше обращение отправлено в поддержку.\n\nМы ответим вам здесь, в Telegram."
 

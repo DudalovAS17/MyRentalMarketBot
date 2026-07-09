@@ -4,7 +4,7 @@ from aiogram.fsm.context import FSMContext
 from pydantic import ValidationError as PydanticValidationError
 
 from utils.functions import abort_rent_flow
-from utils.errors import ValidationError
+#from utils.errors import ValidationError
 from schemas.rental import RentalCreateDraft
 
 

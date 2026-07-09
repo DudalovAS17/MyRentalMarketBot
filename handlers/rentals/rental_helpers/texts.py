@@ -1,4 +1,3 @@
-from decimal import Decimal
 from html import escape
 
 from schemas.item import ItemOut
@@ -27,20 +26,23 @@ INVALID_RENTAL_ID_TEXT = "Некорректный id заявки."
 
 
 def _safe(value: object | None, default: str = "—") -> str:
+    """Безопасно подготовить значение."""
     if value is None:
         return default
     text = str(value).strip()
     return escape(text) if text else default
 
-
 def _delivery_line(draft: RentalCreateDraft) -> str:
-    if draft.delivery_needed is True:
+    """Вернуть человекочитаемое состояние доставки из draft заявки."""
+    if draft.delivery_needed: #  is True
         return "нужна"
     if draft.delivery_needed is False:
         return "не нужна"
     return "—"
 
+# ───────────────────────────────────────── for Rental FSM ─────────────────────────────────────────────────────────────
 def format_rent_quantity_text(item: ItemOut) -> str:
+    """Сформировать текст шага выбора количества."""
     return (
         "🤝 <b>Заявка на аренду</b>\n\n"
         f"Товар: <b>{_safe(item.title)}</b>\n"
@@ -49,7 +51,7 @@ def format_rent_quantity_text(item: ItemOut) -> str:
     )
 
 def format_rent_period_text(item: ItemOut) -> str:
-    """Текст первого экрана заявки."""
+    """Сформировать текст шага выбора срока аренды."""
     return (
         f"🤝 <b>Заявка на аренду</b>\n\n"
         f"Вы собираетесь арендовать: <b>{_safe(item.title)}</b>\n"
@@ -57,19 +59,8 @@ def format_rent_period_text(item: ItemOut) -> str:
         "Выберите срок аренды:"
     )
 
-def format_rent_details_request_text(item: ItemOut, period_text: str) -> str:
-    """Текст запроса дополнительных деталей аренды одним сообщением."""
-    return (
-        f"🤝 <b>Заявка на аренду</b>\n\n"
-        f"Вы собираетесь арендовать: <b>{item.title}</b>\n"
-        f"⏱️ Выбранный срок: <b>{period_text}</b>\n\n"
-        "Напишите в одном сообщении:\n"
-        "<b>Кол-во дней аренды - К какому дню вам нужен товар (дата) - "
-        "Любое сообщение, которое хотите нам отправить/уточнить</b>\n\n"
-        "Например: <code>3 - 25.06.2026 - Нужна доставка вечером</code>"
-    )
-
 def format_rent_delivery_text(item: ItemOut, draft: RentalCreateDraft) -> str:
+    """Сформировать текст шага выбора доставки."""
     return (
         "🚚 <b>Доставка</b>\n\n"
         f"Товар: <b>{_safe(item.title)}</b>\n"
@@ -79,20 +70,25 @@ def format_rent_delivery_text(item: ItemOut, draft: RentalCreateDraft) -> str:
     )
 
 def format_rent_delivery_address_text() -> str:
+    """Сформировать текст шага ввода адреса доставки."""
     return "📍 <b>Адрес доставки</b>\n\nУкажите адрес доставки одним сообщением."
 
 def format_rent_client_name_text(profile_name: str | None) -> str:
+    """Сформировать текст шага подтверждения или ввода имени клиента."""
     default = f"\n\nИмя из профиля: <b>{_safe(profile_name)}</b>" if profile_name else ""
     return f"👤 <b>Имя клиента</b>{default}\n\nВведите имя или используйте значение из профиля."
 
 def format_rent_client_phone_text(profile_phone: str | None) -> str:
+    """Сформировать текст шага подтверждения или ввода телефона клиента."""
     default = f"\n\nТелефон из профиля: <b>{_safe(profile_phone)}</b>" if profile_phone else ""
     return f"☎️ <b>Телефон клиента</b>{default}\n\nВведите телефон или используйте значение из профиля."
 
 def format_rent_comment_text() -> str:
+    """Сформировать текст шага комментария клиента."""
     return "💬 <b>Комментарий</b>\n\nНапишите комментарий к заявке или нажмите «Без комментария»."
 
 def format_rent_confirmation_text(item: ItemOut, draft: RentalCreateDraft) -> str:
+    """Текст подтверждения заявки."""
     price_line = f"💵 Расчётная стоимость: <b>{draft.total_price} ₽</b>\n" if draft.total_price is not None else "💵 Расчётная стоимость: менеджер уточнит после обработки\n"
     address_line = f"Адрес: <b>{_safe(draft.delivery_address)}</b>\n" if draft.delivery_needed else ""
     return (
@@ -113,10 +109,8 @@ def format_rent_confirmation_text(item: ItemOut, draft: RentalCreateDraft) -> st
         # f"📅 Окончание: <b>{end_date_str}</b>\n"
     )
 
-def format_rent_confirmation_text(item: ItemOut, period_text: str, total_price: Decimal, client_comment: str | None = None) -> str:
-    """Текст экрана подтверждения аренды."""
-
 def build_success_text(item: ItemOut, draft: RentalCreateDraft) -> str:
+    """Текст успеха после отправки заявки."""
     price_line = f"💰 Стоимость: <b>{draft.total_price} ₽</b>\n" if draft.total_price is not None else ""
     return (
         "✅ <b>Заявка на аренду отправлена!</b>\n\n"
@@ -128,5 +122,14 @@ def build_success_text(item: ItemOut, draft: RentalCreateDraft) -> str:
         "Вы получите уведомление, когда менеджер обработает вашу заявку."
     )
 
-def build_success_text(item: ItemOut, period_text: str, total_price: Decimal | None) -> str:
-    """Текст экрана успеха для заявки."""
+# def format_rent_details_request_text(item: ItemOut, period_text: str) -> str:
+#     """Текст запроса дополнительных деталей аренды одним сообщением."""
+#     return (
+#         f"🤝 <b>Заявка на аренду</b>\n\n"
+#         f"Вы собираетесь арендовать: <b>{item.title}</b>\n"
+#         f"⏱️ Выбранный срок: <b>{period_text}</b>\n\n"
+#         "Напишите в одном сообщении:\n"
+#         "<b>Кол-во дней аренды - К какому дню вам нужен товар (дата) - "
+#         "Любое сообщение, которое хотите нам отправить/уточнить</b>\n\n"
+#         "Например: <code>3 - 25.06.2026 - Нужна доставка вечером</code>"
+#     )

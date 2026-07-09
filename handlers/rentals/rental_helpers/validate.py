@@ -36,13 +36,6 @@ def parse_rental_id(data: str | None) -> int | None:
     except (IndexError, ValueError):
         return None
 
-def parse_rent_period_code(data: str | None) -> str | None:
-    """Распарсить код фиксированного диапазона аренды."""
-    if not data or not data.startswith(RENT_PERIOD_CB):
-        return None
-    code = data.removeprefix(RENT_PERIOD_CB)
-    return code if code in PERIOD_LABELS else None
-
 def parse_custom_days_text(text: str | None) -> int | None:
     """Распарсить количество дней аренды из сообщения пользователя."""
     if not text:
@@ -81,7 +74,6 @@ def parse_rent_details_message(text: str | None) -> tuple[int, str, str | None] 
 
     comment = parts[2] if len(parts) == 3 and parts[2] else None
     return days, parts[1], comment
-
 
 def _money_from_text(value: str) -> Decimal | None:
     """Достать первое денежное значение из текстового фрагмента."""
@@ -183,8 +175,9 @@ def calculate_price_for_fixed_period_total(
 
     return item_price if isinstance(item_price, Decimal) else Decimal(str(item_price)).quantize(Decimal("0.01"))
 
-# ────────────────────────────────────── NEW: Structured MVP rental request helpers ────────────────────────────────────
+# ──────────────────────────────────────────── for Rental FSM ──────────────────────────────────────────────────────────
 def parse_positive_int(text: str | None) -> int | None:
+    """Распарсить положительное целое число из пользовательского текста."""
     if not text:
         return None
     value = text.strip()
@@ -194,6 +187,7 @@ def parse_positive_int(text: str | None) -> int | None:
     return parsed if parsed >= 1 else None
 
 def parse_rent_quantity_code(data: str | None) -> int | None:
+    """Распарсить количество из callback выбора количества."""
     from utils.callbacks import RENT_QUANTITY_CB
 
     if not data or not data.startswith(RENT_QUANTITY_CB):
@@ -203,10 +197,19 @@ def parse_rent_quantity_code(data: str | None) -> int | None:
         return None
     return parse_positive_int(raw)
 
+def parse_rent_period_code(data: str | None) -> str | None:
+    """Распарсить код фиксированного диапазона аренды."""
+    if not data or not data.startswith(RENT_PERIOD_CB):
+        return None
+    code = data.removeprefix(RENT_PERIOD_CB)
+    return code if code in PERIOD_LABELS else None
+
 def is_quantity_available(quantity: int, available_quantity: int | None) -> bool:
+    """Проверить, что выбранное количество положительное и не превышает доступное."""
     return quantity >= 1 and (available_quantity is None or quantity <= available_quantity)
 
 def parse_delivery_choice(data: str | None) -> bool | None:
+    """Распарсить выбор доставки из callback."""
     from utils.callbacks import RENT_DELIVERY_CB
 
     if not data or not data.startswith(RENT_DELIVERY_CB):
@@ -219,6 +222,7 @@ def parse_delivery_choice(data: str | None) -> bool | None:
     return None
 
 def normalize_phone(text: str | None) -> str | None:
+    """Нормализовать телефон клиента к формату с плюсом или вернуть None."""
     if not text:
         return None
     value = text.strip()
@@ -234,6 +238,7 @@ def normalize_phone(text: str | None) -> str | None:
     return "+" + digits
 
 def is_rent_draft_complete(draft) -> bool:
+    """Проверить, что FSM-draft содержит все обязательные поля заявки."""
     return bool(
         draft.item_id
         and draft.quantity

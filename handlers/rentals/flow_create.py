@@ -13,26 +13,25 @@ from services.notif_service import NotificationService
 
 from states.rental import RentalCreateStates
 from schemas.rental import RentalCreate, RentalCreateDraft
-from keyboards.common import build_rent_confirmation_keyboard
 
 from utils.functions import send_or_edit, render_rent_ui, abort_rent_flow
 from utils.errors import ServiceError
 from utils.callbacks import (CONFIRM_RENT_CB, CANCEL_RENT_FLOW_CB, RENT_ITEM_CB, RENT_PERIOD_CB, RENT_QUANTITY_CB,
                              RENT_DELIVERY_CB, RENT_BACK_CB, RENT_USE_PROFILE_NAME_CB, RENT_USE_PROFILE_PHONE_CB,
-                             RENT_SKIP_COMMENT_CB, RENT_CHANGE_CB)
+                             RENT_SKIP_COMMENT_CB) # , RENT_CHANGE_CB
 
 # process_quantity:
 # if await ch.abort_if_item_unavailable(callback, rental_service, item):
 #    return # вещь недоступна
 
 
-# ───────────────────────────────────────────── _Render ────────────────────────────────────────────────────────────────
+# ─────────────────────────── _Render (Показать шаг выбора X и перевести FSM в состояние X) ────────────────────────────
 async def _render_quantity(event: CallbackQuery | Message, state: FSMContext, item, rent_ui_message_id: int | None) -> None:
     await render_rent_ui(event, state, ch.format_rent_quantity_text(item), ch.build_rent_quantity_keyboard(item.available_quantity), rent_ui_message_id)
     await state.set_state(RentalCreateStates.quantity)
 
 async def _render_period(event: CallbackQuery | Message, state: FSMContext, item, rent_ui_message_id: int | None) -> None:
-    await render_rent_ui(event, state, ch.format_rent_period_text(item), ch.build_rent_period_keyboard(item.id), rent_ui_message_id)
+    await render_rent_ui(event, state, ch.format_rent_period_text(item), ch.build_rent_period_keyboard(), rent_ui_message_id)
     await state.set_state(RentalCreateStates.period)
 
 async def _render_delivery(event: CallbackQuery | Message, state: FSMContext, item, draft: RentalCreateDraft, rent_ui_message_id: int | None) -> None:
@@ -58,8 +57,9 @@ async def _render_confirmation(event: CallbackQuery | Message, state: FSMContext
     await state.set_state(RentalCreateStates.confirmation)
 
 
-# ───────────────────────────────────────────── xxx ────────────────────────────────────────────────────────────────
+# ───────────────────────────────────────────── Rental FSM ─────────────────────────────────────────────────────────────
 async def load_context(event: CallbackQuery | Message, state: FSMContext, item_service: ItemService):
+    """Загрузить draft и товар для текущего шага rent-flow или аварийно остановить сценарий."""
     ctx = await ch.get_rent_draft_context_or_abort(event, state, ch.rental_data_err, ch.not_all_rental_data_err)
     if ctx is None:
         return None
@@ -96,20 +96,22 @@ async def start_rent_process(callback: CallbackQuery, state: FSMContext, item_se
         rent_ui_message_id=None
     )
 
-    # отправляем отдельное сообщение - “экран аренды”
-    sent = await callback.message.answer(
-        ch.format_rent_quantity_text(item),
-        reply_markup=ch.build_rent_quantity_keyboard(item.available_quantity),
-        parse_mode="HTML"
-    )
+    await _render_quantity(callback, state, item, rent_ui_message_id=None)
 
-    await state.update_data(rent_ui_message_id=sent.message_id)
-    await state.set_state(RentalCreateStates.quantity)
+    # # отправляем отдельное сообщение - “экран аренды”
+    # sent = await callback.message.answer(
+    #     ch.format_rent_quantity_text(item),
+    #     reply_markup=ch.build_rent_quantity_keyboard(item.available_quantity),
+    #     parse_mode="HTML"
+    # )
+    #
+    # await state.update_data(rent_ui_message_id=sent.message_id)
+    # await state.set_state(RentalCreateStates.quantity)
 
 
 @rental_router.callback_query(RentalCreateStates.quantity, F.data.startswith(RENT_QUANTITY_CB))
 async def process_quantity_button(callback: CallbackQuery, state: FSMContext, item_service: ItemService) -> None:
-
+    """Обработать callback выбора количества и перейти к сроку аренды."""
     await callback.answer()
 
     ctx = await load_context(callback, state, item_service)
@@ -133,7 +135,7 @@ async def process_quantity_button(callback: CallbackQuery, state: FSMContext, it
 
 @rental_router.message(RentalCreateStates.quantity)
 async def process_quantity_message(message: Message, state: FSMContext, item_service: ItemService) -> None:
-
+    """Обработать ручной ввод количества и перейти к сроку аренды."""
     ctx = await load_context(message, state, item_service)
     if ctx is None:
         return
@@ -152,7 +154,7 @@ async def process_quantity_message(message: Message, state: FSMContext, item_ser
 
 @rental_router.callback_query(RentalCreateStates.period, F.data.startswith(RENT_PERIOD_CB))
 async def process_fixed_period(callback: CallbackQuery, state: FSMContext, item_service: ItemService, rental_service: RentalService) -> None:
-    """FSM: Обработать выбор одного из четырёх фиксированных диапазонов аренды."""
+    """Обработать выбор фиксированного срока аренды и перейти к доставке."""
     await callback.answer()
 
     ctx = await load_context(callback, state, item_service)
@@ -178,7 +180,7 @@ async def process_fixed_period(callback: CallbackQuery, state: FSMContext, item_
 
 @rental_router.callback_query(RentalCreateStates.delivery_needed, F.data.startswith(RENT_DELIVERY_CB))
 async def process_delivery_needed(callback: CallbackQuery, state: FSMContext, item_service: ItemService) -> None:
-
+    """Обработать выбор доставки и запросить адрес при необходимости."""
     await callback.answer()
 
     ctx = await load_context(callback, state, item_service)
@@ -204,7 +206,7 @@ async def process_delivery_needed(callback: CallbackQuery, state: FSMContext, it
 
 @rental_router.message(RentalCreateStates.delivery_address)
 async def process_delivery_address(message: Message, state: FSMContext, item_service: ItemService) -> None:
-
+    """Сохранить адрес доставки и перейти к контактному имени."""
     ctx = await load_context(message, state, item_service)
     if ctx is None:
         return
@@ -223,7 +225,7 @@ async def process_delivery_address(message: Message, state: FSMContext, item_ser
 
 @rental_router.callback_query(RentalCreateStates.client_name, F.data == RENT_USE_PROFILE_NAME_CB)
 async def use_profile_name(callback: CallbackQuery, state: FSMContext, item_service: ItemService) -> None:
-
+    """Подтвердить имя из профиля и перейти к телефону."""
     await callback.answer()
 
     ctx = await load_context(callback, state, item_service)
@@ -239,7 +241,7 @@ async def use_profile_name(callback: CallbackQuery, state: FSMContext, item_serv
 
 @rental_router.message(RentalCreateStates.client_name)
 async def process_client_name(message: Message, state: FSMContext, item_service: ItemService) -> None:
-
+    """Сохранить введённое имя клиента и перейти к телефону."""
     ctx = await load_context(message, state, item_service)
     if ctx is None:
         return
@@ -258,7 +260,7 @@ async def process_client_name(message: Message, state: FSMContext, item_service:
 
 @rental_router.callback_query(RentalCreateStates.client_phone, F.data == RENT_USE_PROFILE_PHONE_CB)
 async def use_profile_phone(callback: CallbackQuery, state: FSMContext, item_service: ItemService) -> None:
-
+    """Подтвердить телефон из профиля и перейти к комментарию."""
     await callback.answer()
 
     ctx = await load_context(callback, state, item_service)
@@ -274,7 +276,7 @@ async def use_profile_phone(callback: CallbackQuery, state: FSMContext, item_ser
 
 @rental_router.message(RentalCreateStates.client_phone)
 async def process_client_phone(message: Message, state: FSMContext, item_service: ItemService) -> None:
-
+    """Сохранить введённый телефон клиента и перейти к комментарию."""
     ctx = await load_context(message, state, item_service)
     if ctx is None:
         return
@@ -293,7 +295,7 @@ async def process_client_phone(message: Message, state: FSMContext, item_service
 
 @rental_router.callback_query(RentalCreateStates.client_comment, F.data == RENT_SKIP_COMMENT_CB)
 async def skip_comment(callback: CallbackQuery, state: FSMContext, item_service: ItemService) -> None:
-
+    """Пропустить комментарий и показать экран подтверждения."""
     await callback.answer()
 
     ctx = await load_context(callback, state, item_service)
@@ -308,7 +310,7 @@ async def skip_comment(callback: CallbackQuery, state: FSMContext, item_service:
 
 @rental_router.message(RentalCreateStates.client_comment)
 async def process_comment(message: Message, state: FSMContext, item_service: ItemService) -> None:
-
+    """Сохранить комментарий клиента и показать экран подтверждения."""
     ctx = await load_context(message, state, item_service)
     if ctx is None:
         return
@@ -320,17 +322,18 @@ async def process_comment(message: Message, state: FSMContext, item_service: Ite
     await _render_confirmation(message, state, item, draft, rent_ui_message_id)
 
 
-@rental_router.callback_query(RentalCreateStates.confirmation, F.data == RENT_CHANGE_CB)
-async def change_request(callback: CallbackQuery, state: FSMContext, item_service: ItemService) -> None:
-
-    await callback.answer()
-
-    ctx = await load_context(callback, state, item_service)
-    if ctx is None:
-        return
-    _, rent_ui_message_id, item = ctx
-
-    await _render_quantity(callback, state, item, rent_ui_message_id)
+# @rental_router.callback_query(RentalCreateStates.confirmation, F.data == RENT_CHANGE_CB)
+# async def change_request(callback: CallbackQuery, state: FSMContext, item_service: ItemService) -> None:
+#     """Показать меню выбора конкретного поля заявки для изменения."""
+#     await callback.answer()
+#
+#     ctx = await load_context(callback, state, item_service)
+#     if ctx is None:
+#         return
+#     draft, rent_ui_message_id, item = ctx
+#
+#     await callback.answer("Изменение заявки пока не входит в MVP.", show_alert=True)
+#     await _render_confirmation(callback, state, item, draft, rent_ui_message_id)
 
 
 @rental_router.callback_query(RentalCreateStates.confirmation, F.data == CONFIRM_RENT_CB)

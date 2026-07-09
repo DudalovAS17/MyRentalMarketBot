@@ -105,17 +105,17 @@ def get_open_rental_keyboard(rental_id: int) -> InlineKeyboardMarkup:
         ] # "🔍 Посмотреть запрос"
     )
 
-def build_rent_confirmation_keyboard() -> InlineKeyboardMarkup: # start_date: str
-    """Клавиатура финального шага подтверждения аренды."""
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [InlineKeyboardButton(text="✅ Отправить заявку менеджеру", callback_data=CONFIRM_RENT_CB)],
-            [InlineKeyboardButton(text="✏️ Изменить", callback_data=RENT_CHANGE_CB)],
-            [InlineKeyboardButton(text="⬅️ Назад", callback_data=RENT_BACK_CB)],
-            [InlineKeyboardButton(text="❌ Отменить аренду", callback_data=CANCEL_RENT_FLOW_CB)], # или f"{ITEM_DETAILS}{item_id}"???
-        ]
-    )
-# [InlineKeyboardButton(text="🔙 Изменить дату окончания", callback_data=f"{START_DATE_CB}{start_date}")],
+# def build_rent_confirmation_keyboard() -> InlineKeyboardMarkup: # start_date: str
+#     """Клавиатура финального шага подтверждения аренды."""
+#     return InlineKeyboardMarkup(
+#         inline_keyboard=[
+#             [InlineKeyboardButton(text="✅ Отправить заявку менеджеру", callback_data=CONFIRM_RENT_CB)],
+#             [InlineKeyboardButton(text="✏️ Изменить", callback_data=RENT_CHANGE_CB)],
+#             [InlineKeyboardButton(text="⬅️ Назад", callback_data=RENT_BACK_CB)],
+#             [InlineKeyboardButton(text="❌ Отменить аренду", callback_data=CANCEL_RENT_FLOW_CB)], # или f"{ITEM_DETAILS}{item_id}"???
+#         ]
+#     )
+# # [InlineKeyboardButton(text="🔙 Изменить дату окончания", callback_data=f"{START_DATE_CB}{start_date}")],
 
 # ───────────────────────────────────────────────── user ───────────────────────────────────────────────────────────────
 def get_profile_keyboard() -> InlineKeyboardMarkup:
