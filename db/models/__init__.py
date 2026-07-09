@@ -1,5 +1,5 @@
 from .admin_actions import AdminAction
-from .support_ticket import SupportTicket
+from .support_ticket import SupportTicket, SupportMessage
 from .user import User
 from .rental import Rental
 from .item import Item
@@ -19,5 +19,6 @@ __all__ = [
     "Admin",
     "AdminAction",
     "SupportTicket",
+    "SupportMessage",
     "Review"
 ]

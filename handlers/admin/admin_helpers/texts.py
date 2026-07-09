@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from schemas.support import SupportTicketOut
+from schemas.support import SupportMessageOut, SupportTicketOut
 from schemas.rental import RentalAdminDetailsOut
 from schemas.user import UserOut
 from utils.validators import format_price
@@ -143,7 +143,31 @@ def format_datetime(dt: datetime | None) -> str: # ("%d.%m %H:%M")
         return "—"
     return dt.strftime("%d.%m.%Y %H:%M")
 
-def format_ticket_card(ticket: SupportTicketOut, user: UserOut = None) -> str:
+def format_support_message_history(messages: list[SupportMessageOut] | None, *, max_messages: int = 10) -> str:
+    """Сформировать компактную историю переписки по тикету для админской карточки."""
+    if not messages:
+        return "🧵 <b>История:</b> —"
+
+    visible_messages = messages[-max_messages:]
+    hidden_count = max(0, len(messages) - len(visible_messages))
+    lines = ["🧵 <b>История:</b>"]
+    if hidden_count:
+        lines.append(f"… скрыто старых сообщений: {hidden_count}")
+
+    label_by_sender = {
+        "user": "👤 Клиент",
+        "admin": "👨‍💼 Админ",
+        "system": "⚙️ Система",
+    }
+    for message in visible_messages:
+        label = label_by_sender.get(message.sender_type.value, "💬 Сообщение")
+        created = format_datetime(message.created_at)
+        lines.append(f"{label} · {created}:\n{message.text}")
+
+    return "\n\n".join(lines)
+
+# обдумай
+def format_ticket_card(ticket: SupportTicketOut, user: UserOut = None, messages: list[SupportMessageOut] | None = None) -> str:
     """Сформировать текст карточки тикета поддержки"""
     user_line = f"🆔 = {ticket.user_id}" if ticket.user_id else f"tg_id={user.telegram_id}" # @{user.username}
     subject_line = f"📌 <b>Тема:</b> {ticket.subject}\n" if ticket.subject else ""
@@ -152,16 +176,23 @@ def format_ticket_card(ticket: SupportTicketOut, user: UserOut = None) -> str:
     created = format_datetime(ticket.created_at)
     status = ticket.status.value
 
+    phone = getattr(user, "phone", None) if user else None
+    username = f"@{user.username}" if user and user.username else "—"
+    contact_line = f"☎️ <b>Телефон:</b> {phone or '—'}\n💬 <b>Username:</b> {username}\n"
+
+    history_text = format_support_message_history(messages)
+
     return (f"🆘 🎫 <b>Тикет поддержки</b> #{ticket.id}\n\n"
 
         f"Статус: <b>{status}</b>\n"
         f"👤 <b>Пользователь:</b> {user_line}\n"
-        #f"💬 <b>Username:</b> {user.username}\n"
+        f"{contact_line}"
         f"{subject_line}"
         f"{item_line}"
         f"{rental_line}"
         f"📅 <b>Создан:</b> 🕒 {created}\n\n"
-        f"📝 <b>Текст:</b>\n{ticket.text}"
+        #f"📝 <b>Текст:</b>\n{ticket.text}"
+        f"{history_text}"
     )
 
 # ──────────────────────────────────────────────────  ─────────────────────────────────────────────────────────────

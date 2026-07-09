@@ -1,3 +1,4 @@
+import logging
 from aiogram import F
 from aiogram.types import CallbackQuery, Message
 from aiogram.fsm.context import FSMContext
@@ -10,15 +11,19 @@ from handlers.admin.admin_helpers.keyboard import get_admin_new_rental_notificat
 from services.item_service import ItemService
 from services.rental_service import RentalService
 from services.notif_service import NotificationService
+from services.user_service import UserService, can_use_bot
 
 from states.rental import RentalCreateStates
 from schemas.rental import RentalCreate, RentalCreateDraft
+from schemas.user import UserUpdate
 
 from utils.functions import send_or_edit, render_rent_ui, abort_rent_flow
 from utils.errors import ServiceError
 from utils.callbacks import (CONFIRM_RENT_CB, CANCEL_RENT_FLOW_CB, RENT_ITEM_CB, RENT_PERIOD_CB, RENT_QUANTITY_CB,
                              RENT_DELIVERY_CB, RENT_BACK_CB, RENT_USE_PROFILE_NAME_CB, RENT_USE_PROFILE_PHONE_CB,
                              RENT_SKIP_COMMENT_CB) # , RENT_CHANGE_CB
+
+logger = logging.getLogger(__name__)
 
 # process_quantity:
 # if await ch.abort_if_item_unavailable(callback, rental_service, item):
@@ -78,6 +83,10 @@ async def load_context(event: CallbackQuery | Message, state: FSMContext, item_s
 async def start_rent_process(callback: CallbackQuery, state: FSMContext, item_service: ItemService, rental_service: RentalService, user) -> None:
     """Старт FSM: создание структурированной заявки на аренду."""
     await callback.answer()
+
+    if not can_use_bot(user.account_status):
+        await callback.answer("Доступ к созданию заявок заблокирован.", show_alert=True)
+        return
 
     item = await ch.load_item_or_abort(callback, state, item_service.get_item_by_id,
                                        ch.parse_rent_item_id(callback.data), invalid_id_text=ch.not_item_id,
@@ -344,6 +353,7 @@ async def confirm_rent(
         rental_service: RentalService,
         item_service: ItemService,
         notification_service: NotificationService,
+        user_service: UserService,
         admin_ids: list[int], # это ок, что тут id админов?
         user
 ) -> None:
@@ -386,15 +396,31 @@ async def confirm_rent(
         await send_or_edit(callback, "❌ Не удалось создать заявку. Попробуйте позже.")
         return
 
+    # Сохраняем контактные данные из заявки в профиль, чтобы следующая заявка оформлялась быстрее.
+    profile_update = {}
+    if draft.client_name and draft.client_name != user.full_name:
+        profile_update["full_name"] = draft.client_name
+    if draft.client_phone and draft.client_phone != user.phone:
+        profile_update["phone"] = draft.client_phone
+    if profile_update:
+        try:
+            await user_service.update(user.id, UserUpdate(**profile_update))
+        except ServiceError:
+            pass
+
     # уведомление клиента/админа о новой заявке
-    rental_details = await rental_service.get_rental_details(rental.id, user.id)
-    if rental_details is not None:
-        await notification_service.notify_user_rental_created(user.telegram_id, rental_details)
-        await notification_service.notify_admins_new_rental(
-            admin_ids,
-            rental_details,
-            reply_markup=get_admin_new_rental_notification_keyboard(rental.id, user.telegram_id)
-        )
+    # Уведомления не должны ломать бизнес-операцию: заявка уже создана в БД.
+    try:
+        rental_details = await rental_service.get_rental_details(rental.id, user.id)
+        if rental_details is not None:
+            await notification_service.notify_user_rental_created(user.telegram_id, rental_details)
+            await notification_service.notify_admins_new_rental(
+                admin_ids,
+                rental_details,
+                reply_markup=get_admin_new_rental_notification_keyboard(rental.id)
+            )
+    except (ServiceError, ValueError):
+        logger.exception("Не удалось отправить уведомления о новой заявке: rental_id=%s", rental.id)
 
     await render_rent_ui(callback, state, ch.build_success_text(item, draft), ch.build_rent_success_keyboard(), rent_ui_message_id)
     await state.clear()

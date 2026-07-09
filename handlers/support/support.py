@@ -12,6 +12,7 @@ from services.support_service import SupportService, TicketAlreadyOpen
 from services.item_service import ItemService
 from services.rental_service import RentalService
 from services.notif_service import NotificationService
+from services.user_service import can_use_bot
 
 from states.support_ticket import SupportStates
 from schemas.support import SupportTicketCreateInternal
@@ -145,6 +146,10 @@ async def start_support_flow(
 ) -> None:
     """Единый вход в поддержку"""
 
+    if not can_use_bot(user.account_status):
+        await send_or_edit(event, "⛔️ Ваш аккаунт заблокирован. Создание обращений в поддержку недоступно.")
+        return
+
     if rental_id is not None:
         ticket_kind = "rentals"
     elif item_id is not None:
@@ -232,7 +237,7 @@ async def receive_support_text(
     await state.clear()
 
     # Отправляем подтверждение пользователю
-    await notification_service.notify_user_support_ticket_created(user.telegram_id, ticket)
+    await notification_service.notify_user_support_ticket_created(user.telegram_id)
     # await send_or_edit(message, build_support_confirmation_text())
 
     # отправляем сообщение поддержки админу

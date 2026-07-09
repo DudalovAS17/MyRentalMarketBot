@@ -37,3 +37,21 @@ def validate_profile_email(email: str) -> str | None:
 def is_own_contact(contact, tg_user) -> bool:
     """Проверить, что контакт принадлежит текущему Telegram-пользователю."""
     return bool(contact and tg_user and contact.user_id == tg_user.id)
+
+def normalize_profile_phone(raw_phone: str | None) -> str | None:
+    """Нормализовать телефон профиля для MVP-контактов."""
+    if not raw_phone:
+        return None
+
+    cleaned = re.sub(r"[^0-9+]", "", raw_phone.strip())
+    if cleaned.startswith("8") and len(cleaned) == 11:
+        cleaned = "+7" + cleaned[1:]
+    elif cleaned.startswith("7") and len(cleaned) == 11:
+        cleaned = "+" + cleaned
+
+    digits = re.sub(r"\D", "", cleaned)
+    if len(digits) < 10 or len(digits) > 15:
+        return None
+    if cleaned.startswith("+"):
+        return "+" + digits
+    return cleaned

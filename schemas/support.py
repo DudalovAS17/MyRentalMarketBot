@@ -1,7 +1,7 @@
 from typing import Optional
 from pydantic import BaseModel, AwareDatetime, ConfigDict, Field
 
-from status.support_ticket_status import SupportTicketStatus
+from status.support_ticket_status import SupportTicketStatus, SupportMessageSenderType
 
 
 class SupportTicketCreate(BaseModel):
@@ -53,3 +53,19 @@ class SupportTicketAdminUpdate(BaseModel):
     admin_last_reply_at: Optional[AwareDatetime] = None
 
 # в сервисе нужно соблюдать правило: если закрываем тикет → closed_at и closed_by_admin_id должны быть заполнены вместе
+
+
+# ─────────────────────────────────── Логика Support Message ───────────────────────────────────────────────────────
+class SupportMessageOut(BaseModel):
+    """Сообщение внутри тикета поддержки."""
+
+    id: int
+    ticket_id: int
+    sender_type: SupportMessageSenderType
+    sender_user_id: Optional[int] = None
+    sender_admin_id: Optional[int] = None
+    text: str
+    created_at: AwareDatetime
+    updated_at: AwareDatetime
+
+    model_config = ConfigDict(from_attributes=True)

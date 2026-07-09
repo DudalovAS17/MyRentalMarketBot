@@ -57,16 +57,21 @@ def format_new_rental_request(details: RentalDetailsOut | RentalAdminDetailsOut)
         f"Телефон: {safe(rental.client_phone)}\n"
         f"Telegram: {username}\n\n"
         f"Комментарий:\n{safe(rental.client_comment)}\n\n"
-        f"Статус: {escape(STATUS_LABELS.get(rental.status, rental.status.value))}"
+        f"Статус: <b>{escape(STATUS_LABELS.get(rental.status, rental.status.value))}</b>\n\n"
+        "Что делать дальше: откройте заявку или выберите действие кнопками ниже."
     )
 
 def format_user_rental_created(details: RentalDetailsOut | RentalAdminDetailsOut) -> str:
     """Сформировать подтверждение создания заявки для клиента."""
+    status = details.rental.status
     return (
-        "✅ <b>Заявка создана</b>\n\n"
+        "✅ <b>Заявка отправлена</b>\n\n"
+        "Мы передали её менеджеру.\n"
+        "Он проверит наличие, срок аренды и доставку.\n\n"
+        #"Номер заявки: <b>#{rental.id}</b>\n"
         f"Товар: {safe(details.item.title)}\n"
-        f"Статус: {escape(STATUS_LABELS.get(details.rental.status, details.rental.status.value))}\n"
-        "Менеджер скоро свяжется с вами."
+        f"Статус: {escape(STATUS_LABELS.get(status, status.value))}\n"
+        "Что дальше: ожидайте подтверждения менеджера здесь, в Telegram."
     )
 
 def format_user_rental_status_changed(details: RentalDetailsOut | RentalAdminDetailsOut) -> str: # , old_status: RentalStatus | None = None
@@ -77,26 +82,50 @@ def format_user_rental_status_changed(details: RentalDetailsOut | RentalAdminDet
 
     match rental.status:
         case RentalStatus.IN_PROGRESS:
-            return f"👨‍💼 Ваша заявка №{rental.id} взята в работу.\n\nМенеджер скоро уточнит детали."
+            return (
+                f"👨‍💼 <b>Заявка #{rental.id} взята в работу</b>\n\n"
+                "Статус: <b>В обработке</b>\n"
+                "Менеджер проверяет наличие и условия аренды.\n\n"
+                "Что дальше: дождитесь подтверждения или уточняющего сообщения."
+            )
+
         case RentalStatus.CONFIRMED:
-            return f"✅ Ваша заявка №{rental.id} подтверждена.\n\nТовар: {item_title}\nМенеджер свяжется с вами по деталям аренды."
+            return (
+                f"✅ <b>Заявка #{rental.id} подтверждена</b>\n\n"
+                "Статус: <b>Подтверждена</b>\n"
+                f"Товар: {item_title}\n\n"
+                "Менеджер подтвердил возможность аренды. Если нужно, он свяжется с вами для уточнения деталей."
+            )
+
         case RentalStatus.REJECTED:
-            text = f"❌ Ваша заявка №{rental.id} отклонена."
+            text = f"❌ <b>Ваша заявка #{rental.id} отклонена</b>\n\n Статус: <b>Отклонена</b>"
             if comment:
-                text += f"\n\nПричина/комментарий менеджера: {comment}"
-            return text
+                text += f"\n\nПричина:\n{comment}"
+            return f"{text}\n\n Что дальше: вы можете выбрать другой товар или написать менеджеру."
+
         case RentalStatus.CANCELLED_BY_ADMIN:
-            text = f"⚠️ Ваша заявка №{rental.id} отменена компанией."
+            text = f"⚠️ <b>Заявка #{rental.id} отменена компанией</b>\n\n Статус: <b>Отменена компанией</b>"
             if comment:
-                text += f"\n\nКомментарий менеджера: {comment}"
-            return text
+                text += f"\n\nКомментарий менеджера:\n{comment}"
+            return f"{text}\n\nЧто дальше: при необходимости напишите в поддержку."
+
         case RentalStatus.COMPLETED:
-            return f"✅ Заявка №{rental.id} завершена.\n\nСпасибо, что воспользовались арендой."
+            return (
+                f"✅ <b>Заявка #{rental.id} завершена</b>\n\n"
+                "Статус: <b>Завершена</b>\n"
+                "Спасибо, что воспользовались арендой."
+            )
+
         case RentalStatus.CANCELLED_BY_CLIENT:
-            return f"✅ Ваша заявка №{rental.id} отменена."
+            return (
+                f"✅ <b>Заявка #{rental.id} отменена</b>\n\n"
+                "Статус: <b>Отменена клиентом</b>\n"
+                "Мы передали отмену менеджеру."
+            )
+
         case _:
             status = escape(STATUS_LABELS.get(rental.status, rental.status.value))
-            return f"ℹ️ Статус вашей заявки №{rental.id} изменён.\n\nНовый статус: {status}"
+            return f"ℹ️ <b>Статус заявки #{rental.id} изменён</b>\n\nСтатус: <b>{status}</b>"
 
 def format_client_cancelled_rental(details: RentalDetailsOut | RentalAdminDetailsOut) -> str:
     """Сформировать уведомление админам об отмене заявки клиентом."""

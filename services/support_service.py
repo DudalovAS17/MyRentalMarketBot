@@ -3,7 +3,7 @@ from typing import Optional
 
 from db.repositories.support_ticket import SupportTicketRepository
 
-from schemas.support import SupportTicketOut, SupportTicketCreateInternal
+from schemas.support import SupportTicketOut, SupportTicketCreateInternal, SupportMessageOut
 from utils.errors import NotFoundError, ConflictError, ValidationError
 from utils.domain_exceptions import TicketAlreadyOpen
 
@@ -32,6 +32,14 @@ class SupportService:
         limit = page_size
         offset = (safe_page - 1) * limit
         return limit, offset
+
+    @staticmethod
+    def _to_message_out(message) -> SupportMessageOut:
+        return SupportMessageOut.model_validate(message)
+
+    @classmethod
+    def _to_message_out_list(cls, messages) -> list[SupportMessageOut]:
+        return [cls._to_message_out(message) for message in messages]
 
     # ─────────────────────────────────────── Business validation ─────────────────────────────────────────────────────
     # не используется
@@ -137,3 +145,22 @@ class SupportService:
         if ok:
             logger.info("По обращению в поддержку отмечен ответ сотрудника: id=%s", ticket_id)
         return ok
+
+
+
+    # ─────────────────────────────────── Логика Support Message ───────────────────────────────────────────────────────
+    async def list_ticket_messages(self, ticket_id: int) -> list[SupportMessageOut]:
+        """Вернуть сохранённую историю сообщений тикета."""
+        messages = await self.repo.list_messages(ticket_id)
+        return self._to_message_out_list(messages)
+
+    async def save_admin_reply(self, *, ticket_id: int, sender_admin_id: int, reply_text: str, strict: bool = False) -> Optional[SupportTicketOut]:
+        """Сохранить ответ админа в истории сообщений и отметить активность."""
+        normalized = self._normalize_required_text(reply_text, "Ответ")
+        obj = await self.repo.add_admin_message(ticket_id=ticket_id, sender_admin_id=sender_admin_id, text=normalized)
+        if not obj:
+            if strict:
+                raise ConflictError("Обращение в поддержку не найдено или уже закрыто")
+            return None
+        logger.info("Ответ сотрудника сохранён в истории поддержки: id=%s admin_id=%s", ticket_id, sender_admin_id)
+        return self._to_out(obj)

@@ -103,6 +103,7 @@ async def admin_support_reply_send(
     state: FSMContext,
     support_service: SupportService,
     admin_service: AdminActionService,
+    admin_directory_service: AdminDirectoryService,
     user_service: UserService,
     notification_service: NotificationService,
 ) -> None:
@@ -137,6 +138,12 @@ async def admin_support_reply_send(
         await state.clear()
         await send_or_edit(message, f"⚠️ Ответ не доставлен пользователю. Тикет #{ticket.id} не помечен как отвеченный.")
         return
+
+    admin = await admin_directory_service.get_by_telegram_id(message.from_user.id)
+    if admin is not None:
+        await support_service.save_admin_reply(ticket_id=ticket.id, sender_admin_id=admin.id, reply_text=reply_text)
+    else:
+        await support_service.mark_admin_replied(ticket_id=ticket.id)
 
     # 2️⃣ Фиксируем активность админа по тикету только после успешной доставки
     await support_service.mark_admin_replied(ticket_id=ticket.id)

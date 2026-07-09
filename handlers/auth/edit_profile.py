@@ -8,7 +8,7 @@ from .helpers_auth.texts import (build_edit_profile_menu_text, build_edit_name_p
                                  build_invalid_contact_text, build_phone_changed_success_text, build_change_phone_prompt_text)
 from .helpers_auth.keyboards import (build_edit_profile_menu_keyboard, build_back_to_profile_keyboard,
                                      build_change_phone_keyboard, build_open_profile_keyboard)
-from .helpers_auth.validation import validate_profile_name, validate_profile_email, is_own_contact
+from .helpers_auth.validation import validate_profile_name, validate_profile_email, is_own_contact, normalize_profile_phone
 from services.user_service import UserService
 
 from keyboards.common import profile_settings_back_keyboard
@@ -51,7 +51,7 @@ async def process_edit_name(message: Message, state: FSMContext, user_service: U
         await message.answer(validation_error)
         return
 
-    full_name = f"{user.first_name or ''} {new_name}".strip()
+    full_name = new_name
 
     # Обновление
     updated = await user_service.update(
@@ -146,11 +146,33 @@ async def process_phone_number(message: Message, state: FSMContext, user_service
     await message.answer("🔙 Возвращаем вас в профиль...", reply_markup=build_open_profile_keyboard())
     return
 
+@auth_router.message(ProfileEditStates.waiting_for_phone, F.text)
+async def process_phone_text(message: Message, state: FSMContext, user_service: UserService, user) -> None:
+    """Обработать телефон, отправленный обычным текстом."""
+    phone_number = normalize_profile_phone(message.text)
+    if phone_number is None:
+        await message.answer(
+            "📱 Введите телефон в формате +7XXXXXXXXXX или отправьте его через кнопку ниже.",
+            reply_markup=build_change_phone_keyboard(),
+            parse_mode="HTML",
+        )
+        return
+
+    updated = await user_service.update(user.id, UserUpdate(phone=phone_number))
+    if not updated:
+        await message.answer("❌ Ошибка при сохранении номера. Попробуйте позже.")
+        return
+
+    await state.clear()
+    await message.answer(build_phone_changed_success_text(phone_number), parse_mode="HTML")
+    await message.answer("🔙 Возвращаем вас в профиль...", reply_markup=build_open_profile_keyboard())
+
+
 @auth_router.message(ProfileEditStates.waiting_for_phone)
 async def process_invalid_phone_input(message: Message) -> None:
-    """Обработать неверный ввод при ожидании контакта."""
+    """Обработать неверный ввод при ожидании телефона."""
     await message.answer(
-        "📱 Пожалуйста, отправьте номер через кнопку <b>«Поделиться контактом»</b>.",
+        "📱 Пожалуйста, отправьте телефон текстом или через кнопку <b>«Поделиться новым контактом»</b>.",
         reply_markup=build_change_phone_keyboard(),
         parse_mode="HTML",
     )

@@ -1,6 +1,7 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton
 
-from utils.callbacks import PROFILE_EDIT_NAME, PROFILE_EDIT_EMAIL, PROFILE_BACK, PROFILE_BACK_TO_SETTINGS # PROFILE_EDIT_PHONE
+from utils.callbacks import (PROFILE_EDIT_NAME, PROFILE_EDIT_PHONE, PROFILE_BACK, PROFILE_BACK_TO_SETTINGS)
+# PROFILE_BACK, PROFILE_BACK_TO_SETTINGS,
 
 
 # ────────────────────────────────────────────────── profile ───────────────────────────────────────────────────────────
@@ -15,8 +16,7 @@ def build_edit_profile_menu_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [InlineKeyboardButton(text="✏️ Изменить имя", callback_data=PROFILE_EDIT_NAME)],
-            [InlineKeyboardButton(text="📧 Изменить Email", callback_data=PROFILE_EDIT_EMAIL)],
-            # [InlineKeyboardButton(text="📱 Изменить телефон", callback_data=PROFILE_EDIT_PHONE)],
+            [InlineKeyboardButton(text="📱 Изменить телефон", callback_data=PROFILE_EDIT_PHONE)],
             [InlineKeyboardButton(text="« Назад", callback_data=PROFILE_BACK_TO_SETTINGS)],
         ]
     )

@@ -4,8 +4,8 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, KeyboardBu
 
 from schemas.category import CategoryOut
 from status.rental_status import OPEN_STATUSES, STATUS_LABELS
-from utils.callbacks import (CAT_CB_PREFIX, SEARCH_FILTERS_CB, BACK_TO_MENU_CB, RENTAL_DETAILS_CB, CANCEL_RENT_FLOW_CB,
-                             CONFIRM_RENT_CB, PROFILE_BACK_TO_SETTINGS, RENT_BACK_CB, RENT_CHANGE_CB) # SEARCH_CITY_CB,
+from utils.callbacks import CAT_CB_PREFIX, BACK_TO_MENU_CB, RENTAL_DETAILS_CB, PROFILE_BACK_TO_SETTINGS, MY_RENTALS_CB
+# SEARCH_CITY_CB, SEARCH_FILTERS_CB, CANCEL_RENT_FLOW_CB, CONFIRM_RENT_CB, RENT_BACK_CB, RENT_CHANGE_CB,
 
 # ──────────────────────────────────────────── base ────────────────────────────────────────────────────────────────────
 def get_main_menu_keyboard() -> ReplyKeyboardMarkup:
@@ -85,7 +85,7 @@ def build_empty_my_rentals_keyboard() -> InlineKeyboardMarkup:
     )
 
 
-def build_my_rentals_keyboard(rentals, *, current_user_id: int, limit: int = 30) -> InlineKeyboardMarkup:
+def build_my_rentals_keyboard(rentals, *, limit: int = 30) -> InlineKeyboardMarkup:
     """Собрать клавиатуру списка сделок пользователя"""
     rows: list[list[InlineKeyboardButton]] = []
 
@@ -122,14 +122,16 @@ def get_profile_keyboard() -> InlineKeyboardMarkup:
     """Клавиатура профиля пользователя"""
     builder = InlineKeyboardBuilder()
 
-    builder.button(text="📋 Мои аренды", callback_data="my_rentals")
-    builder.button(text="🏆 Достижения", callback_data="achievements")
-    builder.button(text ="📊 Статистика", callback_data="profile_stats")
-    #builder.button(text="📱 Изменить номер", callback_data="profile_change_phone")
-    builder.button(text="🔔 Уведомления", callback_data="profile_notifications") # "settings_notifications"
-    builder.button(text = "✏️ Редактировать профиль", callback_data="profile_settings") # "⚙️ Настройки" # "edit_profile"
-    #builder.button(text = "📞 Поддержка", callback_data="profile_help") # "support:start"
-    builder.button(text = "⬅️ В главное меню", callback_data="back_to_main_menu") # ?
+    builder.button(text="📋 Мои аренды", callback_data=MY_RENTALS_CB)
+    builder.button(text="✏️ Контактные данные", callback_data="settings_edit_profile") # "profile_settings", "edit_profile"
+
+    #builder.button(text="🏆 Достижения", callback_data="achievements")
+    #builder.button(text ="📊 Статистика", callback_data="profile_stats")
+
+    #builder.button(text="🕘 История обращений", callback_data=PROFILE_SUPPORT_HISTORY)
+    builder.button(text="🔔 Уведомления", callback_data="profile_notifications")  # "settings_notifications"
+
+    builder.button(text = "⬅️ В главное меню", callback_data=BACK_TO_MENU_CB)
 
     # Если у пользователя есть непрочитанные уведомления
     # if user_data and user_data.get('unread_notifications', 0) > 0:

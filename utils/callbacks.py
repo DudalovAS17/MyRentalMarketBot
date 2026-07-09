@@ -110,6 +110,7 @@ PROFILE_BACK = "back_to_profile"
 PROFILE_SETTINGS = "profile_settings"
 PROFILE_BACK_TO_SETTINGS = "back_to_profile_settings"
 PROFILE_NOTIFICATIONS = "profile_notifications" # "settings_notifications"
+#PROFILE_SUPPORT_HISTORY = "profile_support_history"
 
 # privacy
 PROFILE_SETTINGS_PRIVACY = "settings_privacy"

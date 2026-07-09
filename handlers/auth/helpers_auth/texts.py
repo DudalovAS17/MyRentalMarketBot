@@ -16,7 +16,7 @@ def build_profile_text(user: UserOut) -> str:
         f"Пользователь: <b>{_display_name(user)}</b>\n"
         f"Telegram: {username}\n"
         f"Телефон: 📱 {user.phone or 'Не указан'} {'⚠️' if not user.phone else ''}\n"
-        f"Email: 📧 {user.email or 'Не указан'} {'⚠️' if not user.email else ''}\n"
+        #f"Email: 📧 {user.email or 'Не указан'} {'⚠️' if not user.email else ''}\n"
         f"Статус аккаунта: ⭐️ <b>{user.account_status.value}</b>\n\n"
         "Выберите действие:"
     )
@@ -66,10 +66,10 @@ def build_achievements_text() -> str:
 # ────────────────────────────────────────────────── edit profile ──────────────────────────────────────────────────────
 def build_edit_profile_menu_text(user) -> str:
     return (
-        "✏️ <b>Редактирование профиля</b>\n\n"
+        "✏️ <b>Контактные данные</b>\n\n"
         "<b>Текущие данные:</b>\n"
         f"👤 Имя: <b>{_display_name(user)}</b>\n"
-        f"📧 Email: <b>{user.email or 'Не указан'}</b>\n\n"
+        f"📱 Телефон: <b>{user.phone or 'Не указан'}</b>\n\n"
         "Выберите поле для редактирования:"
     )
 
@@ -102,7 +102,7 @@ def build_change_phone_prompt_text() -> str:
     """Сформировать prompt смены номера телефона."""
     return (
         "📱 <b>Смена номера телефона</b>\n\n"
-        "Нажмите кнопку ниже и поделитесь вашим <b>новым контактом</b>."
+        "Нажмите кнопку ниже и поделитесь новым контактом или отправьте номер текстом."
     )
 
 # ───────────────────────────────────────────────── privacy ────────────────────────────────────────────────────────────

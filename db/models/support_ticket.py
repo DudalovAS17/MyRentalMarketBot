@@ -6,7 +6,7 @@ from sqlalchemy import Integer, String, CheckConstraint, Text, DateTime, Foreign
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from db.models.base import Base, TimestampMixin
-from status.support_ticket_status import SupportTicketStatus
+from status.support_ticket_status import SupportTicketStatus, SupportMessageSenderType
 
 if TYPE_CHECKING:
     from db.models.user import User
@@ -69,6 +69,13 @@ class SupportTicket(Base, TimestampMixin):
     item: Mapped[Optional["Item"]] = relationship("Item", back_populates="support_tickets")
     rental: Mapped[Optional["Rental"]] = relationship("Rental", back_populates="support_tickets")
 
+    messages: Mapped[list["SupportMessage"]] = relationship(
+        "SupportMessage",
+        back_populates="ticket",
+        cascade="all, delete-orphan",
+        order_by="SupportMessage.created_at",
+    )
+
     closed_by_admin: Mapped[Optional["Admin"]] = relationship(
         "Admin",
         foreign_keys=[closed_by_admin_id],
@@ -95,4 +102,34 @@ class SupportTicket(Base, TimestampMixin):
         Index("ix_support_tickets_rental_id", "rental_id"),
         Index("ix_support_tickets_closed_by_admin_id", "closed_by_admin_id"),
         Index("ix_support_tickets_request_status", "rental_id", "status"),
+    )
+
+
+class SupportMessage(Base, TimestampMixin):
+    """Сообщение в обращении поддержки для MVP-истории переписки."""
+
+    __tablename__ = "support_messages"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    ticket_id: Mapped[int] = mapped_column(ForeignKey("support_tickets.id", ondelete="CASCADE"), nullable=False)
+    sender_type: Mapped[SupportMessageSenderType] = mapped_column(
+        SAEnum(SupportMessageSenderType, name="support_message_sender_type"),
+        nullable=False,
+    )
+    sender_user_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    sender_admin_id: Mapped[Optional[int]] = mapped_column(ForeignKey("admins.id", ondelete="SET NULL"), nullable=True)
+    text: Mapped[str] = mapped_column(Text, nullable=False)
+
+    ticket: Mapped["SupportTicket"] = relationship("SupportTicket", back_populates="messages")
+
+    __table_args__ = (
+        CheckConstraint(
+            "(sender_type = 'USER' AND sender_user_id IS NOT NULL AND sender_admin_id IS NULL) "
+            "OR (sender_type = 'ADMIN' AND sender_admin_id IS NOT NULL AND sender_user_id IS NULL) "
+            "OR (sender_type = 'SYSTEM')",
+            name="ck_support_messages_sender_consistent",
+        ),
+        Index("ix_support_messages_ticket_created", "ticket_id", "created_at"),
+        Index("ix_support_messages_sender_user_id", "sender_user_id"),
+        Index("ix_support_messages_sender_admin_id", "sender_admin_id"),
     )

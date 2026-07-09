@@ -1,6 +1,7 @@
 from aiogram.types import CallbackQuery, Message
 from aiogram.fsm.context import FSMContext
 
+
 from services.admin_rental_service import AdminRentalService
 from services.item_service import ItemService
 from services.user_service import UserService
@@ -206,9 +207,10 @@ async def show_support_ticket_card_or_not_found(
         return #None
 
     ticket_user = await user_service.get_by_id(ticket.user_id)
+    messages = await support_service.list_ticket_messages(ticket.id)
     await send_or_edit(
         event,
-        format_ticket_card(ticket, ticket_user),
+        format_ticket_card(ticket, ticket_user, messages),
         get_admin_support_ticket_keyboard(ticket.id, ticket.status),
     )
 

@@ -135,7 +135,7 @@ class NotificationService:
         """Уведомить администраторов о новом обращении в поддержку."""
         return await self.send_to_admins(admin_ids, format_new_support_ticket(ticket, user), reply_markup=reply_markup)
 
-    async def notify_user_support_ticket_created(self, user_telegram_id: int) -> bool: # , ticket: SupportTicketOut
+    async def notify_user_support_ticket_created(self, user_telegram_id: int) -> bool: # , ticket: SupportTicketOut | None = None
         """Уведомить клиента, что обращение в поддержку создано."""
         return await self.send_to_user(user_telegram_id, format_user_support_created()) # ticket
 

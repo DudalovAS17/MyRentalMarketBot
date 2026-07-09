@@ -2,11 +2,11 @@ from datetime import datetime, timezone
 from typing import Optional
 from sqlalchemy import func, select, update
 
-from db.models.support_ticket import SupportTicket
+from db.models.support_ticket import SupportTicket, SupportMessage
 from db.repositories.base import BaseRepository
 
 from schemas.support import SupportTicketCreateInternal, SupportTicketAdminUpdate
-from status.support_ticket_status import SupportTicketStatus
+from status.support_ticket_status import SupportTicketStatus, SupportMessageSenderType
 
 
 class SupportTicketRepository(BaseRepository):
@@ -204,15 +204,28 @@ class SupportTicketRepository(BaseRepository):
                 return None
 
             normalized = reply_text.strip()
-            obj.text = f"{obj.text.rstrip()}\n\n— Дополнение клиента —\n{normalized}"
+            s.add(SupportMessage(
+                ticket_id=obj.id,
+                sender_type=SupportMessageSenderType.USER,
+                sender_user_id=obj.user_id,
+                text=normalized,
+            ))
+
             return await self._commit_refresh(s, obj)
 
     # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
     async def create(self, ticket_data: SupportTicketCreateInternal) -> SupportTicket:
-        """Создать новое обращение клиента в поддержку."""
+        """Создать новое обращение клиента в поддержку и сохранить первое сообщение."""
         payload = ticket_data.model_dump()
+        initial_text = payload["text"]
+        obj = SupportTicket(**payload)
+        obj.messages.append(SupportMessage( # Логика Support Message
+            sender_type=SupportMessageSenderType.USER,
+            sender_user_id=obj.user_id,
+            text=initial_text,
+        ))
+
         async with self._session() as s:
-            obj = SupportTicket(**payload)
             return await self._add_commit_refresh(s, obj)
 
     async def update(self, ticket_id: int, update_data: SupportTicketAdminUpdate) -> Optional[SupportTicket]:
@@ -245,3 +258,31 @@ class SupportTicketRepository(BaseRepository):
                 return False
 
             return await self._delete_commit(s, obj)
+
+
+
+    # ─────────────────────────────────── Логика Support Message ───────────────────────────────────────────────────────
+    async def add_admin_message(self, *, ticket_id: int, sender_admin_id: int, text: str) -> Optional[SupportTicket]:
+        """Сохранить ответ администратора в истории открытого тикета."""
+        async with self._session() as s:
+            obj: Optional[SupportTicket] = await s.get(SupportTicket, ticket_id)
+            if not obj or obj.status != SupportTicketStatus.OPEN:
+                return None
+
+            s.add(SupportMessage(
+                ticket_id=obj.id,
+                sender_type=SupportMessageSenderType.ADMIN,
+                sender_admin_id=sender_admin_id,
+                text=text.strip(),
+            ))
+            obj.admin_last_reply_at = datetime.now(timezone.utc)
+            return await self._commit_refresh(s, obj)
+
+    async def list_messages(self, ticket_id: int) -> list[SupportMessage]:
+        """Вернуть историю сообщений тикета по возрастанию даты."""
+        async with self._session() as s:
+            stmt = select(SupportMessage).where(SupportMessage.ticket_id == ticket_id).order_by(
+                SupportMessage.created_at.asc(), SupportMessage.id.asc()
+            )
+            res = await s.execute(stmt)
+            return list(res.scalars().all())
