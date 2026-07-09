@@ -185,6 +185,17 @@ class RentalRepository(BaseRepository):
 
             return await self._list(s, stmt)
 
+    async def list_by_status_with_details_for_admins(self, status: RentalStatus, *, limit: int, offset: int) -> list[Rental]:
+        """Заявки указанного статуса для админ-панели с заранее подгруженными связями."""
+        async with self._session() as s:
+            stmt = select(Rental)
+            stmt = self._apply_status_filter(stmt, status)
+            stmt = self._apply_recent_order(stmt)
+            stmt = self._apply_pagination(stmt, limit=limit, offset=offset)
+            stmt = self._with_details(stmt)
+
+            return await self._list(s, stmt)
+
     # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
     async def create(self, rental_data: RentalCreate) -> Rental:
         """Создать новую заявку клиента на аренду товара."""

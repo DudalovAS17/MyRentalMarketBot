@@ -49,7 +49,10 @@ ADMIN_CREATE_ITEM_MODE = "create_item"
 
 # deals
 DEALS_PREFIX = "admin:deals"
+DEALS_NEW_PREFIX = "admin:deals:new"
+DEALS_ALL_PREFIX = "admin:deals:all"
 DEALS_PAGE_PREFIX = "admin:deals:page:"
+DEALS_NEW_PAGE_PREFIX = "admin:deals:new:page:"
 DEALS_VIEW_PREFIX = "admin:deals:view:"
 DEALS_BY_ID_PREFIX = "admin:deals:by_id"
 
@@ -60,6 +63,7 @@ DEALS_REJECT_PREFIX = "admin:deals:reject:"
 DEALS_COMPLETE_PREFIX = "admin:deals:complete:"
 DEALS_CANCEL_PREFIX = "admin:deals:cancel:"
 DEALS_COMMENT_PREFIX = "admin:deals:comment:"
+DEALS_CONTACT_PREFIX = "admin:deals:contact:"
 
 # items moderation
 ADMIN_ITEMS_MOD = "admin:items"

@@ -7,7 +7,8 @@ from status.support_ticket_status import SupportTicketStatus
 from schemas.rental import RentalAdminDetailsOut
 from utils.callbacks import (ADMIN_ADD_ITEM_CB, BACK_TO_ADMIN_MENU_CB, ADMIN_SUPPORT, ADMIN_SUPPORT_ITEMS, ADMIN_SUPPORT_RENTALS,
                              ADMIN_EXIT_PREFIX, DEALS_PREFIX, ADMIN_USERS_MOD, ADMIN_CONTENT, ADMIN_ITEMS_MOD, ADMIN_SUPPORT_GENERAL,
-                             DEALS_VIEW_PREFIX, DEALS_PROGRESS_PREFIX, DEALS_CONFIRM_PREFIX, DEALS_REJECT_PREFIX, DEALS_COMMENT_PREFIX)
+                             DEALS_VIEW_PREFIX, DEALS_PROGRESS_PREFIX, DEALS_CONFIRM_PREFIX, DEALS_REJECT_PREFIX, DEALS_COMMENT_PREFIX,
+                             DEALS_NEW_PREFIX, DEALS_ALL_PREFIX, DEALS_CONTACT_PREFIX)
 
 def _button_rows_by_two(buttons: list[InlineKeyboardButton]) -> list[list[InlineKeyboardButton]]:
     """Разложить кнопки по две в строке."""
@@ -18,15 +19,18 @@ def get_admin_menu_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                InlineKeyboardButton(text="📄 Заявки на аренду", callback_data=DEALS_PREFIX),
-                InlineKeyboardButton(text="📦 Модерация объявлений", callback_data=ADMIN_ITEMS_MOD),
+                InlineKeyboardButton(text="🆕 Новые заявки", callback_data=DEALS_NEW_PREFIX),
+                InlineKeyboardButton(text="📋 Все заявки", callback_data=DEALS_ALL_PREFIX), # DEALS_PREFIX
             ],
             [
                 InlineKeyboardButton(text="👥 Наши клиенты", callback_data=ADMIN_USERS_MOD),
+                InlineKeyboardButton(text="🆘 Обращения клиентов", callback_data=ADMIN_SUPPORT),
+            ],
+            [
+                InlineKeyboardButton(text="📦 Модерация объявлений", callback_data=ADMIN_ITEMS_MOD),
                 InlineKeyboardButton(text="➕ Создать объявление", callback_data=ADMIN_ADD_ITEM_CB),
             ],
             [
-                InlineKeyboardButton(text="🆘 Обращения клиентов", callback_data=ADMIN_SUPPORT),
                 InlineKeyboardButton(text="📚 Контент/FAQ", callback_data=ADMIN_CONTENT),
             ],
             [
@@ -104,7 +108,7 @@ def get_admin_users_menu_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [InlineKeyboardButton(text="🔎 Найти клиента по id", callback_data="admin:users:find")],
-            [InlineKeyboardButton(text="🔙 Назад в админ-меню", callback_data="admin:menu")],
+            [InlineKeyboardButton(text="🔙 Назад в админ-меню", callback_data=BACK_TO_ADMIN_MENU_CB)],
         ]
     )
 
@@ -123,9 +127,8 @@ def get_admin_user_card_keyboard(user_id: int, account_status: AccountStatus) ->
 
 
 # ────────────────────────────────────────────────── ADMIN DEALS ───────────────────────────────────────────────────────
-def get_admin_deals_list_keyboard(rentals_rows: list[RentalAdminDetailsOut], page: int, has_next: bool) -> InlineKeyboardMarkup:
+def get_admin_deals_list_keyboard(rentals_rows: list[RentalAdminDetailsOut], page: int, has_next: bool, *, mode: str = "all") -> InlineKeyboardMarkup:
     kb = []
-
     for row in rentals_rows:
         r = row.rental
         kb.append(
@@ -134,22 +137,27 @@ def get_admin_deals_list_keyboard(rentals_rows: list[RentalAdminDetailsOut], pag
 
     nav = []
     if page > 1:
-        nav.append(InlineKeyboardButton(text="⬅️ Пред", callback_data=f"admin:deals:page:{page-1}"))
+        nav.append(InlineKeyboardButton(text="⬅️ Пред", callback_data=f"admin:deals:{mode}:page:{page-1}"))
     if has_next:
-        nav.append(InlineKeyboardButton(text="➡️ След", callback_data=f"admin:deals:page:{page+1}"))
+        nav.append(InlineKeyboardButton(text="➡️ След", callback_data=f"admin:deals:{mode}:page:{page+1}"))
     if nav:
         kb.append(nav)
 
-    kb.append([InlineKeyboardButton(text="🔎 Открыть по ID", callback_data="admin:deals:by_id")])
-    kb.append([InlineKeyboardButton(text="🔙 Назад в админ-меню", callback_data="admin:menu")])
+    if mode == "new":
+        kb.append([InlineKeyboardButton(text="📋 Показать все заявки", callback_data=DEALS_ALL_PREFIX)])
+    else:
+        kb.append([InlineKeyboardButton(text="🆕 Показать только новые", callback_data=DEALS_NEW_PREFIX)])
+
+    kb.append([InlineKeyboardButton(text="🔎 Открыть заявку по ID", callback_data="admin:deals:by_id")])
+    kb.append([InlineKeyboardButton(text="🔙 Назад в админ-меню", callback_data=BACK_TO_ADMIN_MENU_CB)])
 
     return InlineKeyboardMarkup(inline_keyboard=kb)
 
-def get_admin_deal_details_keyboard(rental_id: int, status: RentalStatus, user_telegram_id: int | None = None) -> InlineKeyboardMarkup:
+def get_admin_deal_details_keyboard(rental_id: int, status: RentalStatus) -> InlineKeyboardMarkup:
     buttons = [InlineKeyboardButton(text="🔄 Обновить", callback_data=f"admin:deals:view:{rental_id}")]
 
     if status == RentalStatus.REQUESTED:
-        buttons.append(InlineKeyboardButton(text="👀 Взять в работу", callback_data=f"admin:deals:progress:{rental_id}"))
+        buttons.append(InlineKeyboardButton(text="✅ Взять в работу", callback_data=f"admin:deals:progress:{rental_id}"))
 
     if status in {RentalStatus.REQUESTED, RentalStatus.IN_PROGRESS}:
         buttons.append(InlineKeyboardButton(text="✅ Подтвердить", callback_data=f"admin:deals:confirm:{rental_id}"))
@@ -159,25 +167,26 @@ def get_admin_deal_details_keyboard(rental_id: int, status: RentalStatus, user_t
         buttons.append(InlineKeyboardButton(text="🚫 Отменить", callback_data=f"admin:deals:cancel:{rental_id}")) # "🚫 Отменить сделку"
         buttons.append(InlineKeyboardButton(text="🏁 Завершить", callback_data=f"admin:deals:complete:{rental_id}"))
 
-    if user_telegram_id:
-        buttons.append(InlineKeyboardButton(text="📞 Контакт клиента", url=f"tg://user?id={user_telegram_id}"))
-
-    buttons.append(InlineKeyboardButton(text="📝 Комментарий", callback_data=f"{DEALS_COMMENT_PREFIX}{rental_id}"))
-    buttons.append(InlineKeyboardButton(text="🔙 К списку", callback_data="admin:deals"))
+    buttons.append(InlineKeyboardButton(text="📞 Контакт клиента", callback_data=f"{DEALS_CONTACT_PREFIX}{rental_id}"))
+    buttons.append(InlineKeyboardButton(text="📝 Комментарий менеджера", callback_data=f"{DEALS_COMMENT_PREFIX}{rental_id}"))
+    buttons.append(InlineKeyboardButton(text="🔙 К списку", callback_data=DEALS_PREFIX))
 
     return InlineKeyboardMarkup(inline_keyboard=_button_rows_by_two(buttons))
 
-def get_admin_new_rental_notification_keyboard(rental_id: int, user_telegram_id: int | None = None) -> InlineKeyboardMarkup:
+def get_admin_new_rental_notification_keyboard(rental_id: int) -> InlineKeyboardMarkup:
     """Клавиатура уведомления админам о новой заявке на аренду."""
     buttons = [
-        InlineKeyboardButton(text="🔎 Открыть заявку", callback_data=f"{DEALS_VIEW_PREFIX}{rental_id}"),
         InlineKeyboardButton(text="✅ Взять в работу", callback_data=f"{DEALS_PROGRESS_PREFIX}{rental_id}"),
         InlineKeyboardButton(text="✅ Подтвердить", callback_data=f"{DEALS_CONFIRM_PREFIX}{rental_id}"),
         InlineKeyboardButton(text="❌ Отклонить", callback_data=f"{DEALS_REJECT_PREFIX}{rental_id}"),
-        InlineKeyboardButton(text="📝 Комментарий", callback_data=f"{DEALS_COMMENT_PREFIX}{rental_id}"),
     ]
-    if user_telegram_id:
-        buttons.append(InlineKeyboardButton(text="📞 Контакт клиента", url=f"tg://user?id={user_telegram_id}"))
+
+    buttons.extend([
+        InlineKeyboardButton(text="📞 Контакт клиента", callback_data=f"{DEALS_CONTACT_PREFIX}{rental_id}"),
+        InlineKeyboardButton(text="📝 Комментарий менеджера", callback_data=f"{DEALS_COMMENT_PREFIX}{rental_id}"),
+        InlineKeyboardButton(text="🔎 Открыть заявку", callback_data=f"{DEALS_VIEW_PREFIX}{rental_id}"),
+    ])
+
     return InlineKeyboardMarkup(inline_keyboard=_button_rows_by_two(buttons))
 
 def get_admin_dispute_target_keyboard(rental_id: int) -> InlineKeyboardMarkup:
@@ -250,7 +259,7 @@ def get_admin_support_menu_kb() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [InlineKeyboardButton(text="📭 Открытые тикеты", callback_data="admin:support:open")],
-            [InlineKeyboardButton(text="🔙 Назад в админ-меню", callback_data="admin:menu")],
+            [InlineKeyboardButton(text="🔙 Назад в админ-меню", callback_data=BACK_TO_ADMIN_MENU_CB)],
         ]
     )
 

@@ -5,6 +5,14 @@ from schemas.rental import RentalAdminDetailsOut
 from schemas.user import UserOut
 from utils.validators import format_price
 from status.user_status import AccountStatus
+from status.rental_status import STATUS_LABELS
+
+def _truncate(text: str, max_len: int = 48) -> str:
+    """Аккуратно укоротить длинный текст для списка заявок."""
+    normalized = " ".join((text or "—").split())
+    if len(normalized) <= max_len:
+        return normalized
+    return f"{normalized[:max_len - 1].rstrip()}…"
 
 # ──────────────────────────────────────────────────   ─────────────────────────────────────────────────────────────
 def format_user_line(label: str, user) -> str:
@@ -15,18 +23,36 @@ def format_user_line(label: str, user) -> str:
     username = user.username
     return f"{label}: id={user.id}, tg={tg}, @{username}"
 
+def format_deal_list_item(details: RentalAdminDetailsOut) -> str:
+    """Сформировать компактную строку заявки для списка в админке."""
+    r = details.rental
+    item = details.item
+    status_label = STATUS_LABELS.get(r.status, r.status.value)
+    title = _truncate(item.title or f"Товар #{r.item_id}")
+    created = format_datetime(r.created_at)
+    client_name = _truncate(r.client_name or getattr(details.user, "full_name", None) or "клиент не указан", 28)
+
+    return (
+        f"<b>#{r.id}</b> · <b>{status_label}</b>\n"
+        f"📦 {title}\n"
+        f"👤 {client_name} · {r.quantity} шт. · {created}"
+    )
+
+
 def format_deal_details(details: RentalAdminDetailsOut) -> str:
     """Сформировать текст карточки заявки для админки"""
     r = details.rental
     item = details.item
     client = details.user
 
-    item_title = item.title or f"item_id={r.item_id}"
-    status_val = r.status.value
+    item_title = item.title or f"Товар #{r.item_id}"
+    status_val = STATUS_LABELS.get(r.status, r.status.value)
 
     delivery = "нужна" if r.delivery_needed else "не нужна"
     address_line = f"• Адрес доставки: {r.delivery_address or '—'}\n" if r.delivery_needed else ""
     username = f"@{client.username}" if client and client.username else "—"
+
+    created = format_datetime(r.created_at)
 
     return (
         f"🧾 <b>Заявка #{r.id}</b>\n\n"
@@ -43,6 +69,27 @@ def format_deal_details(details: RentalAdminDetailsOut) -> str:
         f"☎️ Телефон: {r.client_phone or '—'}\n"
         f"💬 Комментарий клиента: {r.client_comment or '—'}\n"
         f"📝 Комментарий менеджера: {r.manager_comment or '—'}\n"
+        f"📅 Создана: {created}\n"
+    )
+
+# подчисть
+def format_deal_contact(details: RentalAdminDetailsOut) -> str:
+    """Сформировать контактную карточку клиента по заявке."""
+    r = details.rental
+    client = details.user
+    username = client.username if client and client.username else None
+    username_line = f"@{username}" if username else "—"
+    link_line = f"https://t.me/{username}" if username else "—"
+
+    return (
+        f"📞 <b>Контакт клиента по заявке #{r.id}</b>\n\n"
+        f"• Имя из заявки: <b>{r.client_name or '—'}</b>\n"
+        f"• Имя профиля: <b>{getattr(client, 'full_name', None) or '—'}</b>\n"
+        f"• Телефон из заявки: <b>{r.client_phone or '—'}</b>\n"
+        f"• Телефон профиля: <b>{getattr(client, 'phone', None) or '—'}</b>\n"
+        f"• Username: {username_line}\n"
+        f"• Telegram ID: <code>{getattr(client, 'telegram_id', '—')}</code>\n"
+        f"• Ссылка: {link_line}\n"
     )
 
 # ────────────────────────────────────────────────── items moderation ──────────────────────────────────────────────────

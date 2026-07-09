@@ -3,32 +3,59 @@ from aiogram.types import CallbackQuery, Message
 from aiogram.fsm.context import FSMContext
 
 from services.admin_rental_service import AdminRentalService
-from .admin_helpers.show import show_deals_list, show_deal_card
+from .admin_helpers.show import show_deals_list, show_deal_card, show_deal_contact
 from .admin_helpers.parse import parse_admin_page, parse_admin_rental_id, parse_admin_rental_id_text
 
 from states.admin import AdminStates
 from utils.functions import send_or_edit
-from utils.callbacks import DEALS_PREFIX, DEALS_PAGE_PREFIX, DEALS_VIEW_PREFIX, DEALS_BY_ID_PREFIX
+from utils.callbacks import (DEALS_PAGE_PREFIX, DEALS_VIEW_PREFIX, DEALS_BY_ID_PREFIX, # DEALS_PREFIX,
+                             DEALS_NEW_PREFIX, DEALS_ALL_PREFIX, DEALS_NEW_PAGE_PREFIX, DEALS_CONTACT_PREFIX)
 
 admin_deals_router = Router()
 
 # ***** кнопка админки "Заявки на аренду" *****
 
 # ─────────────────────────────────────────────── Просмотр заявок ──────────────────────────────────────────────────────
-@admin_deals_router.callback_query(F.data == DEALS_PREFIX)
+@admin_deals_router.callback_query(F.data == DEALS_ALL_PREFIX) # DEALS_PREFIX
 async def admin_deals_list(callback: CallbackQuery, admin_rental_service: AdminRentalService) -> None:
     """Список последних заявок на аренду (страница 1)"""
     await callback.answer()
 
     await show_deals_list(callback, admin_rental_service, page=1)
 
-@admin_deals_router.callback_query(F.data.startswith(DEALS_PAGE_PREFIX))
+@admin_deals_router.callback_query(F.data.startswith(DEALS_PAGE_PREFIX) | F.data.startswith("admin:deals:all:page:"))
 async def admin_deals_page(callback: CallbackQuery, admin_rental_service: AdminRentalService) -> None:
     """Пагинация списка заявок"""
     await callback.answer()
 
     page = parse_admin_page(callback.data)
     await show_deals_list(callback, admin_rental_service, page=page)
+
+@admin_deals_router.callback_query(F.data == DEALS_NEW_PREFIX)
+async def admin_deals_new_list(callback: CallbackQuery, admin_rental_service: AdminRentalService) -> None:
+    """Список новых заявок REQUESTED (страница 1)."""
+    await callback.answer()
+
+    await show_deals_list(callback, admin_rental_service, page=1, only_new=True)
+
+@admin_deals_router.callback_query(F.data.startswith(DEALS_NEW_PAGE_PREFIX))
+async def admin_deals_new_page(callback: CallbackQuery, admin_rental_service: AdminRentalService) -> None:
+    """Пагинация списка новых заявок."""
+    await callback.answer()
+
+    page = parse_admin_page(callback.data)
+    await show_deals_list(callback, admin_rental_service, page=page, only_new=True)
+
+@admin_deals_router.callback_query(F.data.startswith(DEALS_CONTACT_PREFIX))
+async def admin_deals_contact(callback: CallbackQuery, admin_rental_service: AdminRentalService) -> None:
+    """Контакты клиента по заявке."""
+    rental_id = parse_admin_rental_id(callback.data)
+    if rental_id is None:
+        await callback.answer("Некорректный ID заявки", show_alert=True)
+        return
+
+    await callback.answer()
+    await show_deal_contact(callback, admin_rental_service, rental_id)
 
 @admin_deals_router.callback_query(F.data.startswith(DEALS_VIEW_PREFIX))
 async def admin_deals_view(callback: CallbackQuery, admin_rental_service: AdminRentalService) -> None: # , *, action_name: str

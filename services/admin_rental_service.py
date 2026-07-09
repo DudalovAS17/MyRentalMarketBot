@@ -82,6 +82,17 @@ class AdminRentalService:
 
         return self._to_admin_details_list(rentals[:limit]), has_next # rows, has_next
 
+    async def list_rentals_by_status(self, status: RentalStatus, page: int) -> tuple[list[RentalAdminDetailsOut], bool]:
+        """Админ-экран: заявки клиентов с указанным статусом."""
+        safe_page = max(1, page)
+        limit = _PAGE_SIZE
+        offset = (safe_page - 1) * limit
+
+        rentals = await self.repo.list_by_status_with_details_for_admins(status, limit=limit + 1, offset=offset)
+        has_next = len(rentals) > limit
+
+        return self._to_admin_details_list(rentals[:limit]), has_next
+
     async def get_details(self, rental_id: int, *, strict: bool = False) -> Optional[RentalAdminDetailsOut]:
         """Вернуть подробную информацию о заявке для администратора/менеджера."""
         rental = await self.repo.get_details_by_id(rental_id)

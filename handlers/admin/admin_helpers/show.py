@@ -8,7 +8,8 @@ from services.support_service import SupportService
 
 from .keyboard import (get_admin_deals_list_keyboard, get_admin_deal_details_keyboard, get_admin_items_list_keyboard,
                        get_admin_user_card_keyboard, get_admin_support_ticket_keyboard, get_admin_support_list_keyboard)
-from .texts import format_deal_details, format_user_card, format_ticket_card, format_datetime
+from .texts import (format_deal_details, format_user_card, format_ticket_card, format_datetime,
+                    format_deal_contact, format_deal_list_item)
 
 from utils.functions import send_or_edit
 from utils.validators import format_price
@@ -16,30 +17,38 @@ from status.item_status import ItemStatus
 from utils.errors import ServiceError
 
 # ──────────────────────────────────────────────────   ─────────────────────────────────────────────────────────────
-async def show_deals_list(event: Message | CallbackQuery, admin_rental_service: AdminRentalService, page: int) -> None:
-    """Показать список последних заявок в админке"""
-    rows, has_next = await admin_rental_service.list_recent_rentals(page=page)
+async def show_deals_list(event: Message | CallbackQuery, admin_rental_service: AdminRentalService, page: int, *, only_new: bool = False) -> None:
+    """Показать список заявок в админке: новые или все."""
+
+    if only_new:
+        from status.rental_status import RentalStatus
+        rows, has_next = await admin_rental_service.list_rentals_by_status(RentalStatus.REQUESTED, page=page)
+        title = "🆕 <b>Новые заявки (REQUESTED)"
+        mode = "new"
+    else:
+        rows, has_next = await admin_rental_service.list_recent_rentals(page=page)
+        title = "📋 <b>Все заявки"
+        mode = "all"
+
     #await state.update_data(admin_deals_page=page)
 
-    lines = [f"📄 <b>Заявки на аренду (последние), стр. {page}</b>\n"]
+    lines = [f"{title}, стр. {page}</b>\n"]
 
     if not rows:
         await send_or_edit(
             event,
-            "Пока нет заявок. \n".join(lines),
-            get_admin_deals_list_keyboard([], page=page, has_next=False)
+            f"{lines[0]}\nПока нет заявок.",
+            get_admin_deals_list_keyboard([], page=page, has_next=False, mode=mode)
         )
         return
 
     for row in rows:
-        r = row.rental
-        item = row.item
-        lines.append(f"• <b>#{r.id}</b> — {r.status.value} — {item.title} - item_id={r.item_id}")
+        lines.append(format_deal_list_item(row))
 
     await send_or_edit(
         event,
-        "\n".join(lines),
-        get_admin_deals_list_keyboard(rows, page=page, has_next=has_next)
+        "\n\n".join(lines),
+        get_admin_deals_list_keyboard(rows, page=page, has_next=has_next, mode=mode)
     )
 
 # пока не реализовано
@@ -58,7 +67,20 @@ async def show_deal_card(
     await send_or_edit(
         event,
         f"{prefix_text}{format_deal_details(details)}", # f"✅ {action_name}.\n\n" + format_deal_details(details)
-        get_admin_deal_details_keyboard(rental_id, status=details.rental.status, user_telegram_id=details.user.telegram_id)
+        get_admin_deal_details_keyboard(rental_id, status=details.rental.status)
+    )
+
+async def show_deal_contact(event: Message | CallbackQuery, admin_rental_service: AdminRentalService, rental_id: int) -> None:
+    """Показать контакты клиента по заявке."""
+    details = await admin_rental_service.get_details(rental_id)
+    if not details:
+        await send_or_edit(event, f"❌ Заявка #{rental_id} не найдена.", None)
+        return
+
+    await send_or_edit(
+        event,
+        format_deal_contact(details),
+        get_admin_deal_details_keyboard(rental_id, status=details.rental.status),
     )
 
 # ────────────────────────────────────────────────── items moderation ─────────────────────────────────────────────────────────────
@@ -86,7 +108,7 @@ async def show_items_list(
         lines.append("Нет товаров в этом статусе.")
         await send_or_edit(
             event,
-            "\n".join(lines),
+            "\n\n".join(lines),
             get_admin_items_list_keyboard([], status=status.value, page=page, has_next=False)
         )
         return
@@ -99,7 +121,7 @@ async def show_items_list(
 
     await send_or_edit(
         event,
-        "\n".join(lines),
+        "\n\n".join(lines),
         get_admin_items_list_keyboard(items, status=status.value, page=page, has_next=has_next)
     )
 
@@ -166,7 +188,7 @@ async def show_support_ticket_list(
     rows = [{"ticket": ticket} for ticket in tickets]
     await send_or_edit(
         event,
-        "\n".join(lines),
+        "\n\n".join(lines),
         get_admin_support_list_keyboard(rows, page=page, has_next=has_next, kind=kind),
     )
 
