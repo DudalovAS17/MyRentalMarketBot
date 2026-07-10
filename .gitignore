@@ -19,3 +19,5 @@ __pycache__/
 
 # pycharm
 .idea/
+
+!.env.example

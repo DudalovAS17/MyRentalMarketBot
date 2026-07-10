@@ -27,8 +27,10 @@ class Settings(BaseSettings):
     )
 
     # ───────── Runtime  ─────────
+    debug: bool = Field(default=True, validation_alias="DEBUG")
     log_level: str = Field(default="INFO", alias="LOG_LEVEL")
     drop_pending_updates: bool = Field(default=False, alias="DROP_PENDING_UPDATES")
+    storage_path: str = Field(default="storage", validation_alias="STORAGE_PATH")
 
     @property
     def log_level_value(self) -> int:

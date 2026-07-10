@@ -1,0 +1,30 @@
+# Telegram Bot API token from @BotFather. Keep real tokens only in .env.
+BOT_TOKEN=
+# Backward-compatible name also supported by the app: TELEGRAM_TOKEN=
+
+# Comma-separated Telegram user IDs with admin access.
+ADMIN_IDS=
+
+# MVP mode: polling. Production webhook is intentionally out of MVP scope.
+DEBUG=True
+LOG_LEVEL=INFO
+DROP_PENDING_UPDATES=False
+
+# Storage directory for imported/local files.
+STORAGE_PATH=storage
+
+# Option A: single SQLAlchemy async URL.
+# DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5433/rental_market_bot
+
+# Option B: compose/local PostgreSQL variables.
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_DB=rental_market_bot
+DB_HOST=localhost
+DB_PORT=5433
+
+# Optional notifications/chats, not required for local MVP launch.
+MANAGER_CHAT_ID=
+SUPPORT_CHAT_ID=
+WEBHOOK_URL=
+WEBHOOK_SECRET=
