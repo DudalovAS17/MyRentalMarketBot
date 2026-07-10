@@ -6,9 +6,11 @@ from aiogram.types import Message, CallbackQuery
 from services.user_service import UserService
 from status.user_status import AccountStatus
 from utils.functions import deny
-from texts.text_middleware import MSG_NEED_REGISTER, MSG_BANNED, MSG_NEED_PHONE # , MSG_BLOCKED
+from texts.text_middleware import MSG_NEED_REGISTER, MSG_BANNED #, MSG_NEED_PHONE , MSG_BLOCKED
 
 logger = logging.getLogger(__name__)
+
+TgEvent = Message | CallbackQuery # TelegramObject
 
 class RegistrationCheckMiddleware(BaseMiddleware):
     """Проверяет доступ пользователя в рабочую часть бота.
@@ -18,14 +20,15 @@ class RegistrationCheckMiddleware(BaseMiddleware):
     - пропускает контакт от нового пользователя, чтобы он мог завершить регистрацию;
     - загружает пользователя через `UserService` и кладёт DTO `user` в `data`;
     - блокирует забаненных пользователей, кроме администраторов из whitelist;
-    - блокирует пользователей без телефона, кроме события с контактом.
+    - пользователей без телефона пропускает в каталог; телефон спрашивают целевые сценарии.
+        Было: блокирует пользователей без телефона, кроме события с контактом.
     """
     """
     Middleware, проверяющее регистрацию и блокировку пользователя перед вызовом хендлеров
 
     1) Пропускает /start и сообщения с контактом (иначе регистрацию не завершить)
     2) Проверяет, что пользователь существует в БД
-    3) Проверяет ограничения (бан/блок/телефон) — админов пропускает
+    3) Проверяет ограничения (бан/блок) — админов пропускает  (было: /телефон)
     4) Если всё ок — кладёт `user` в data для DI в хендлеры
     """
 
@@ -39,8 +42,8 @@ class RegistrationCheckMiddleware(BaseMiddleware):
 
     async def __call__(
         self,
-        handler: Callable[[Message | CallbackQuery, dict[str, Any]], Awaitable[Any]],
-        event: Message | CallbackQuery,
+        handler: Callable[[TgEvent, dict[str, Any]], Awaitable[Any]],
+        event: TgEvent,
         data: dict[str, Any],
     ) -> Any:
         """Основная точка входа в middleware"""
@@ -76,22 +79,23 @@ class RegistrationCheckMiddleware(BaseMiddleware):
             await deny(event, MSG_BANNED)
             return None
 
-        # 🚫 Проверка подтверждения телефона (без телефона — не даём пользоваться ботом)
-        if not user.phone and not _is_contact_message(event):
-            logger.info(f"[RegistrationCheck] Пользователь {tg_user_id} не завершил регистрацию (нет телефона)")
-            await deny(event, MSG_NEED_PHONE)
-            return None
+        # # 🚫 Проверка подтверждения телефона (без телефона — не даём пользоваться ботом)
+        # if not user.phone and not _is_contact_message(event):
+        #     logger.info(f"[RegistrationCheck] Пользователь {tg_user_id} не завершил регистрацию (нет телефона)")
+        #     await deny(event, MSG_NEED_PHONE)
+        #     return None
 
         # ⚙️ Передаём управление хендлеру
         return await handler(event, data)
 
 # ───────────────────────────────────────── helpers ────────────────────────────────────────────────────────────────────
-def _tg_user_id(event: Message | CallbackQuery) -> int | None:
+def _tg_user_id(event: TgEvent) -> int | None:
     return getattr(getattr(event, "from_user", None), "id", None)
 
-def _is_start_command(event: Message | CallbackQuery) -> bool:
+def _is_start_command(event: TgEvent) -> bool:
     text = getattr(event, "text", None)
-    return isinstance(event, Message) and bool(text) and event.text.startswith("/start")
+    #return isinstance(event, Message) and bool(text) and event.text.startswith("/start")
+    return isinstance(event, Message) and isinstance(text, str) and text.startswith("/start")
 
-def _is_contact_message(event: Message | CallbackQuery) -> bool:
+def _is_contact_message(event: TgEvent) -> bool:
     return isinstance(event, Message) and event.contact is not None

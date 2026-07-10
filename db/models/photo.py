@@ -45,7 +45,7 @@ class Photo(Base, TimestampMixin):
 
     # ------- Отношения | связи --------
 
-    # каждая фотография знает, к какой вещи относится
+    # каждая фотография знает, к какому товару относится
     item: Mapped["Item"] = relationship("Item", back_populates="item_photos")
 
     __table_args__ = (

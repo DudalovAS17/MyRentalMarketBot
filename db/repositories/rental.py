@@ -9,18 +9,6 @@ from db.repositories.base import BaseRepository
 from schemas.rental import RentalCreate, RentalUpdate
 from status.rental_status import RentalStatus, open_statuses, status_timestamp_fields
 
-"""try_set_owner_handover_confirmed
-Владелец отмечает: 'передал вещь' (только если CONFIRMED, и он owner, и флаг ещё False)
-Возвращает True - владелец подтвердил передачу
-
-try_set_renter_confirm_receive
-Арендатор отмечает: 'получил вещь' (только если CONFIRMED, и он renter, и флаг ещё False)
-Возвращает True - арендатор подтвердил получение вещи
-
-try_activate_confirmed_rental
-CONFIRMED -> ACTIVE если обе стороны подтвердили передачу/получение
-Возвращает True - арендатор подтвердил получение (статус перешёл в ACTIVE)
-"""
 
 class RentalRepository(BaseRepository):
     """Репозиторий заявок клиентов на аренду товаров компании."""
@@ -103,7 +91,7 @@ class RentalRepository(BaseRepository):
             return await self._list(s, stmt)
 
     async def get_by_id(self, rental_id: int) -> Optional[Rental]:
-        """Найти сделку по ID"""
+        """Найти заявку по ID"""
         async with self._session() as s:
             return await s.get(Rental, rental_id)
 
@@ -138,7 +126,7 @@ class RentalRepository(BaseRepository):
             return await self._list(s, stmt)
 
     async def list_by_status(self, status: RentalStatus, *, limit: Optional[int] = None, offset: int = 0) -> list[Rental]:
-        """Сделки по статусу"""
+        """Заявки по статусу"""
         async with self._session() as s:
             stmt = select(Rental)
             stmt = self._apply_status_filter(stmt, status)
@@ -247,7 +235,7 @@ class RentalRepository(BaseRepository):
     # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
     async def try_update_status(
             self,
-            rental_id: int, # какую сделку мы хотим изменить
+            rental_id: int, # какую заявку мы хотим изменить
             new_status: RentalStatus, # переводим в этот статус
             expected_status: RentalStatus, # из какого статуса разрешён переход
             *,

@@ -38,7 +38,7 @@ class AdminEntityType(str, enum.Enum):
 
 class AdminRole(StrEnum):
     """Роли сотрудников"""
-    OWNER = "owner" # владелец системы, полный доступ
+    OWNER = "owner" # владелец бота (компания), полный доступ
     ADMIN = "admin" # управление каталогом, заявками, настройками
     MANAGER = "manager" # обработка заявок и поддержка
 

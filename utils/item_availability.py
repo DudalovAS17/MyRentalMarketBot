@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from schemas.item import ItemOut
 from status.item_status import ItemStatus
 

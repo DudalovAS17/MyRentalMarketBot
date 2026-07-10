@@ -4,6 +4,18 @@ from decimal import Decimal
 
 from status.item_status import ItemStatus
 
+"""
+    ItemCreate                 → создание товара каталога
+    ItemUpdate                 → обновление товара каталога
+    ItemOut                    → базовый вывод товара каталога наружу
+    ItemCharacteristicCreate   → создание характеристики товара
+    ItemCharacteristicUpdate   → обновление характеристики товара
+    ItemCharacteristicOut      → вывод характеристики товара наружу
+    ItemModerationUpdate       → админское обновление публикации/статуса товара
+    ItemAdminOut               → админский вывод товара с audit-полями
+    ItemCreateDraft            → FSM-черновик пошагового создания товара
+"""
+
 # ────────────────────────────────────────── Item  ─────────────────────────────────────────────────────────────────────
 class ItemCreate(BaseModel):
     """Схема для создания товара каталога."""

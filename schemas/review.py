@@ -3,6 +3,13 @@ from pydantic import BaseModel, Field, AwareDatetime, ConfigDict
 
 from status.review_status import ReviewStatus
 
+"""
+    ReviewCreate          → клиент создаёт отзыв
+    ReviewUpdate          → клиент обновляет отзыв до публикации
+    ReviewOut             → базовый вывод отзыва наружу
+    ReviewCreateInternal  → внутренняя схема создания отзыва с user_id
+    ReviewAdminUpdate     → админская модерация отзыва
+"""
 
 class ReviewCreate(BaseModel):
     """Клиентская схема для создания отзыва по завершённой заявке."""

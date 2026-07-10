@@ -1,6 +1,12 @@
 from typing import Optional
 from pydantic import BaseModel, Field, AwareDatetime, ConfigDict
 
+"""
+    CategoryCreate     → создание категории или подкатегории
+    CategoryUpdate     → обновление категории или подкатегории
+    CategoryOut        → вывод категории или подкатегории наружу
+"""
+
 class CategoryCreate(BaseModel):
     """Схема для создания категории/подкатегории"""
     name: str = Field(..., min_length=1, max_length=128)

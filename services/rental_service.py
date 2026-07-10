@@ -11,13 +11,6 @@ from status.rental_status import RentalStatus, is_open_status, can_transition
 from utils.domain_exceptions import ItemNotAvailable
 from utils.errors import NotFoundError, ForbiddenError, ConflictError, ValidationError
 
-"""
-    list_rentals_by_renter - Возвращает все аренды, где пользователь — арендатор
-    list_rentals_by_owner - Возвращает список аренд, где пользователь — владелец
-
-    list_user_rentals - Возвращает все сделки пользователя (как арендатор + как владелец) с указанием роли пользователя 
-    в каждой сделке
-"""
 
 logger = logging.getLogger(__name__)
 
@@ -104,7 +97,7 @@ class RentalService:
         # Проверяем право доступа
         if rental.user_id != current_user_id:
             if strict:
-                raise ForbiddenError("Нет доступа к сделке")
+                raise ForbiddenError("Нет доступа к заявке")
             return None
 
         return self._to_details(rental)

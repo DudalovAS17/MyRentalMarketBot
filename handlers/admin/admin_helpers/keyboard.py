@@ -27,8 +27,8 @@ def get_admin_menu_keyboard() -> InlineKeyboardMarkup:
                 InlineKeyboardButton(text="🆘 Обращения клиентов", callback_data=ADMIN_SUPPORT),
             ],
             [
-                InlineKeyboardButton(text="📦 Модерация объявлений", callback_data=ADMIN_ITEMS_MOD),
-                InlineKeyboardButton(text="➕ Создать объявление", callback_data=ADMIN_ADD_ITEM_CB),
+                InlineKeyboardButton(text="📦 Модерация товаров", callback_data=ADMIN_ITEMS_MOD),
+                InlineKeyboardButton(text="➕ Создать товар", callback_data=ADMIN_ADD_ITEM_CB),
             ],
             [
                 InlineKeyboardButton(text="📚 Контент/FAQ", callback_data=ADMIN_CONTENT),
@@ -164,7 +164,7 @@ def get_admin_deal_details_keyboard(rental_id: int, status: RentalStatus) -> Inl
         buttons.append(InlineKeyboardButton(text="❌ Отклонить", callback_data=f"admin:deals:reject:{rental_id}"))
 
     if status == RentalStatus.CONFIRMED:
-        buttons.append(InlineKeyboardButton(text="🚫 Отменить", callback_data=f"admin:deals:cancel:{rental_id}")) # "🚫 Отменить сделку"
+        buttons.append(InlineKeyboardButton(text="🚫 Отменить", callback_data=f"admin:deals:cancel:{rental_id}")) # "🚫 Отменить заявку"
         buttons.append(InlineKeyboardButton(text="🏁 Завершить", callback_data=f"admin:deals:complete:{rental_id}"))
 
     buttons.append(InlineKeyboardButton(text="📞 Контакт клиента", callback_data=f"{DEALS_CONTACT_PREFIX}{rental_id}"))
@@ -266,7 +266,7 @@ def get_admin_support_menu_kb() -> InlineKeyboardMarkup:
 
 # ───────────────────────────────────────── ADMIN ITEMS (возможное доп-е) ──────────────────────────────────────────────
 SHOW_ITEM_CB = "show_item:"
-EDIT_ITEM_CB = "edit_item"
+EDIT_ITEM_CB = "edit_item" # "✏️ Редактировать конкретный товар" - "{EDIT_ITEM_CB}{item.id}" / "🔄 Изменить" - EDIT_ITEM_CB
 EDIT_FIELD_CB = "edit_field:"
 
 def build_edit_item_keyboard(item_id: int) -> InlineKeyboardMarkup:
@@ -278,15 +278,3 @@ def build_edit_item_keyboard(item_id: int) -> InlineKeyboardMarkup:
             [InlineKeyboardButton(text="🔙 Назад", callback_data=f"{SHOW_ITEM_CB}{item_id}")],
         ]
     )
-
-"""
-"✏️ Редактировать конкретное объявление" - "{EDIT_ITEM_CB}{item.id}" / "🔄 Изменить" - EDIT_ITEM_CB
-"🗑️ Удалить" - f"delete_item:{item.id}"
-
-"✅ Опубликовать" - "publish_item"
-"❌ Отменить" - "cancel_item"
-
-Удалено:
-text="✅ Закрыть спор" - "admin:deals:resolve:{rental_id}" 
-(статус disputed)
-"""

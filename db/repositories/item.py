@@ -113,13 +113,6 @@ class ItemRepository(BaseRepository):
                 .distinct()
             )
 
-            # stmt = select(Item).where(
-            #     or_(
-            #         Item.title.ilike(q),
-            #         Item.description.ilike(q),
-            #         Item.short_description.ilike(q),
-            #     )
-            # )
             if active_only:
                 stmt = self._apply_active_filter(stmt)
 

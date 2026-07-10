@@ -6,13 +6,13 @@ from utils.validators import format_step, format_price
 
 # ─────────────────────────────────────────────────show─────────────────────────────────────────────────────────────────
 def get_items_count_str(count: int) -> str:
-    """Возвращает правильное склонение слова 'объявление'"""
+    """Возвращает правильное склонение слова 'товар'"""
     if count % 10 == 1 and count % 100 != 11:
-        return "объявление"
+        return "товар"
     elif 2 <= count % 10 <= 4 and (count % 100 < 10 or count % 100 >= 20):
-        return "объявления"
+        return "товара"
     else:
-        return "объявлений"
+        return "товаров"
 
 def get_days_str(days: int) -> str:
     """Возвращает правильное склонение слова 'день'"""
@@ -59,7 +59,7 @@ def format_photos_count(count: int) -> str:
     return f"{count} фото"
 
 async def render_create_item_step_message(message: Message, text: str, step: int, total_steps: int = 6) -> None:
-    """Отправить сообщение текущего шага создания объявления"""
+    """Отправить сообщение текущего шага создания товара"""
     await message.answer(
         format_step(text, step, total_steps),
         parse_mode="HTML",

@@ -105,7 +105,7 @@ def build_empty_my_rentals_keyboard() -> InlineKeyboardMarkup:
 
 
 def build_my_rentals_keyboard(rentals, *, current_user_id: int, limit: int = 30) -> InlineKeyboardMarkup:
-    """Собрать клавиатуру списка сделок пользователя"""
+    """Собрать клавиатуру списка заявок пользователя"""
     rows: list[list[InlineKeyboardButton]] = []
 
     sorted_rentals = sort_rentals_for_list(rentals)

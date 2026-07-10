@@ -1,4 +1,3 @@
-
 from handlers.rentals.rental_helpers.load import load_item_or_abort
 
 from handlers.rentals.rental_helpers.texts import (not_item_id, not_item_for_rental, not_item, serv_item_err,

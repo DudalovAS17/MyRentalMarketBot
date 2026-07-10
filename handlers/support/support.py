@@ -3,7 +3,7 @@ from aiogram.filters import Command
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 
-from handlers.entries import show_main_menu
+from handlers.entries import show_main_menu, request_phone_confirmation
 from handlers.support.helpers_support import (build_support_request_text, build_support_cancel_keyboard,
                                               build_support_already_open_text, build_support_already_open_after_create_text,
                                               build_support_continue_keyboard)
@@ -150,6 +150,17 @@ async def start_support_flow(
         await send_or_edit(event, "⛔️ Ваш аккаунт заблокирован. Создание обращений в поддержку недоступно.")
         return
 
+    # В поддержку только с телефоном!
+    if not user.phone:
+        if isinstance(event, CallbackQuery):
+            if isinstance(event.message, Message):
+                await request_phone_confirmation(event.message)
+            else:
+                await event.answer("Откройте чат с ботом и нажмите /start, чтобы подтвердить телефон.", show_alert=True)
+        else:
+            await request_phone_confirmation(event)
+        return
+
     if rental_id is not None:
         ticket_kind = "rentals"
     elif item_id is not None:
@@ -259,7 +270,9 @@ async def cancel_support(callback: CallbackQuery, state: FSMContext, user) -> No
     await callback.answer()
 
     await state.clear()
-    await callback.message.answer("❌ Обращение в поддержку отменено.")
+    #await callback.message.answer("❌ Обращение в поддержку отменено.")
+    if isinstance(callback.message, Message):
+        await callback.message.answer("❌ Обращение в поддержку отменено.")
 
     # Возвращаем пользователя в главное меню
     await show_main_menu(callback, user)

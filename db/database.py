@@ -30,9 +30,10 @@ async def init_db(*, create_tables: bool = False) -> None:
     _db_state.engine = create_async_engine(database_url, echo=False, future=True, pool_pre_ping=True)
     _db_state.session_factory = async_sessionmaker(bind=_db_state.engine, autoflush=False, autocommit=False, expire_on_commit=False)
 
-    if create_tables: # У нас теперь False - сюда не попадем. Таблицы не будут создаваться тут
-        async with _db_state.engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
+    if create_tables:  # У нас теперь False - сюда не попадем. Таблицы не будут создаваться тут
+        async with _db_state.engine.connect() as conn:
+            async with conn.begin():
+                await conn.run_sync(Base.metadata.create_all)
         logger.info("init_db(): таблицы созданы (create_all)")
 
 def get_session_factory() -> Callable[[], AsyncSession]:

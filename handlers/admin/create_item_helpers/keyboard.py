@@ -2,7 +2,6 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeybo
 
 from utils.callbacks import (ADMIN_CAT_FI_PREFIX, ADMIN_PUBLISH_ITEM_CB, ADMIN_CANCEL_ITEM_CB,
                              ADMIN_SUBCAT_FI_PREFIX, BACK_TO_MENU_CB, BACK_TO_CAT)
-
 from keyboards.common import build_category_keyboard
 
 

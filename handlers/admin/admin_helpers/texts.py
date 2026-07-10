@@ -93,7 +93,7 @@ def format_deal_contact(details: RentalAdminDetailsOut) -> str:
     )
 
 # ────────────────────────────────────────────────── items moderation ──────────────────────────────────────────────────
-# карточка объявления
+# карточка товара
 def format_item_details(item) -> str:
     """Сформировать текст карточки товара для админки."""
     price_text = format_price(item.price) if item.price is not None else "—"
@@ -102,7 +102,7 @@ def format_item_details(item) -> str:
     return (
         f"📦 <b>Товар #{item.id}</b>\n\n"
         f"• Статус: <b>{item.status.value}</b>\n"
-        #f"• Владелец: <b>{item.user_id}</b>\n"
+        #f"• Менеджер: <b>{item.user_id}</b>\n"
         f"• Название: <b>{item.title}</b>\n"
         f"• Цена: <b>{price_text} ₽/день</b>\n"
         f"• Доступное количество: <b>{quantity if quantity is not None else '—'}</b>\n"

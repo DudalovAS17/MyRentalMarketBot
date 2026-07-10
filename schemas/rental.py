@@ -76,7 +76,7 @@ class RentalOut(BaseModel):
     user_id: int
 
     #start_date: Optional[AwareDatetime] = None
-    #end_date: Optional[AwareDatetime] = None
+    end_date: Optional[AwareDatetime] = None
 
     rental_period_text: Optional[str] = None
     total_price: Optional[Decimal] = None

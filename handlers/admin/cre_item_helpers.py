@@ -17,7 +17,7 @@ from handlers.admin.create_item_helpers.texts import (create_item_category_step_
                                                    build_item_available_quantity_step_text,
                                                    build_item_description_step_text, build_item_min_period_step_text,
                                                    build_item_photo_step_text, build_item_photo_max_photos_warning,
-                                                   build_item_photo_success_or_more, build_item_confirmation_text, item_details_text,
+                                                   build_item_photo_success_or_more, build_item_confirmation_text,
                                                    no_photos, photo_or_ready, data_item_not_found, cant_create_item_err,
                                                    draft_item_valid_err, create_item_valid_err, edit_item_start_text,
                                                    not_cat_id, serv_err_cat, not_cat, not_subcat, not_subcat_id,

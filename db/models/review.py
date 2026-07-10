@@ -14,20 +14,12 @@ if TYPE_CHECKING:
 
 
 class Review(Base, TimestampMixin):
-    """Отзыв клиента о товаре, заявке или сервисе компании.
-
-    Идеал:
-    ⭐ отзывы о товаре
-    ⭐ отзывы о сервисе
-    ⭐ отзывы после завершённой заявки
-    ⭐ оценка качества аренды
-    ⭐ обратная связь для компании
-    """
+    """Отзыв клиента о товаре, заявке или сервисе компании."""
     __tablename__ = 'reviews'
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
 
-    # # Связь с заявкой (Review у тебя привязан не просто к пользователю, а именно к факту сделки)
+    # # Связь с заявкой (Review у тебя привязан не просто к пользователю, а именно к факту заявки)
     rental_id: Mapped[int] = mapped_column(ForeignKey("rentals.id", ondelete="CASCADE"), nullable=False)
 
     # отзыв клиента именно о товаре
@@ -78,6 +70,6 @@ class Review(Base, TimestampMixin):
         # Рейтинг строго 1–5
         CheckConstraint("rating >= 1 AND rating <= 5", name="ck_reviews_rating_range"),
 
-        # Один отзыв на сделку от одного пользователя (Без этого: пользователь сможет 10 раз нажать «Оставить отзыв»)
+        # Один отзыв на заявку от одного пользователя (Без этого: пользователь сможет 10 раз нажать «Оставить отзыв»)
         UniqueConstraint("rental_id", "user_id", name="uq_reviews_rental_user"),
     )

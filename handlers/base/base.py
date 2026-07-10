@@ -6,7 +6,7 @@ from aiogram.exceptions import TelegramBadRequest
 
 from handlers.base.helpers_base import (resolve_main_menu_action, normalize_menu_text, safe_answer_for_blocked,
                                         CANCELLED_TO_MAIN_MENU_TEXT, UNKNOWN_MAIN_MENU_TEXT)
-from handlers.entries import show_main_menu, start_registration, request_phone_confirmation
+from handlers.entries import show_main_menu, start_registration #, request_phone_confirmation
 from services.category_service import CategoryService
 from services.rental_service import RentalService
 from services.support_service import SupportService
@@ -19,7 +19,6 @@ from utils.callbacks import BACK_TO_MENU_CB
 base_router = Router()
 
 # TODO: Если у пользователя есть непрочитанные уведомления - сообщаем/показываем
-# TODO: если отменено создание объявления - сообщение пользователю: черновик сохранен для будущего использования
 
 # ─────────────────────────────────────────────── /start ───────────────────────────────────────────────────────────────
 @base_router.message(CommandStart())
@@ -29,21 +28,29 @@ async def start(message: Message, state: FSMContext, user_service: UserService) 
 
     - если клиента нет в базе — запускаем регистрацию;
     - если клиент заблокирован — показываем блокировку;
-    - если клиент не подтвердил телефон — просим контакт;
-    - если всё хорошо — показываем главное меню клиента."""
+    - если всё хорошо — показываем главное меню клиента.
+        Было: - если клиент не подтвердил телефон — просим контакт;
+    - если всё хорошо — показываем главное меню клиента.
+
+    Сейчас Телефон не блокирует просмотр каталога: номер запрашивают целевые сценарии вроде аренды и поддержки.
+    """
 
     await state.clear()
 
     tg_id = message.from_user.id
     result = await user_service.resolve_start_entry(tg_id)
 
+    if message.from_user is None:
+        await message.answer("⚠️ Не удалось определить пользователя Telegram. Попробуйте открыть меню через /start ещё раз.")
+        return None
+
     # Если новый — регистрируем
     if result.action == StartAction.REGISTER:
         return await start_registration(message, user_service)
 
-    # Если пользователь уже есть, но телефон ещё не подтверждён — повторно показываем кнопку контакта
-    if result.action == StartAction.NEED_PHONE:
-        return await request_phone_confirmation(message)
+    # # Если пользователь уже есть, но телефон ещё не подтверждён — повторно показываем кнопку контакта
+    # if result.action == StartAction.NEED_PHONE:
+    #     return await request_phone_confirmation(message)
 
     # Проверяем блокировку
     if result.action == StartAction.ACCESS_BLOCKED:
@@ -58,7 +65,9 @@ async def show_main_menu_callback(callback: CallbackQuery, user) -> None:
     await callback.answer()
 
     try: # NEW
-        await callback.message.delete()
+        #await callback.message.delete()
+        if isinstance(callback.message, Message):
+            await callback.message.delete()
     except TelegramBadRequest:
         pass
 
@@ -79,8 +88,6 @@ async def legal_command(message: Message) -> None:
 @base_router.message(F.text == "/cancel")
 async def cancel(message: Message, state: FSMContext, user) -> None:
     """Пользователь отменил текущую операцию - возврат в главное меню."""
-
-    # TODO: если отменено создание объявления - сообщение пользователю: черновик сохранен для будущего использования
 
     await state.clear()
     await message.answer(CANCELLED_TO_MAIN_MENU_TEXT)

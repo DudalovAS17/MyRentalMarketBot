@@ -68,7 +68,7 @@ async def admin_deals_view(callback: CallbackQuery, admin_rental_service: AdminR
     await callback.answer()
     await show_deal_card(callback, admin_rental_service, rental_id) # , prefix_text=f"✅ {action_name}.\n\n"
 
-# ───────────────────────────────────────── FSM: 🔎 Открыть сделку по ID ───────────────────────────────────────────────
+# ───────────────────────────────────────── FSM: 🔎 Открыть заявку по ID ───────────────────────────────────────────────
 @admin_deals_router.callback_query(F.data == DEALS_BY_ID_PREFIX)
 async def admin_deals_open_by_id(callback: CallbackQuery, state: FSMContext) -> None:
     """FSM: Просим админа ввести ID заявки"""

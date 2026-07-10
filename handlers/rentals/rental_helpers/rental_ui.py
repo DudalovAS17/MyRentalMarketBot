@@ -5,13 +5,6 @@ from schemas.rental import RentalDetailsOut, RentalOut
 from utils.callbacks import MY_RENTALS_CB, BACK_TO_MENU_CB, IGNORE_CB, CLIENT_CANCEL_RENTAL_CB, CLIENT_SUPPORT_RENTAL_CB
 from utils.validators import ui_str, ui_money
 
-# "✅ Подтвердить получение товара"
-# "📦 Компания Передала товар"
-# "❌ Отклонить аренду/заявку"
-# text="⚠️ Открыть спор", callback_data=f"rental_action:dispute:{rental_id}"
-# text="💬 Написать в поддержку", callback_data = f"support_chat:{rental_id}"
-# text="⭐ Оставить отзыв", callback_data=f"review_start:{rental_id}"
-# text="⭐ Посмотреть отзыв", callback_data=f"review_view:{rental_id}"
 
 def _fmt_date(value) -> str:
     return value.strftime("%d.%m.%Y") if value else "—"

@@ -70,7 +70,7 @@ class Rental(Base, TimestampMixin):
     processed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     closed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
 
-    # Для аналитики («среднее время от REQUESTED до COMPLETED», «сколько сделок отменяется») нужны timestamp-ы переходов.
+    # Для аналитики («среднее время от REQUESTED до COMPLETED», «сколько заявок отменяется») нужны timestamp-ы переходов.
     confirmed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     rejected_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     cancelled_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
@@ -79,7 +79,7 @@ class Rental(Base, TimestampMixin):
 
     # ------- Отношения | связи --------
 
-    # какая вещь арендуется
+    # какой товар арендуется
     item: Mapped["Item"] = relationship("Item", back_populates="rentals")
 
     user: Mapped["User"] = relationship("User", back_populates="rentals")

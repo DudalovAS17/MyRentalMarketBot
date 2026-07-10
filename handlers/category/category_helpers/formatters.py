@@ -6,7 +6,7 @@ from schemas.rental import RentalOut
 
 def busy_until_text(open_rental: RentalOut | None) -> str | None:
     """Вернуть дату окончания открытой заявки в формате dd.mm.YYYY"""
-    if not open_rental or not getattr(open_rental, "end_date", None):
+    if open_rental is None or open_rental.end_date is None:
         return None
     return open_rental.end_date.strftime("%d.%m.%Y")
 

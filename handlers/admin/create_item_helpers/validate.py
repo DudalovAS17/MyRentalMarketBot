@@ -3,9 +3,9 @@ from decimal import Decimal, InvalidOperation
 
 # ─────────────────────────────────────────────────flow_create──────────────────────────────────────────────────────────
 def validate_item_title(title: str) -> str | None:
-    """Проверить название объявления"""
+    """Проверить название товара"""
     if not title:
-        return "❌ Название не должно быть пустым. Введите название вещи."
+        return "❌ Название не должно быть пустым. Введите название товара."
     if len(title) < 3:
         return "❌ Название слишком короткое. Введите не менее 3 символов."
     if len(title) > 255:
@@ -13,9 +13,9 @@ def validate_item_title(title: str) -> str | None:
     return None
 
 def validate_item_description(description: str) -> str | None:
-    """Проверить описание объявления"""
+    """Проверить описание товара"""
     if not description:
-        return "❌ Описание не должно быть пустым. Введите описание вещи."
+        return "❌ Описание не должно быть пустым. Введите описание товара."
 
     elif len(description) < 10:
         return "❌ Описание слишком короткое. Пожалуйста, введите более подробное описание (минимум 10 символов)"
@@ -76,7 +76,7 @@ def short_description(description: str | None, limit: int = 300) -> str:
     return cleaned[: limit - 3].rstrip() + "..."
 
 def extract_item_confirmation_context(data: dict[str, Any]) -> tuple[str, str, list[str]]:
-    """Извлечь category/subcategory/photos context для preview объявления"""
+    """Извлечь category/subcategory/photos context для preview товара"""
     category_name = data.get("selected_category_name") or "будет уточнена модератором"
     subcategory_name = data.get("selected_subcategory_name") or "будет уточнена модератором"
 

@@ -1,14 +1,14 @@
 from aiogram import Router
 
 from .create_item import admin_create_item_router
-from .update_item import admin_update_item_router
+from .NO_update_item import admin_update_item_router
 from .menu import admin_menu_router # /admin + главное меню админа
 
-from .deals import admin_deals_router # админ по сделкам (твой текущий файл)
+from .deals import admin_deals_router # админ по заявкам (твой текущий файл)
 from .deals_status_actions import admin_status_actions_router # смена статус заявки админом
 
 from .support import admin_support_router # тикеты поддержки
-from .items_moderation import admin_items_router # модерация объявлений
+from .items_moderation import admin_items_router # модерация товаров
 from .users_moderation import admin_users_router # пользователи / бан / ограничения
 
 #     disputes.py # жалобы/споры (если отдельно от deals)

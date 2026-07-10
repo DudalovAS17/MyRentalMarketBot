@@ -4,7 +4,13 @@ from status.item_status import ItemStatus
 
 # ──────────────────────────────────────────────────   ─────────────────────────────────────────────────────────────
 def parse_admin_item_status(raw_status: str | None) -> ItemStatus:
-    """Распарсить статус товара из admin callback data"""
+    """Распарсить статус товара из admin callback data
+
+    # Как он работает
+        # parse_admin_item_status("DRAFT") # ItemStatus.DRAFT
+        # parse_admin_item_status("ACTIVE") # ItemStatus.ACTIVE
+        # parse_admin_item_status("BAD_STATUS") # ItemStatus.DRAFT
+    """
     if not raw_status:
         return ItemStatus.DRAFT
 
@@ -13,11 +19,6 @@ def parse_admin_item_status(raw_status: str | None) -> ItemStatus:
         return ItemStatus(raw_status) # normalized = raw_status.strip()
     except ValueError:
         return ItemStatus.DRAFT
-
-# Как он работает
-# parse_admin_item_status("DRAFT") # ItemStatus.DRAFT
-# parse_admin_item_status("ACTIVE") # ItemStatus.ACTIVE
-# parse_admin_item_status("BAD_STATUS") # ItemStatus.DRAFT
 
 # ──────────────────────────────────────────────────   ─────────────────────────────────────────────────────────────
 def parse_admin_page(raw: str | None, *, default: int = 1) -> int:
@@ -91,5 +92,3 @@ def parse_support_ticket_id(raw: str | None) -> int | None:
         return int((raw or "").split(":")[-1])
     except (ValueError, IndexError):
         return None
-
-# ──────────────────────────────────────────────────       ─────────────────────────────────────────────────────────────

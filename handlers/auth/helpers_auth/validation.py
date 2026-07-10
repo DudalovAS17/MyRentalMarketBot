@@ -6,7 +6,6 @@ def is_valid_email(email: str) -> bool:
     """Проверить email на базовый корректный формат."""
     return bool(re.match(EMAIL_REGEX, email))
 
-
 def validate_profile_name(name: str) -> str | None:
     """Проверить новое имя пользователя."""
     if not name:

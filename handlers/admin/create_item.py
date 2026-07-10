@@ -121,7 +121,7 @@ async def start_create_item_from_subcategory(callback: CallbackQuery, state: FSM
     # Сохраняем подкатегорию
     await ch.store_selected_subcategory(state=state, category=category, subcategory=subcategory, draft=draft)
 
-    # Показываем приглашение ввести название вещи
+    # Показываем приглашение ввести название товара
     await start_create_item_title(callback, state, category, subcategory)
 
 async def start_create_item_title(event: Message | CallbackQuery, state: FSMContext, category=None, subcategory=None) -> None:
@@ -219,7 +219,7 @@ async def process_item_quantity(message: Message, state: FSMContext) -> None:
 
 @admin_create_item_router.message(ItemCreateStates.rental_period)
 async def process_item_rental_period(message: Message, state: FSMContext) -> None:
-    """FSM: Обрабатывает ввод периода аренды + показывает итоговое подтверждение объявления."""
+    """FSM: Обрабатывает ввод периода аренды + показывает итоговое подтверждение."""
 
     rental_period = ch.extract_item_text_input(message)
 

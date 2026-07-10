@@ -72,10 +72,14 @@ async def show_my_rentals(event: Message | CallbackQuery, rental_service: Rental
 
 # ──────────────────────────────────────────────────── Auth ────────────────────────────────────────────────────────────
 async def start_registration(message: Message, user_service: UserService) -> None:
-    """Entry-point сценария первичной регистрации"""
+    """Создать профиль клиента и открыть меню без обязательного телефона."""
 
     tg_user = message.from_user
     tg_id = tg_user.id
+
+    if tg_user is None:
+        await send_reply(message, "⚠️ Не удалось определить пользователя Telegram. Попробуйте открыть меню через /start ещё раз.")
+        return
 
     user_data = UserCreate(
         telegram_id=tg_id,
@@ -89,13 +93,14 @@ async def start_registration(message: Message, user_service: UserService) -> Non
     )
 
     try:
-        await user_service.create(user_data) # .register_or_update_user(user_data)
+        user = await user_service.create(user_data) # .register_or_update_user(user_data)
     except ServiceError:
         await send_reply(message, "⚠️ Не удалось начать регистрацию. Попробуйте позже или используйте /start для входа в меню.")
         return
 
-    # запрашиваем телефон пользователя
-    await request_phone_confirmation(message)
+    await show_main_menu(message, user)
+    # # запрашиваем телефон пользователя
+    # await request_phone_confirmation(message)
 
 async def request_phone_confirmation(message: Message) -> None:
     """Попросить пользователя подтвердить телефон через Telegram contact."""

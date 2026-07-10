@@ -1,6 +1,11 @@
 from typing import Optional
 from pydantic import BaseModel, Field, AwareDatetime, ConfigDict
 
+"""
+    PhotoCreate        → создание фотографии товара
+    PhotoUpdate        → обновление фотографии товара
+    PhotoOut           → вывод фотографии товара наружу
+"""
 
 class PhotoCreate(BaseModel):
     """Схема для создания фотографии товара каталога."""

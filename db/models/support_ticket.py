@@ -15,10 +15,7 @@ if TYPE_CHECKING:
     from db.models.rental import Rental
 
 class SupportTicket(Base, TimestampMixin):
-    """Обращение клиента в поддержку
-
-    - один входящий текст от пользователя
-    - админ отвечает отдельным сообщением"""
+    """Обращение клиента в поддержку"""
 
     __tablename__ = "support_tickets"
 

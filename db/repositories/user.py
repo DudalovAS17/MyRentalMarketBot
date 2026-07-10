@@ -7,19 +7,6 @@ from db.repositories.base import BaseRepository
 from schemas.user import UserCreate, UserUpdate, UserAdminUpdate
 from status.user_status import AccountStatus
 
-"""Удален: update_rating - Обновить кеш рейтинга пользователя
-
-list_by_account_status(...) - быстро получать:
-- активных клиентов
-- заблокированных клиентов
-
-В create() пока так:
-        obj = User(**user_data.model_dump())
-        #obj = User(**user_data.model_dump(exclude_none=True))
-
-Сейчас delete() физически удаляет клиента.
-Для реального RentalMarketBot лучше использовать: account_status = BANNED
-"""
 
 class UserRepository(BaseRepository):
     """Репозиторий клиентов."""

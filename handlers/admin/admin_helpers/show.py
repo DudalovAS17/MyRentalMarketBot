@@ -85,7 +85,7 @@ async def show_deal_contact(event: Message | CallbackQuery, admin_rental_service
     )
 
 # ────────────────────────────────────────────────── items moderation ─────────────────────────────────────────────────────────────
-# Показать список объявлений
+# Показать список товаров
 async def show_items_list(
     event: Message | CallbackQuery,
     item_service: ItemService,
@@ -215,5 +215,3 @@ async def show_support_ticket_card_or_not_found(
     )
 
     #return ticket
-
-# ──────────────────────────────────────────────────   ─────────────────────────────────────────────────────────────

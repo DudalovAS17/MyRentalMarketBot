@@ -7,7 +7,7 @@ from services.item_service import ItemService
 from schemas.item import ItemOut
 from utils.validators import format_price
 from utils.callbacks import (BACK_TO_MENU_CB, PAGE_SIZE, QUERY_MIN_LEN, QUERY_MAX_LEN, SEARCH_PAGE_CB_PREFIX,
-                             SEARCH_NEW_QUERY_CB, SEARCH_BACK_CB, BACK_TO_CAT)
+                             SEARCH_NEW_QUERY_CB, BACK_TO_CAT) # SEARCH_BACK_CB,
 
 def truncate_text(text: str, max_len: int) -> str:
     """Обрезать текст без разрыва слов и добавить многоточие."""

@@ -3,6 +3,13 @@ from pydantic import BaseModel, AwareDatetime, ConfigDict, Field
 
 from status.support_ticket_status import SupportTicketStatus, SupportMessageSenderType
 
+"""
+    SupportTicketCreate          → клиент создаёт обращение в поддержку
+    SupportTicketOut             → вывод обращения в поддержку наружу
+    SupportTicketCreateInternal  → внутренняя схема создания обращения с user_id
+    SupportTicketAdminUpdate     → админское обновление обращения
+    SupportMessageOut            → вывод сообщения внутри обращения наружу
+"""
 
 class SupportTicketCreate(BaseModel):
     """Клиентская схема создания обращения в поддержку."""

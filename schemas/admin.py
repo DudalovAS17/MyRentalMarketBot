@@ -1,9 +1,16 @@
 from typing import Optional
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field
 
-from status.admin_status import AdminActionType, AdminEntityType, AdminRole
+from status.admin_status import AdminRole # AdminActionType, AdminEntityType,
 from status.user_status import AccountStatus
 
+"""
+    AdminCreate        → создание менеджера/сотрудника компании
+    AdminUpdate        → обновление менеджера/сотрудника компании
+    AdminOut           → базовый вывод менеджера/сотрудника наружу
+    AdminActionCreate  → создание audit-записи действия админа
+    AdminActionOut     → вывод audit-записи действия админа наружу
+"""
 
 class AdminCreate(BaseModel):
     """Схема для создания менеджера/сотрудника компании."""

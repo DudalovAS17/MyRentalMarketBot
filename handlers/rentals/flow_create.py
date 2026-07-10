@@ -6,6 +6,7 @@ from pydantic import ValidationError as PydanticValidationError
 
 from .router import rental_router
 
+from handlers.entries import request_phone_confirmation
 from handlers.rentals import create_helpers as ch
 from handlers.admin.admin_helpers.keyboard import get_admin_new_rental_notification_keyboard
 from services.item_service import ItemService
@@ -24,10 +25,6 @@ from utils.callbacks import (CONFIRM_RENT_CB, CANCEL_RENT_FLOW_CB, RENT_ITEM_CB,
                              RENT_SKIP_COMMENT_CB) # , RENT_CHANGE_CB
 
 logger = logging.getLogger(__name__)
-
-# process_quantity:
-# if await ch.abort_if_item_unavailable(callback, rental_service, item):
-#    return # вещь недоступна
 
 
 # ─────────────────────────── _Render (Показать шаг выбора X и перевести FSM в состояние X) ────────────────────────────
@@ -88,6 +85,14 @@ async def start_rent_process(callback: CallbackQuery, state: FSMContext, item_se
         await callback.answer("Доступ к созданию заявок заблокирован.", show_alert=True)
         return
 
+    # Арендовать только с телефоном!
+    if not user.phone:
+        if isinstance(callback.message, Message):
+            await request_phone_confirmation(callback.message)
+        else:
+            await callback.answer("Откройте чат с ботом и нажмите /start, чтобы подтвердить телефон.", show_alert=True)
+        return
+
     item = await ch.load_item_or_abort(callback, state, item_service.get_item_by_id,
                                        ch.parse_rent_item_id(callback.data), invalid_id_text=ch.not_item_id,
                                        load_error_text=ch.serv_item_err, not_found_text=ch.not_item)
@@ -95,7 +100,7 @@ async def start_rent_process(callback: CallbackQuery, state: FSMContext, item_se
         return
 
     if await ch.abort_if_item_unavailable(callback, rental_service, item):
-        return # вещь недоступна
+        return # товар недоступен
 
     draft = RentalCreateDraft(item_id=item.id, quantity=1, client_name=user.full_name, client_phone=user.phone)
 
@@ -126,6 +131,10 @@ async def process_quantity_button(callback: CallbackQuery, state: FSMContext, it
     if ctx is None:
         return
     draft, rent_ui_message_id, item = ctx
+
+    # process_quantity:
+    # if await ch.abort_if_item_unavailable(callback, rental_service, item):
+    #    return # товар недоступен
 
     if (callback.data or "").endswith("manual"):
         await callback.answer("Введите количество сообщением.", show_alert=True)
@@ -357,7 +366,7 @@ async def confirm_rent(
         admin_ids: list[int], # это ок, что тут id админов?
         user
 ) -> None:
-    """FSM: Создать заявку на аренду - показать экран успеха - уведомить владельца."""
+    """FSM: Создать заявку на аренду - показать экран успеха - уведомить менеджера."""
     await callback.answer()
 
     ctx = await load_context(callback, state, item_service)

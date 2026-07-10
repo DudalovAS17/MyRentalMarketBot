@@ -56,7 +56,7 @@ async def load_item_category_context(category_service: CategoryService, item: It
 
 # ─────────────────────────────────────────────────flow_create──────────────────────────────────────────────────────────
 async def show_create_item_categories_step(callback: CallbackQuery, category_service: CategoryService) -> None:
-    """Показать шаг выбора категории при создании объявления"""
+    """Показать шаг выбора категории при создании товара"""
     try:
         categories = await category_service.list_main_categories()
     except ServiceError:
@@ -97,7 +97,7 @@ async def load_entity_or_notify(
 
 
 async def send_item_confirmation_preview(*, message: Message, text: str, photos: list[str], keyboard: InlineKeyboardMarkup) -> None:
-    """Отправить preview объявления с фото или текстовым fallback"""
+    """Отправить preview товара с фото или текстовым fallback"""
     if photos:
         try:
             await message.answer_photo(
@@ -120,7 +120,7 @@ async def attach_item_photos_or_warn(
     item_id: int,
     photos: list[str]
 ) -> None:
-    """Прикрепить фото к созданному объявлению или предупредить пользователя"""
+    """Прикрепить фото к созданному товару или предупредить пользователя"""
 
     valid_photos = [photo for photo in photos if isinstance(photo, str) and photo.strip()]
     if not valid_photos:
@@ -131,6 +131,6 @@ async def attach_item_photos_or_warn(
     except ServiceError:
         if callback.message:
             await callback.message.answer(
-                "⚠️ Объявление создано, но фото не удалось сохранить. Попробуйте добавить их позже.",
+                "⚠️ Товар создан, но фото не удалось сохранить. Попробуйте добавить их позже.",
                 parse_mode="HTML",
             )

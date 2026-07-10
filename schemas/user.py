@@ -3,6 +3,13 @@ from pydantic import BaseModel, AwareDatetime, ConfigDict, Field
 
 from status.user_status import AccountStatus
 
+"""
+    UserCreate        → создание клиента
+    UserUpdate        → обновление профиля клиента
+    UserOut           → базовый вывод клиента наружу
+    UserAdminUpdate   → админское обновление статуса клиента
+"""
+
 class UserCreate(BaseModel):
     """Схема для создания клиента."""
 
