@@ -11,7 +11,7 @@ from services.rental_service import RentalService
 from services.support_service import SupportService
 
 from keyboards.common import build_faq_sections_keyboard, build_info_page_keyboard
-from texts.info_pages import FAQ_MENU_TEXT, INFO_MENU_TEXTS
+from texts_otP.info_pages import FAQ_MENU_TEXT, INFO_MENU_TEXTS
 
 # ────────────────────────────────────────────────── Texts ─────────────────────────────────────────────────────────────
 BLOCKED_ACCOUNT_TEXT = "⚠️ Ваша учётная запись заблокирована. Пожалуйста, обратитесь в службу поддержки."

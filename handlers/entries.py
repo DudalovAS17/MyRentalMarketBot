@@ -6,10 +6,11 @@ from services.rental_service import RentalService
 from services.user_service import UserService
 
 from keyboards.common import (get_main_menu_keyboard, build_empty_my_rentals_keyboard, build_my_rentals_keyboard,
-                              build_categories_screen_keyboard, build_registration_contact_keyboard)
+                              build_categories_screen_keyboard, build_registration_contact_keyboard, build_fallback_inline_keyboard)
 from schemas.user import UserCreate
 from utils.functions import send_reply, send_or_edit
 from utils.errors import ServiceError
+from texts_otP.error_empty_states import EMPTY_CATALOG, EMPTY_MY_RENTALS, DB_ERROR
 
 # ───────────────────────────────────────────────── Base ───────────────────────────────────────────────────────────────
 async def show_main_menu(event: Message | CallbackQuery, user) -> None:
@@ -32,7 +33,10 @@ async def show_categories(event: Message | CallbackQuery, category_service: Cate
     try:
         categories = await category_service.list_main_categories()
     except ServiceError:
-        await send_reply(event, "⚠️ Не удалось загрузить категории. Попробуйте позже.")
+        await send_reply(event, DB_ERROR, markup=build_fallback_inline_keyboard(include_catalog=False))
+        return
+    if not categories:
+        await send_reply(event, EMPTY_CATALOG, markup=build_fallback_inline_keyboard(include_catalog=False))
         return
 
     await send_reply(
@@ -52,13 +56,13 @@ async def show_my_rentals(event: Message | CallbackQuery, rental_service: Rental
     try:
         rentals = await rental_service.list_rentals_by_user(user.id)
     except ServiceError:
-        await send_or_edit(event, "⚠️ Не удалось загрузить список заявок. Попробуйте позже.")
+        await send_or_edit(event, DB_ERROR, markup=build_empty_my_rentals_keyboard())
         return
 
     if not rentals:
         await send_or_edit(
             event,
-            "📭 У вас пока нет активных или завершённых заявок.",
+            EMPTY_MY_RENTALS,
             markup = build_empty_my_rentals_keyboard()
         )
         return

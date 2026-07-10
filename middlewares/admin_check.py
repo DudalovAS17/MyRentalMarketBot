@@ -8,7 +8,7 @@ from aiogram.types import Message, CallbackQuery
 from services.admin_directory_service import AdminDirectoryService
 from status.user_status import AccountStatus
 from utils.functions import deny
-from texts.text_middleware import ONLY_FOR_ADMINS, ADMIN_PROFILE_REQUIRED
+from texts_otP.text_middleware import ONLY_FOR_ADMINS, ADMIN_PROFILE_REQUIRED
 
 logger = logging.getLogger(__name__)
 

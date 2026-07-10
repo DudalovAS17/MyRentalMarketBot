@@ -19,6 +19,7 @@ from schemas.support import SupportTicketCreateInternal
 from utils.functions import send_or_edit
 from utils.callbacks import CLIENT_SUPPORT_RENTAL_CB, SUPPORT, SUPPORT_START, SUPPORT_CANCEL, MESSAGE_OWNER_CB, SUPPORT_CONTINUE
 from utils.errors import ServiceError
+from texts_otP.error_empty_states import TICKET_CLOSED, ITEM_NOT_FOUND, RENTAL_NOT_FOUND, DB_ERROR
 
 """создание тикета + отправка админам"""
 support_router = Router()
@@ -61,11 +62,11 @@ async def support_start_item_callback(
     try:
         item = await item_service.get_public_item_by_id(item_id)
     except ServiceError:
-        await callback.answer("Ошибка. Попробуйте позже.", show_alert=True)
+        await callback.answer(DB_ERROR, show_alert=True)
         return
 
     if item is None:
-        await callback.answer("Товар не найден или сейчас недоступен.", show_alert=True)
+        await callback.answer(ITEM_NOT_FOUND, show_alert=True)
         return
 
     await start_support_flow(callback, state, support_service, user, item_id=item.id, item_title=item.title)
@@ -92,11 +93,11 @@ async def support_start_rental_callback(
     try:
         details = await rental_service.get_rental_details(rental_id=rental_id, current_user_id=user.id)
     except ServiceError:
-        await callback.answer("Ошибка. Попробуйте позже.", show_alert=True)
+        await callback.answer(DB_ERROR, show_alert=True)
         return
 
     if details is None:
-        await callback.answer("Заявка не найдена или нет доступа.", show_alert=True)
+        await callback.answer(RENTAL_NOT_FOUND, show_alert=True)
         return
 
     await start_support_flow(callback, state, support_service, user, rental_id=rental_id)
@@ -115,11 +116,11 @@ async def support_continue_open_ticket(callback: CallbackQuery, state: FSMContex
 
     ticket = await support_service.get_ticket_by_id(ticket_id)
     if ticket is None or ticket.user_id != user.id:
-        await callback.answer("Тикет не найден.", show_alert=True)
+        await callback.answer(DB_ERROR, show_alert=True)
         return
 
     if ticket.status.value != "open":
-        await callback.answer("Этот тикет уже закрыт.", show_alert=True)
+        await callback.answer(TICKET_CLOSED, show_alert=True)
         return
 
     await callback.answer()
@@ -213,7 +214,7 @@ async def receive_support_text(
         await state.clear()
 
         if ticket is None:
-            await send_or_edit(message, "⚠️ Тикет не найден или уже закрыт. Создайте новое обращение через поддержку.")
+            await send_or_edit(message, TICKET_CLOSED)
             return
 
         await send_or_edit(message, f"✅ Ваш ответ добавлен в тикет #{ticket.id}. Поддержка увидит сообщение.")

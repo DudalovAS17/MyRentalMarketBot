@@ -10,7 +10,7 @@ from aiogram.types import CallbackQuery, Message
 
 from schemas.admin import AdminOut
 from status.admin_status import AdminRole
-from texts.text_middleware import ADMIN_INACTIVE, ADMIN_ROLE_FORBIDDEN
+from texts_otP.text_middleware import ADMIN_INACTIVE, ADMIN_ROLE_FORBIDDEN
 from utils.functions import deny
 
 ROLE_LABELS = {

@@ -16,20 +16,26 @@ from utils.functions import send_or_edit
 from utils.validators import format_price
 from status.item_status import ItemStatus
 from utils.errors import ServiceError
+from texts.error_empty_states import (DB_ERROR, EMPTY_ADMIN_RENTALS, EMPTY_ADMIN_NEW_RENTALS,
+                                      ADMIN_RENTAL_NOT_FOUND, EMPTY_SUPPORT_TICKETS)
 
 # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 async def show_deals_list(event: Message | CallbackQuery, admin_rental_service: AdminRentalService, page: int, *, only_new: bool = False) -> None:
     """Показать список заявок в админке: новые или все."""
 
-    if only_new:
-        from status.rental_status import RentalStatus
-        rows, has_next = await admin_rental_service.list_rentals_by_status(RentalStatus.REQUESTED, page=page)
-        title = "🆕 <b>Новые заявки (REQUESTED)"
-        mode = "new"
-    else:
-        rows, has_next = await admin_rental_service.list_recent_rentals(page=page)
-        title = "📋 <b>Все заявки"
-        mode = "all"
+    try:
+        if only_new:
+            from status.rental_status import RentalStatus
+            rows, has_next = await admin_rental_service.list_rentals_by_status(RentalStatus.REQUESTED, page=page)
+            title = "🆕 <b>Новые заявки (REQUESTED)"
+            mode = "new"
+        else:
+            rows, has_next = await admin_rental_service.list_recent_rentals(page=page)
+            title = "📋 <b>Все заявки"
+            mode = "all"
+    except ServiceError:
+        await send_or_edit(event, DB_ERROR, get_admin_deals_list_keyboard([], page=page, has_next=False, mode="new" if only_new else "all"))
+        return
 
     #await state.update_data(admin_deals_page=page)
 
@@ -38,7 +44,7 @@ async def show_deals_list(event: Message | CallbackQuery, admin_rental_service: 
     if not rows:
         await send_or_edit(
             event,
-            f"{lines[0]}\nПока нет заявок.",
+            f"{lines[0]}\n{EMPTY_ADMIN_NEW_RENTALS if only_new else EMPTY_ADMIN_RENTALS}",
             get_admin_deals_list_keyboard([], page=page, has_next=False, mode=mode)
         )
         return
@@ -60,9 +66,14 @@ async def show_deal_card(
     prefix_text: str = "",
 ) -> None:
     """Показать карточку заявки в админке"""
-    details = await admin_rental_service.get_details(rental_id)
+    try:
+        details = await admin_rental_service.get_details(rental_id)
+    except ServiceError:
+        await send_or_edit(event, DB_ERROR, get_admin_deals_list_keyboard([], page=1, has_next=False))
+        return
     if not details:
-        await send_or_edit(event, f"❌ Заявка #{rental_id} не найдена.", None)
+        await send_or_edit(event, ADMIN_RENTAL_NOT_FOUND.format(rental_id=rental_id),
+                           get_admin_deals_list_keyboard([], page=1, has_next=False))
         return
 
     await send_or_edit(
@@ -73,9 +84,14 @@ async def show_deal_card(
 
 async def show_deal_contact(event: Message | CallbackQuery, admin_rental_service: AdminRentalService, rental_id: int) -> None:
     """Показать контакты клиента по заявке."""
-    details = await admin_rental_service.get_details(rental_id)
+    try:
+        details = await admin_rental_service.get_details(rental_id)
+    except ServiceError:
+        await send_or_edit(event, DB_ERROR, get_admin_deals_list_keyboard([], page=1, has_next=False))
+        return
     if not details:
-        await send_or_edit(event, f"❌ Заявка #{rental_id} не найдена.", None)
+        await send_or_edit(event, ADMIN_RENTAL_NOT_FOUND.format(rental_id=rental_id),
+                           get_admin_deals_list_keyboard([], page=1, has_next=False))
         return
 
     await send_or_edit(
@@ -151,8 +167,11 @@ async def show_support_ticket_list(
         kind: str,
 ) -> None:
     """Показать список открытых тикетов поддержки"""
-
-    tickets, has_next = await support_service.list_open_tickets(page, kind=kind)
+    try:
+        tickets, has_next = await support_service.list_open_tickets(page, kind=kind)
+    except ServiceError:
+        await send_or_edit(event, DB_ERROR, get_admin_support_list_keyboard([], page=page, has_next=False, kind=kind))
+        return
 
     title_by_kind = {
         "items": "📦 Вопросы по товарам",
@@ -163,7 +182,7 @@ async def show_support_ticket_list(
     lines = [f"📭 <b>{title}</b> (стр. {page})\n"]
 
     if not tickets:
-        lines.append("Пока нет открытых тикетов.")
+        lines.append(EMPTY_SUPPORT_TICKETS)
     else:
         for ticket in tickets:
             created_at = format_datetime(ticket.created_at)

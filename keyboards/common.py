@@ -100,7 +100,10 @@ def build_registration_contact_keyboard() -> ReplyKeyboardMarkup:
 def build_empty_my_rentals_keyboard() -> InlineKeyboardMarkup:
     """Собрать клавиатуру для пустого списка заявок."""
     return InlineKeyboardMarkup(
-        inline_keyboard=[[InlineKeyboardButton(text="🏠 Главное меню", callback_data=BACK_TO_MENU_CB)]]
+        inline_keyboard=[
+            [InlineKeyboardButton(text="🏗 Каталог", callback_data=BACK_TO_CAT)],
+            [InlineKeyboardButton(text="🏠 Главное меню", callback_data=BACK_TO_MENU_CB)],
+        ]
     )
 
 
@@ -208,6 +211,16 @@ def build_rental_list_button_text(rental, *, user_rental_number: int) -> str:
     return f"# Заявка {user_rental_number} • 🏷 Статус: {status_label}"
 
 # ───────────────────────────────────────────── общая ────────────────────────────────────────────────────────────────
+def build_fallback_inline_keyboard(*, include_catalog: bool = True, include_back: bool = False) -> InlineKeyboardMarkup:
+    """Единая fallback-клавиатура для ошибок и пустых состояний."""
+    rows = []
+    if include_catalog:
+        rows.append([InlineKeyboardButton(text="🏗 Каталог", callback_data=BACK_TO_CAT)])
+    if include_back:
+        rows.append([InlineKeyboardButton(text="🔙 Назад", callback_data=BACK_TO_CAT)])
+    rows.append([InlineKeyboardButton(text="🏠 Главное меню", callback_data=BACK_TO_MENU_CB)])
+    return InlineKeyboardMarkup(inline_keyboard=rows)
+
 def cancel_keyboard() -> InlineKeyboardMarkup:
     """Единая inline-клавиатура для FSM: только ❌ Отмена → главное меню."""
     return InlineKeyboardMarkup(

@@ -3,8 +3,9 @@ from typing import Any, Awaitable, Callable
 from aiogram import BaseMiddleware
 from aiogram.types import TelegramObject, Message, CallbackQuery
 
+from keyboards.common import build_fallback_inline_keyboard
 from utils.errors import ServiceError
-from texts.text_middleware import err_for_msg, err_for_callback
+from texts_otP.text_middleware import err_for_msg, err_for_callback
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +33,7 @@ class GlobalErrorMiddleware(BaseMiddleware):
             # ответ пользователю (не раскрываем детали)
             try:
                 if isinstance(event, Message):
-                    await event.answer(err_for_msg)
+                    await event.answer(err_for_msg, reply_markup=build_fallback_inline_keyboard())
                 elif isinstance(event, CallbackQuery):
                     await event.answer(err_for_callback, show_alert=True)
                 else:

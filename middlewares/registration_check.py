@@ -6,7 +6,7 @@ from aiogram.types import Message, CallbackQuery
 from services.user_service import UserService
 from status.user_status import AccountStatus
 from utils.functions import deny
-from texts.text_middleware import MSG_NEED_REGISTER, MSG_BANNED #, MSG_NEED_PHONE , MSG_BLOCKED
+from texts_otP.text_middleware import MSG_NEED_REGISTER, MSG_BANNED #, MSG_NEED_PHONE , MSG_BLOCKED
 
 logger = logging.getLogger(__name__)
 

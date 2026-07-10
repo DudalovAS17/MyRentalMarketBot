@@ -11,7 +11,7 @@ from utils.functions import send_or_edit
 from utils.validators import parse_callback
 from utils.errors import ServiceError
 from utils.callbacks import MY_RENTALS_CB, RENTAL_DETAILS_CB #, BACK_TO_RENTALS
-
+from texts_otP.error_empty_states import RENTAL_NOT_FOUND, DB_ERROR
 
 @rental_router.message(F.text.in_({"📋 Мои заявки", "📋 Мои аренды"}))
 @rental_router.callback_query(F.data == MY_RENTALS_CB)
@@ -38,11 +38,10 @@ async def render_rental_details(callback: CallbackQuery, rental_service: RentalS
     try:
         details = await rental_service.get_rental_details(rental_id=rental_id, current_user_id=user.id)
     except ServiceError:
-        await send_or_edit(callback, "⚠️ Не удалось загрузить детали аренды. Попробуйте позже.")
+        await send_or_edit(callback, DB_ERROR)
         return
-
     if not details:
-        await send_or_edit(callback, "❌ Не удалось загрузить детали аренды или у вас нет доступа.")
+        await send_or_edit(callback, RENTAL_NOT_FOUND)
         return
 
     text, markup = build_rental_details_ui(details)

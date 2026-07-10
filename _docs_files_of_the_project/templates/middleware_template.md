@@ -24,7 +24,7 @@ from aiogram.types import CallbackQuery, Message
 
 from services.user_service import UserService
 from status.user_status import AccountStatus
-from texts.text_middleware import MSG_BANNED, MSG_NEED_PHONE, MSG_NEED_REGISTER
+from texts_otP.text_middleware import MSG_BANNED, MSG_NEED_PHONE, MSG_NEED_REGISTER
 from utils.functions import deny
 
 logger = logging.getLogger(__name__)
@@ -42,10 +42,10 @@ class RegistrationCheckMiddleware(BaseMiddleware):
         return tg_user_id in self._admin_ids
 
     async def __call__(
-        self,
-        handler: Callable[[Message | CallbackQuery, dict[str, Any]], Awaitable[Any]],
-        event: Message | CallbackQuery,
-        data: dict[str, Any],
+            self,
+            handler: Callable[[Message | CallbackQuery, dict[str, Any]], Awaitable[Any]],
+            event: Message | CallbackQuery,
+            data: dict[str, Any],
     ) -> Any:
         tg_user_id = _tg_user_id(event)
         if tg_user_id is None:

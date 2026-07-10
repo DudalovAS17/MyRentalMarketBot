@@ -19,6 +19,8 @@ from services.category_service import CategoryService
 from services.photo_service import PhotoService
 from services.rental_service import RentalService
 
+from texts_otP.error_empty_states import EMPTY_SUBCATEGORIES, EMPTY_SUBCATEGORY_ITEMS
+from keyboards.common import build_fallback_inline_keyboard
 from schemas.photo import PhotoOut
 from utils.functions import send_or_edit, send_reply
 from utils.errors import ServiceError
@@ -43,7 +45,7 @@ async def show_subcategories(callback: CallbackQuery, state: FSMContext, categor
     # сохраняем выбор категории, сбрасываем подкатегорию
     await store_selected_category(state, category)
 
-    not_subcats = f"⚠️ В категории <b>{category.name}</b> пока нет подкатегорий."
+    not_subcats = EMPTY_SUBCATEGORIES.format(name=category.name)
     subcategories = await load_list_or_notify(callback, category_service.list_subcategories, category.id,
                                               invalid_id_text=not_cat_id, load_error_text=serv_err_cat,
                                               not_found_text=not_subcats)
@@ -77,7 +79,7 @@ async def show_items_in_subcategory(
     # Сохраняем в контекст выбранную подкатегорию
     await store_selected_subcategory(state, subcategory)
 
-    not_items = f"⚠️ В подкатегории <b>{subcategory.name}</b> пока нет товаров."
+    not_items = EMPTY_SUBCATEGORY_ITEMS.format(name=subcategory.name)
     items = await load_list_or_notify(callback, item_service.list_items_by_subcategory, subcategory.id,
                                       invalid_id_text=not_subcat_id, load_error_text=serv_err_item,
                                       not_found_text=not_items)
@@ -88,7 +90,7 @@ async def show_items_in_subcategory(
     current_index = 0
     total = len(items)
     if total == 0:
-        await send_or_edit(callback, not_items)
+        await send_or_edit(callback, not_items, markup=build_fallback_inline_keyboard())
         return
 
     # карусель
@@ -151,7 +153,7 @@ async def navigate_items_carousel(
     if subcategory is None:
         return
 
-    not_items = f"⚠️ В подкатегории <b>{subcategory.name}</b> пока нет товаров."
+    not_items = EMPTY_SUBCATEGORY_ITEMS.format(name=subcategory.name)
     items = await load_list_or_notify(callback, item_service.list_items_by_subcategory, subcategory.id,
                                       invalid_id_text=not_subcat_id, load_error_text=serv_err_item, not_found_text=not_items)
     if items is None:
@@ -159,7 +161,7 @@ async def navigate_items_carousel(
 
     total = len(items)
     if total == 0:
-        await send_or_edit(callback, not_items) # ?
+        await send_or_edit(callback, not_items, markup=build_fallback_inline_keyboard()) # ?
         return
 
     current_index = current_index % total

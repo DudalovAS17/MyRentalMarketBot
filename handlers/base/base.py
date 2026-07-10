@@ -13,7 +13,7 @@ from services.support_service import SupportService
 from services.user_service import UserService, StartAction
 
 from keyboards.common import get_main_menu_keyboard
-from texts.base import LEGAL_TEXT, HELP_TEXT, build_unknown_command_text
+from texts_otP.base import LEGAL_TEXT, HELP_TEXT, build_unknown_command_text
 from utils.callbacks import BACK_TO_MENU_CB
 
 base_router = Router()
