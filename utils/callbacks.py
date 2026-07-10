@@ -74,6 +74,9 @@ ADMIN_ITEMS_MOD_APPROVE = "admin:items:approve:"
 ADMIN_ITEMS_MOD_HIDE = "admin:items:hide:"
 ADMIN_ITEMS_MOD_UNHIDE = "admin:items:unhide:"
 ADMIN_ITEMS_MOD_ARCHIVE = "admin:items:archive:"
+ADMIN_ITEMS_MOD_FIND = "admin:items:find"
+ADMIN_ITEMS_MOD_EDIT_QUANTITY = "admin:items:edit_quantity:"
+ADMIN_ITEMS_MOD_EDIT_PRICE = "admin:items:edit_price:"
 
 # support
 ADMIN_SUPPORT = "admin:support"
@@ -109,7 +112,10 @@ PROFILE_BACK = "back_to_profile"
 # settings
 PROFILE_SETTINGS = "profile_settings"
 PROFILE_BACK_TO_SETTINGS = "back_to_profile_settings"
-PROFILE_NOTIFICATIONS = "profile_notifications" # "settings_notifications"
+PROFILE_NOTIFICATIONS = "profile_notifications"
+PROFILE_SET_NOTIF = "settings_notifications" # Возможно это тот же, что и выше.
+PROFILE_TOGGLE_NOTIF_OFF = "toggle_notifications:off"
+PROFILE_TOGGLE_NOTIF_ON = "toggle_notifications:on"
 #PROFILE_SUPPORT_HISTORY = "profile_support_history"
 
 # privacy

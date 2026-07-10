@@ -62,13 +62,11 @@ ALLOWED_STATUS_TRANSITIONS: dict[RentalStatus, frozenset[RentalStatus]] = {
         RentalStatus.CONFIRMED,
         RentalStatus.REJECTED, # если менеджер ещё не подтвердил заявку, он её не “отменяет”, а отклоняет
         RentalStatus.CANCELLED_BY_CLIENT,
-        #RentalStatus.CANCELLED_BY_ADMIN, # поэтому убираем это
     }),
     RentalStatus.IN_PROGRESS: frozenset({
         RentalStatus.CONFIRMED,
         RentalStatus.REJECTED, # пока заявка ещё в обработке, менеджер не отменяет подтверждённую услугу, а отклоняет заявку.
         RentalStatus.CANCELLED_BY_CLIENT,
-        #RentalStatus.CANCELLED_BY_ADMIN, # поэтому убираем это
     }),
     RentalStatus.CONFIRMED: frozenset({
         RentalStatus.COMPLETED,

@@ -1,5 +1,5 @@
 import logging
-from typing import Optional
+from typing import Optional #, Sequence
 
 from db.repositories.rental import RentalRepository
 
@@ -7,7 +7,7 @@ from schemas.rental import RentalCreate, RentalUpdate, RentalOut, RentalDetailsO
 from schemas.item import ItemOut
 from schemas.user import UserOut
 from status.item_status import ItemStatus
-from status.rental_status import RentalStatus, is_open_status, can_transition
+from status.rental_status import RentalStatus, is_open_status, can_transition, STATUS_LABELS
 from utils.domain_exceptions import ItemNotAvailable
 from utils.errors import NotFoundError, ForbiddenError, ConflictError, ValidationError
 
@@ -203,3 +203,90 @@ class RentalService:
     async def has_open_rentals_for_item(self, item_id: int) -> bool:
         """Проверить, есть ли у товара открытые заявки."""
         return await self.repo.has_open_rentals_for_item(item_id)
+
+
+
+
+
+
+
+
+    # ─────────────────────────────── Пока не используемые ─────────────────────────────────────────────────────────────
+    @staticmethod
+    def get_status_text(status: RentalStatus | str) -> str:
+        """Вернуть человекочитаемое название статуса заявки."""
+        if isinstance(status, str):
+            try:
+                status = RentalStatus(status)
+            except ValueError:
+                return "Неизвестный статус"
+
+        return STATUS_LABELS.get(status, status.value)
+
+    # async def list_rentals_by_user(
+    #         self,
+    #         user_id: int,
+    #         statuses: Optional[Sequence[RentalStatus]] = None,
+    #         *,
+    #         limit: int = 20,
+    #         offset: int = 0,
+    # ) -> list[RentalOut]:
+    #     """Вернуть заявки клиента, при необходимости ограничив список статусами."""
+    #     rentals = await self.repo.list_by_user_id(user_id, statuses=statuses, limit=limit, offset=offset)
+    #     return self._to_out_list(rentals)
+
+    # # переделка cancel_by_client()
+    # async def _change_status(
+    #         self,
+    #         *,
+    #         rental_id: int,
+    #         user_id: int,
+    #         new_status: RentalStatus,
+    #         action_name: str,
+    #         strict: bool = False,
+    # ) -> bool:
+    #     """Единая смена статуса клиентом-владельцем заявки без уведомлений и role-based логики."""
+    #     rental = await self.repo.get_by_id(rental_id)
+    #     if not rental:
+    #         if strict:
+    #             raise NotFoundError(f"Заявка не найдена: id={rental_id}")
+    #         return False
+    #
+    #     if rental.user_id != user_id:
+    #         if strict:
+    #             raise ForbiddenError("Нет доступа к заявке")
+    #         return False
+    #
+    #     old_status = rental.status
+    #     if old_status == new_status:
+    #         return True
+    #
+    #     if not self._validate_transition(old_status, new_status, strict=strict):
+    #         return False
+    #
+    #     updated = await self.repo.try_update_status_if_user(rental_id, user_id, new_status, expected_status=old_status)
+    #     if not updated:
+    #         if strict:
+    #             raise ConflictError("Не удалось изменить статус заявки")
+    #         return False
+    #
+    #     logger.info(
+    #         "%s: статус заявки изменён клиентом: id=%s user_id=%s %s->%s",
+    #         action_name,
+    #         rental_id,
+    #         user_id,
+    #         old_status.value,
+    #         new_status.value,
+    #     )
+    #     return True
+    #
+    # # Переход REQUESTED / IN_PROGRESS / CONFIRMED → CANCELLED_BY_CLIENT (Клиент отменяет свою заявку до фактической выдачи товара)
+    # async def cancel_by_client(self, rental_id: int, user_id: int, *, strict: bool = False) -> bool:
+    #     """Отменить заявку клиентом."""
+    #     return await self._change_status(
+    #         rental_id=rental_id,
+    #         user_id=user_id,
+    #         new_status=RentalStatus.CANCELLED_BY_CLIENT,
+    #         action_name="cancel_by_client",
+    #         strict=strict,
+    #     )

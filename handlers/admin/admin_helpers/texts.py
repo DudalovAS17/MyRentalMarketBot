@@ -69,6 +69,8 @@ def format_deal_details(details: RentalAdminDetailsOut) -> str:
         f"☎️ Телефон: {r.client_phone or '—'}\n"
         f"💬 Комментарий клиента: {r.client_comment or '—'}\n"
         f"📝 Комментарий менеджера: {r.manager_comment or '—'}\n"
+        f"❌ Причина отклонения: {r.reject_reason or '—'}\n"
+        f"🚫 Причина отмены: {r.cancel_reason or '—'}\n"
         f"📅 Создана: {created}\n"
     )
 

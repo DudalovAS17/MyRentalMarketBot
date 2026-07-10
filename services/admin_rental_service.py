@@ -105,13 +105,15 @@ class AdminRentalService:
 
     # ────────────────────────────────────── Admin rental actions ──────────────────────────────────────────────────────
     # нужно доработка и осмысление функции!
-    async def admin_set_status(
+    async def change_status(
             self,
             *,
             rental_id: int,
             admin_tg_id: int,
             new_status: RentalStatus,
             manager_comment: Optional[str] = None,
+            reject_reason: Optional[str] = None,
+            cancel_reason: Optional[str] = None,
             strict: bool = False
     ) -> Optional[RentalOut]:
         """Изменить статус заявки сотрудником с проверкой разрешённого перехода."""
@@ -131,13 +133,21 @@ class AdminRentalService:
             return None
 
         normalized_comment = manager_comment.strip() if manager_comment else None
-        self._validate_required_reason(new_status, normalized_comment) # нужно доосмыслить!
+        normalized_reject_reason = reject_reason.strip() if reject_reason else None
+        normalized_cancel_reason = cancel_reason.strip() if cancel_reason else None
+        reason_for_status = {
+            RentalStatus.REJECTED: normalized_reject_reason,
+            RentalStatus.CANCELLED_BY_ADMIN: normalized_cancel_reason,
+        }.get(new_status)
+        self._validate_required_reason(new_status, reason_for_status) # нужно доосмыслить!
 
         updated = await self.repo.try_update_status(    #.update(rental_id, update_data)
             rental_id=rental_id,
             new_status=new_status,
             expected_status=old_status,
             manager_comment=normalized_comment,
+            reject_reason=normalized_reject_reason,
+            cancel_reason=normalized_cancel_reason,
         )
         if not updated:
             if strict:
@@ -161,13 +171,15 @@ class AdminRentalService:
                 "from_status": old_status.value,
                 "to_status": new_status.value,
                 "manager_comment": normalized_comment,
+                "reject_reason": normalized_reject_reason,
+                "cancel_reason": normalized_cancel_reason,
             },
         )
 
         logger.info("Статус заявки изменён сотрудником: id=%s %s->%s", rental_id, old_status.value, new_status.value)
         return self._to_rental_out(updated_rental)
 
-    """ 
+    """  
     Лучше:
         manager_comment — обычный внутренний комментарий менеджера
         reject_reason — причина отклонения
@@ -196,12 +208,8 @@ class AdminRentalService:
     # Переход REQUESTED → IN_PROGRESS.
     async def take_in_progress(self, *, rental_id: int, admin_tg_id: int, strict: bool = False) -> Optional[RentalOut]:
         """Взять заявку в работу."""
-        return await self.admin_set_status(
-            rental_id=rental_id,
-            admin_tg_id=admin_tg_id,
-            new_status=RentalStatus.IN_PROGRESS,
-            strict=strict,
-        )
+        return await self.change_status(rental_id=rental_id, admin_tg_id=admin_tg_id,
+                                        new_status=RentalStatus.IN_PROGRESS, strict=strict)
 
     # Переход IN_PROGRESS / REQUESTED → CONFIRMED
     async def confirm_rental(
@@ -213,35 +221,21 @@ class AdminRentalService:
             strict: bool = False,
     ) -> Optional[RentalOut]:
         """Подтвердить заявку клиента."""
-        return await self.admin_set_status(
-            rental_id=rental_id,
-            admin_tg_id=admin_tg_id,
-            new_status=RentalStatus.CONFIRMED,
-            manager_comment=manager_comment,
-            strict=strict,
-        )
+        return await self.change_status(rental_id=rental_id, admin_tg_id=admin_tg_id, new_status=RentalStatus.CONFIRMED,
+                                        manager_comment=manager_comment, strict=strict)
 
     # Переход REQUESTED/IN_PROGRESS → REJECTED (заявку не приняли в работу / не одобрили)
     async def reject_rental(self, *, rental_id: int, admin_tg_id: int, reason: str, strict: bool = False) -> Optional[RentalOut]:
         """Отклонить заявку клиента с обязательной причиной."""
-        return await self.admin_set_status(
-            rental_id=rental_id,
-            admin_tg_id=admin_tg_id,
-            new_status=RentalStatus.REJECTED,
-            manager_comment=reason,
-            strict=strict,
-        )
+        return await self.change_status(rental_id=rental_id, admin_tg_id=admin_tg_id, new_status=RentalStatus.REJECTED,
+                                        reject_reason=reason, strict=strict)
 
     # Переход CONFIRMED → CANCELLED_BY_ADMIN (заявку уже приняли/подтвердили, но потом компания её отменила)
     async def admin_cancel_rental(self, *, rental_id: int, admin_tg_id: int, reason: str, strict: bool = False) -> Optional[RentalOut]:
         """Отменить открытую заявку сотрудником компании с обязательной причиной."""
-        return await self.admin_set_status(
-            rental_id=rental_id,
-            admin_tg_id=admin_tg_id,
-            new_status=RentalStatus.CANCELLED_BY_ADMIN,
-            manager_comment=reason,
-            strict=strict,
-        )
+        return await self.change_status(rental_id=rental_id, admin_tg_id=admin_tg_id,
+                                        new_status=RentalStatus.CANCELLED_BY_ADMIN, cancel_reason=reason,
+                                        strict=strict)
 
     # Переход (менеджер закрывает заявку как завершённую [товар выдан/возвращён]): ACTIVE / ISSUED → COMPLETED
     async def complete_rental(
@@ -253,13 +247,8 @@ class AdminRentalService:
             strict: bool = False,
     ) -> Optional[RentalOut]:
         """Завершить заявку."""
-        return await self.admin_set_status(
-            rental_id=rental_id,
-            admin_tg_id=admin_tg_id,
-            new_status=RentalStatus.COMPLETED,
-            manager_comment=manager_comment,
-            strict=strict,
-        )
+        return await self.change_status(rental_id=rental_id, admin_tg_id=admin_tg_id, new_status=RentalStatus.COMPLETED,
+                                        manager_comment=manager_comment, strict=strict)
 
     async def update_manager_comment( self, *, rental_id: int, admin_tg_id: int, manager_comment: str, strict: bool = False,
     ) -> Optional[RentalOut]:
@@ -284,3 +273,27 @@ class AdminRentalService:
     # На будущее:
         # Переход (начало аренды [менеджер выдал товар клиенту]): CONFIRMED → ACTIVE / ISSUED - start_rental()
         # Переход (Открыть спор: может owner или renter): ACTIVE → DISPUTED - open_dispute()
+
+
+
+
+
+
+    # ─────────────────────────────── Пока не используемые ─────────────────────────────────────────────────────────────
+    async def admin_set_status(
+            self,
+            *,
+            rental_id: int,
+            admin_tg_id: int,
+            new_status: RentalStatus,
+            manager_comment: Optional[str] = None,
+            strict: bool = False
+    ) -> Optional[RentalOut]:
+        """Публичный wrapper для смены статуса заявки сотрудником."""
+        return await self.change_status(
+            rental_id=rental_id,
+            admin_tg_id=admin_tg_id,
+            new_status=new_status,
+            manager_comment=manager_comment,
+            strict=strict,
+        )

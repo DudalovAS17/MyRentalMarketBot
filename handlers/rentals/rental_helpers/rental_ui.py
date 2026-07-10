@@ -63,6 +63,7 @@ def build_rental_details_ui(details: RentalDetailsOut) -> tuple[str, InlineKeybo
         f"✅ Финальная стоимость: <b>{final_price} ₽</b>\n\n"
         
         f"<b>Статус заявки:</b> <b>{status_text}</b>"
+        f"{build_status_reason_text(rental)}"
 
         #f"\n<b>Подтверждения:</b>\n"
         # f"👑 Компания передала товар: {company_flag}\n"
@@ -72,6 +73,14 @@ def build_rental_details_ui(details: RentalDetailsOut) -> tuple[str, InlineKeybo
     keyboard = InlineKeyboardMarkup(inline_keyboard=build_client_actions(rental))
 
     return text, keyboard
+
+def build_status_reason_text(rental: RentalOut) -> str:
+    """Показать клиенту публичную причину финального решения."""
+    if rental.status == RentalStatus.REJECTED and rental.reject_reason:
+        return f"\n\n❌ <b>Причина отклонения:</b> {ui_str(rental.reject_reason)}"
+    if rental.status == RentalStatus.CANCELLED_BY_ADMIN and rental.cancel_reason:
+        return f"\n\n🚫 <b>Причина отмены:</b> {ui_str(rental.cancel_reason)}"
+    return ""
 
 def build_client_actions(rental: RentalOut) -> list[list[InlineKeyboardButton]]:
     """Собрать клиентские действия по заявке."""

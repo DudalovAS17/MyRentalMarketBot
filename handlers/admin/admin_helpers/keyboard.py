@@ -6,9 +6,10 @@ from status.user_status import AccountStatus
 from status.support_ticket_status import SupportTicketStatus
 from schemas.rental import RentalAdminDetailsOut
 from utils.callbacks import (ADMIN_ADD_ITEM_CB, BACK_TO_ADMIN_MENU_CB, ADMIN_SUPPORT, ADMIN_SUPPORT_ITEMS, ADMIN_SUPPORT_RENTALS,
-                             ADMIN_EXIT_PREFIX, DEALS_PREFIX, ADMIN_USERS_MOD, ADMIN_CONTENT, ADMIN_ITEMS_MOD, ADMIN_SUPPORT_GENERAL,
+                             ADMIN_EXIT_PREFIX, ADMIN_USERS_MOD, ADMIN_CONTENT, ADMIN_ITEMS_MOD, ADMIN_SUPPORT_GENERAL,
                              DEALS_VIEW_PREFIX, DEALS_PROGRESS_PREFIX, DEALS_CONFIRM_PREFIX, DEALS_REJECT_PREFIX, DEALS_COMMENT_PREFIX,
-                             DEALS_NEW_PREFIX, DEALS_ALL_PREFIX, DEALS_CONTACT_PREFIX)
+                             DEALS_NEW_PREFIX, DEALS_ALL_PREFIX, DEALS_CONTACT_PREFIX,  # DEALS_PREFIX,
+                             ADMIN_ITEMS_MOD_FIND, ADMIN_ITEMS_MOD_EDIT_QUANTITY, ADMIN_ITEMS_MOD_EDIT_PRICE)
 
 def _button_rows_by_two(buttons: list[InlineKeyboardButton]) -> list[list[InlineKeyboardButton]]:
     """Разложить кнопки по две в строке."""
@@ -53,8 +54,9 @@ def get_back_to_admin_menu_keyboard() -> InlineKeyboardMarkup:
 def get_admin_items_menu_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
-            [InlineKeyboardButton(text="📝 Новые товары", callback_data="admin:items:filter:DRAFT")],
-            [InlineKeyboardButton(text="✅ Активные товары", callback_data="admin:items:filter:ACTIVE")],
+            [InlineKeyboardButton(text="🔎 Найти товар", callback_data=ADMIN_ITEMS_MOD_FIND)],
+            [InlineKeyboardButton(text="📝 Черновики", callback_data="admin:items:filter:DRAFT")],
+            [InlineKeyboardButton(text="✅ Опубликованные товары", callback_data="admin:items:filter:ACTIVE")],
             [InlineKeyboardButton(text="🙈 Скрытые товары", callback_data="admin:items:filter:HIDDEN")],
             [InlineKeyboardButton(text="🔙 Назад в админ-меню", callback_data="admin:menu")],
         ]
@@ -88,15 +90,16 @@ def get_admin_item_details_keyboard(item_id: int, status_value: ItemStatus) -> I
     if status_value == ItemStatus.DRAFT:
         kb.append([InlineKeyboardButton(text="✅ Опубликовать", callback_data=f"admin:items:approve:{item_id}")])
         kb.append([InlineKeyboardButton(text="🙈 Скрыть", callback_data=f"admin:items:hide:{item_id}")])
-        # нужна кнопка "Изменить детали товара"?
 
     if status_value == ItemStatus.ACTIVE:
         kb.append([InlineKeyboardButton(text="🙈 Скрыть", callback_data=f"admin:items:hide:{item_id}")])
-        # нужна кнопка "Изменить детали товара"?
 
     if status_value == ItemStatus.HIDDEN:
-        kb.append([InlineKeyboardButton(text="👁️ Unhide", callback_data=f"admin:items:unhide:{item_id}")])
+        kb.append([InlineKeyboardButton(text="👁️ Вернуть в каталог", callback_data=f"admin:items:unhide:{item_id}")])
         kb.append([InlineKeyboardButton(text="🚫 Убрать в архив", callback_data=f"admin:items:archive:{item_id}")])
+
+    kb.append([InlineKeyboardButton(text="📦 Изменить наличие", callback_data=f"{ADMIN_ITEMS_MOD_EDIT_QUANTITY}{item_id}")])
+    kb.append([InlineKeyboardButton(text="💰 Изменить цену", callback_data=f"{ADMIN_ITEMS_MOD_EDIT_PRICE}{item_id}")])
 
     kb.append([InlineKeyboardButton(text="🔙 К списку действий", callback_data="admin:items")])
 
@@ -169,7 +172,7 @@ def get_admin_deal_details_keyboard(rental_id: int, status: RentalStatus) -> Inl
 
     buttons.append(InlineKeyboardButton(text="📞 Контакт клиента", callback_data=f"{DEALS_CONTACT_PREFIX}{rental_id}"))
     buttons.append(InlineKeyboardButton(text="📝 Комментарий менеджера", callback_data=f"{DEALS_COMMENT_PREFIX}{rental_id}"))
-    buttons.append(InlineKeyboardButton(text="🔙 К списку", callback_data=DEALS_PREFIX))
+    buttons.append(InlineKeyboardButton(text="🔙 К списку", callback_data=DEALS_ALL_PREFIX))
 
     return InlineKeyboardMarkup(inline_keyboard=_button_rows_by_two(buttons))
 

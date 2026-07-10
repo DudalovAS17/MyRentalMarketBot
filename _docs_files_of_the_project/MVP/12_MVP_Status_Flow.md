@@ -41,15 +41,15 @@ AdminAction/audit-log
 
 Использовать текущий набор:
 
-| Статус | Смысл |
-|---|---|
-| `REQUESTED` | новая заявка |
-| `IN_PROGRESS` | менеджер взял в работу |
-| `CONFIRMED` | заявка подтверждена |
-| `REJECTED` | заявка отклонена |
-| `COMPLETED` | аренда/заявка завершена |
-| `CANCELLED_BY_CLIENT` | клиент отменил заявку |
-| `CANCELLED_BY_ADMIN` | менеджер отменил заявку |
+| Статус                | Смысл                   |
+|-----------------------|-------------------------|
+| `REQUESTED`           | новая заявка            |
+| `IN_PROGRESS`         | менеджер взял в работу  |
+| `CONFIRMED`           | заявка подтверждена     |
+| `REJECTED`            | заявка отклонена        |
+| `COMPLETED`           | аренда/заявка завершена |
+| `CANCELLED_BY_CLIENT` | клиент отменил заявку   |
+| `CANCELLED_BY_ADMIN`  | менеджер отменил заявку |
 
 ---
 
@@ -58,13 +58,11 @@ AdminAction/audit-log
 ```text
 REQUESTED → IN_PROGRESS
 REQUESTED → CONFIRMED
-REQUESTED → REJECTED
-REQUESTED → CANCELLED_BY_ADMIN
+REQUESTED → REJECTED (по сути REQUESTED → CANCELLED_BY_ADMIN)
 REQUESTED → CANCELLED_BY_CLIENT
 
 IN_PROGRESS → CONFIRMED
-IN_PROGRESS → REJECTED
-IN_PROGRESS → CANCELLED_BY_ADMIN
+IN_PROGRESS → REJECTED (по сути IN_PROGRESS → CANCELLED_BY_ADMIN)
 IN_PROGRESS → CANCELLED_BY_CLIENT
 
 CONFIRMED → COMPLETED
@@ -87,15 +85,15 @@ CANCELLED_BY_ADMIN
 
 ## 5. Кто может менять статус
 
-| Действие | Кто |
-|---|---|
-| создать заявку | клиент |
-| взять в работу | manager/admin/owner |
-| подтвердить | manager/admin/owner |
-| отклонить | manager/admin/owner |
-| завершить | manager/admin/owner |
-| отменить клиентом | клиент |
-| отменить админом | manager/admin/owner |
+| Действие          | Кто                 |
+|-------------------|---------------------|
+| создать заявку    | клиент              |
+| взять в работу    | manager/admin/owner |
+| подтвердить       | manager/admin/owner |
+| отклонить         | manager/admin/owner |
+| завершить         | manager/admin/owner |
+| отменить клиентом | клиент              |
+| отменить админом  | manager/admin/owner |
 
 ---
 

@@ -60,6 +60,10 @@ class Rental(Base, TimestampMixin):
     # Внутренний комментарий менеджера
     manager_comment: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
+    # Причины финальных отрицательных решений показываются отдельно от внутреннего комментария.
+    reject_reason: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    cancel_reason: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+
     # Назначенный менеджер
     assigned_admin_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("admins.id", ondelete="SET NULL"),

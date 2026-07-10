@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Sequence
 from datetime import datetime, timezone
 from sqlalchemy import select, update, exists, and_
 from sqlalchemy.orm import selectinload
@@ -31,6 +31,7 @@ class RentalRepository(BaseRepository):
     def _apply_status_filter(stmt, status: RentalStatus):
         """Оставить только заявки с указанным статусом."""
         return stmt.where(Rental.status == status)
+
 
     @staticmethod
     def _apply_open_status_filter(stmt):
@@ -67,6 +68,8 @@ class RentalRepository(BaseRepository):
             status: RentalStatus,
             changed_at: Optional[datetime] = None,
             manager_comment: Optional[str] = None,
+            reject_reason: Optional[str] = None,
+            cancel_reason: Optional[str] = None,
     ) -> RentalUpdate:
         """Собрать схему обновления статуса, включая статусные timestamp-поля."""
         actual_changed_at = changed_at or datetime.now(timezone.utc)
@@ -74,6 +77,11 @@ class RentalRepository(BaseRepository):
 
         if manager_comment is not None:
             update_data.manager_comment = manager_comment
+
+        if reject_reason is not None:
+            update_data.reject_reason = reject_reason
+        if cancel_reason is not None:
+            update_data.cancel_reason = cancel_reason
 
         for field_name in status_timestamp_fields(status):
             setattr(update_data, field_name, actual_changed_at)
@@ -240,6 +248,8 @@ class RentalRepository(BaseRepository):
             expected_status: RentalStatus, # из какого статуса разрешён переход
             *,
             manager_comment: Optional[str] = None,
+            reject_reason: Optional[str] = None,
+            cancel_reason: Optional[str] = None,
             # Параметры для уведомлений (на будущее)
             #notify_recipient_role: Optional[str] = None,  # 'renter', 'owner', 'other'
             #notify_message_template: Optional[str] = None,
@@ -250,6 +260,8 @@ class RentalRepository(BaseRepository):
         update_data = self._build_status_update(
             status=new_status,
             manager_comment=manager_comment,
+            reject_reason=reject_reason,
+            cancel_reason=cancel_reason,
         )
 
         async with self._session() as s:
@@ -298,3 +310,58 @@ class RentalRepository(BaseRepository):
             )
 
             return await self._exists(s, stmt)
+
+
+
+
+
+
+    # ─────────────────────────────── Пока не используемые ─────────────────────────────────────────────────────────────
+    @staticmethod
+    def _apply_statuses_filter(stmt, statuses: Sequence[RentalStatus]):
+        """Оставить только заявки с одним из указанных статусов."""
+        return stmt.where(Rental.status.in_(tuple(statuses)))
+
+    # async def list_by_user_id(
+    #         self,
+    #         user_id: int,
+    #         statuses: Optional[Sequence[RentalStatus]] = None,
+    #         *,
+    #         limit: Optional[int] = 20,
+    #         offset: int = 0,
+    # ) -> list[Rental]:
+    #     """Вернуть заявки клиента, при необходимости ограничив список статусами."""
+    #     async with self._session() as s:
+    #         stmt = select(Rental)
+    #         stmt = self._apply_user_filter(stmt, user_id)
+    #         if statuses:
+    #             stmt = self._apply_statuses_filter(stmt, statuses)
+    #         stmt = self._apply_recent_order(stmt)
+    #         stmt = self._apply_pagination(stmt, limit=limit, offset=offset)
+    #
+    #         return await self._list(s, stmt)
+
+    async def list_by_statuses(self, statuses: Sequence[RentalStatus], *, limit: Optional[int] = 20, offset: int = 0) -> list[Rental]:
+        """Вернуть заявки с одним из указанных статусов."""
+        if not statuses:
+            return []
+
+        async with self._session() as s:
+            stmt = select(Rental)
+            stmt = self._apply_statuses_filter(stmt, statuses)
+            stmt = self._apply_recent_order(stmt)
+            stmt = self._apply_pagination(stmt, limit=limit, offset=offset)
+
+            return await self._list(s, stmt)
+
+    # async def get_by_id_with_details(self, rental_id: int) -> Optional[Rental]:
+    #     """Вернуть заявку с заранее подгруженными товаром, клиентом и назначенным менеджером."""
+    #     async with self._session() as s:
+    #         stmt = select(Rental).where(Rental.id == rental_id)
+    #         stmt = self._with_details(stmt)
+    #
+    #         return await self._one_or_none(s, stmt)
+    #
+    # async def get_details_by_id(self, rental_id: int) -> Optional[Rental]:
+    #     """Alias для обратной совместимости: заявка с заранее подгруженными связями."""
+    #     return await self.get_by_id_with_details(rental_id)

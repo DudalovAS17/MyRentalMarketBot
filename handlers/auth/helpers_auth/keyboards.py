@@ -1,6 +1,7 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton
 
-from utils.callbacks import (PROFILE_EDIT_NAME, PROFILE_EDIT_PHONE, PROFILE_BACK, PROFILE_BACK_TO_SETTINGS)
+from utils.callbacks import (PROFILE_EDIT_NAME, PROFILE_EDIT_PHONE, PROFILE_BACK, PROFILE_BACK_TO_SETTINGS,
+                             PROFILE_SET_NOTIF, PROFILE_TOGGLE_NOTIF_OFF, PROFILE_TOGGLE_NOTIF_ON)
 # PROFILE_BACK, PROFILE_BACK_TO_SETTINGS,
 
 
@@ -80,7 +81,7 @@ def build_settings_keyboard() -> InlineKeyboardMarkup:
         inline_keyboard=[
             [InlineKeyboardButton(
                 text="🔔 Уведомления",
-                callback_data="settings_notifications",
+                callback_data=PROFILE_SET_NOTIF,
             )],
             [InlineKeyboardButton(
                 text="✏️ Редактировать профиль",
@@ -102,10 +103,10 @@ def build_notification_settings_keyboard(notifications_enabled: bool) -> InlineK
     """Собрать клавиатуру настроек уведомлений."""
     if notifications_enabled:
         btn_text = "🔕 Выключить уведомления"
-        btn_callback = "toggle_notifications:off"
+        btn_callback = PROFILE_TOGGLE_NOTIF_OFF
     else:
         btn_text = "🔔 Включить уведомления"
-        btn_callback = "toggle_notifications:on"
+        btn_callback = PROFILE_TOGGLE_NOTIF_ON
 
     return InlineKeyboardMarkup(
         inline_keyboard=[

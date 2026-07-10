@@ -78,7 +78,9 @@ def format_user_rental_status_changed(details: RentalDetailsOut | RentalAdminDet
     """Сформировать уведомление клиенту о смене статуса заявки."""
     rental = details.rental
     item_title = safe(details.item.title)
-    comment = safe(rental.manager_comment, default="")
+    #comment = safe(rental.manager_comment, default="")
+    reject_reason = safe(rental.reject_reason, default="")
+    cancel_reason = safe(rental.cancel_reason, default="")
 
     match rental.status:
         case RentalStatus.IN_PROGRESS:
@@ -99,14 +101,14 @@ def format_user_rental_status_changed(details: RentalDetailsOut | RentalAdminDet
 
         case RentalStatus.REJECTED:
             text = f"❌ <b>Ваша заявка #{rental.id} отклонена</b>\n\n Статус: <b>Отклонена</b>"
-            if comment:
-                text += f"\n\nПричина:\n{comment}"
+            if reject_reason:
+                text += f"\n\nПричина:\n{reject_reason}"
             return f"{text}\n\n Что дальше: вы можете выбрать другой товар или написать менеджеру."
 
         case RentalStatus.CANCELLED_BY_ADMIN:
             text = f"⚠️ <b>Заявка #{rental.id} отменена компанией</b>\n\n Статус: <b>Отменена компанией</b>"
-            if comment:
-                text += f"\n\nКомментарий менеджера:\n{comment}"
+            if cancel_reason:
+                text += f"\n\nПричина отмены:\n{cancel_reason}"
             return f"{text}\n\nЧто дальше: при необходимости напишите в поддержку."
 
         case RentalStatus.COMPLETED:

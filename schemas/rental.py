@@ -56,7 +56,10 @@ class RentalUpdate(BaseModel):
     client_name: Optional[str] = Field(default=None, max_length=150)
     client_phone: Optional[str] = Field(default=None, max_length=30)
     client_comment: Optional[str] = None
+
     manager_comment: Optional[str] = None
+    reject_reason: Optional[str] = None
+    cancel_reason: Optional[str] = None
 
     assigned_admin_id: Optional[int] = None
 
@@ -90,7 +93,10 @@ class RentalOut(BaseModel):
     client_name: Optional[str] = None
     client_phone: Optional[str] = None
     client_comment: Optional[str] = None
+
     manager_comment: Optional[str] = None
+    reject_reason: Optional[str] = None
+    cancel_reason: Optional[str] = None
 
     assigned_admin_id: Optional[int] = None
     in_progress_at: Optional[AwareDatetime] = None

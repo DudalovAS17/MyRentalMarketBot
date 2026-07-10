@@ -43,20 +43,20 @@ class ItemUpdate(BaseModel):
     category_id: Optional[int] = None
     subcategory_id: Optional[int] = None
 
-    title: Optional[str] = Field(None, min_length=3, max_length=200)
+    title: Optional[str] = Field(default=None, min_length=3, max_length=200)
     description: Optional[str] = None
-    short_description: Optional[str] = Field(None, max_length=300)
+    short_description: Optional[str] = Field(default=None, max_length=300)
 
-    price: Optional[Decimal] = Field(None, ge=0)
-    price_text: Optional[str] = Field(None, max_length=100)
+    price: Optional[Decimal] = Field(default=None, ge=0)
+    price_text: Optional[str] = Field(default=None, max_length=100)
 
-    available_quantity: Optional[int] = Field(None, ge=0)
+    available_quantity: Optional[int] = Field(default=None, ge=0)
 
     is_featured: Optional[bool] = None
-    sort_order: Optional[int] = Field(None, ge=0)
+    sort_order: Optional[int] = Field(default=None, ge=0)
 
-    min_rental_period: Optional[int] = Field(None, ge=1)
-    max_rental_period: Optional[int] = Field(None, ge=1)
+    min_rental_period: Optional[int] = Field(default=None, ge=1)
+    max_rental_period: Optional[int] = Field(default=None, ge=1)
 
 
 class ItemOut(BaseModel):
