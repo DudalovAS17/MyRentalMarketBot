@@ -4,12 +4,14 @@ from aiogram.fsm.context import FSMContext
 from decimal import Decimal, InvalidOperation
 
 from services.item_service import ItemService
+from services.admin_service import AdminActionService
 from .admin_helpers.keyboard import get_admin_item_details_keyboard, get_admin_items_menu_keyboard
 from .admin_helpers.parse import get_admin_item_id_or_alert, parse_admin_item_status
 from .admin_helpers.show import show_items_list
 from .admin_helpers.texts import format_item_details
 
 from status.item_status import ItemStatus
+from status.admin_status import AdminActionType, AdminEntityType
 from schemas.item import ItemUpdate
 from states.admin import AdminStates
 from utils.functions import send_or_edit
@@ -25,6 +27,7 @@ admin_items_router = Router()
 async def admin_items_list(callback: CallbackQuery) -> None:
     """Меню модерации товаров"""
     await callback.answer()
+
 
     await send_or_edit(
         callback,
@@ -81,7 +84,7 @@ async def admin_items_view(callback: CallbackQuery, item_service: ItemService) -
 # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 # ───────────── "Активируем" товар ─────────────
 @admin_items_router.callback_query(F.data.startswith(ADMIN_ITEMS_MOD_APPROVE))
-async def admin_items_approve(callback: CallbackQuery, item_service: ItemService) -> None:
+async def admin_items_approve(callback: CallbackQuery, item_service: ItemService, admin_service: AdminActionService, admin) -> None:
     """Перевод товара в ACTIVE"""
     await callback.answer()
 
@@ -89,11 +92,11 @@ async def admin_items_approve(callback: CallbackQuery, item_service: ItemService
     if item_id is None:
         return
 
-    await apply_item_status_action(callback, item_service, item_id, new_status=ItemStatus.ACTIVE)
+    await apply_item_status_action(callback, item_service, admin_service, admin, item_id, new_status=ItemStatus.ACTIVE)
 
 # ───────────── Скрыть товар ─────────────
 @admin_items_router.callback_query(F.data.startswith(ADMIN_ITEMS_MOD_HIDE))
-async def admin_items_hide(callback: CallbackQuery, item_service: ItemService) -> None:
+async def admin_items_hide(callback: CallbackQuery, item_service: ItemService, admin_service: AdminActionService, admin) -> None:
     """Скрыть товар (ACTIVE -> HIDDEN)"""
     await callback.answer()
 
@@ -101,11 +104,11 @@ async def admin_items_hide(callback: CallbackQuery, item_service: ItemService) -
     if item_id is None:
         return
 
-    await apply_item_status_action(callback, item_service, item_id, new_status=ItemStatus.HIDDEN)
+    await apply_item_status_action(callback, item_service, admin_service, admin, item_id, new_status=ItemStatus.HIDDEN)
 
 # ───────────── Вернуть товар ─────────────
 @admin_items_router.callback_query(F.data.startswith(ADMIN_ITEMS_MOD_UNHIDE))
-async def admin_items_unhide(callback: CallbackQuery, item_service: ItemService) -> None:
+async def admin_items_unhide(callback: CallbackQuery, item_service: ItemService, admin_service: AdminActionService, admin) -> None:
     """Вернуть товар (HIDDEN -> ACTIVE)"""
     await callback.answer()
 
@@ -113,11 +116,11 @@ async def admin_items_unhide(callback: CallbackQuery, item_service: ItemService)
     if item_id is None:
         return
 
-    await apply_item_status_action(callback, item_service, item_id, new_status=ItemStatus.ACTIVE)
+    await apply_item_status_action(callback, item_service, admin_service, admin, item_id, new_status=ItemStatus.ACTIVE)
 
 # ───────────── Архивируем товар ─────────────
 @admin_items_router.callback_query(F.data.startswith(ADMIN_ITEMS_MOD_ARCHIVE))
-async def admin_items_archive(callback: CallbackQuery, item_service: ItemService) -> None:
+async def admin_items_archive(callback: CallbackQuery, item_service: ItemService, admin_service: AdminActionService, admin) -> None:
     """Убрать товар в архив (DRAFT/ACTIVE/HIDDEN -> ARCHIVED)."""
     await callback.answer()
 
@@ -125,12 +128,14 @@ async def admin_items_archive(callback: CallbackQuery, item_service: ItemService
     if item_id is None:
         return
 
-    await apply_item_status_action(callback, item_service, item_id, new_status=ItemStatus.ARCHIVED)
+    await apply_item_status_action(callback, item_service, admin_service, admin, item_id, new_status=ItemStatus.ARCHIVED)
 
 # helper
 async def apply_item_status_action(
     event: Message | CallbackQuery,
     item_service: ItemService,
+    admin_service: AdminActionService,
+    admin,
     item_id: int,
     new_status: ItemStatus
 ) -> None:
@@ -146,6 +151,20 @@ async def apply_item_status_action(
         else:
             await event.answer("❌ Нельзя изменить статус товара.")
         return
+
+    action_type = {
+        ItemStatus.ACTIVE: AdminActionType.UPDATE_ITEM,
+        ItemStatus.HIDDEN: AdminActionType.HIDE_ITEM,
+        ItemStatus.ARCHIVED: AdminActionType.ARCHIVE_ITEM,
+    }.get(new_status, AdminActionType.UPDATE_ITEM)
+    await admin_service.log_action(
+        admin_tg_id=event.from_user.id,
+        admin_id=getattr(admin, "id", None),
+        action_type=action_type,
+        entity_type=AdminEntityType.ITEM,
+        entity_id=item_id,
+        payload={"new_status": new_status.value},
+    )
 
     await send_or_edit(
         event,

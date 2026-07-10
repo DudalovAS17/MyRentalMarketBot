@@ -43,7 +43,7 @@ def register_middlewares(*, dp: Dispatcher, services: AppServices, admin_ids: se
     dp.callback_query.middleware(reg)
 
     # 4) Admin guard only for admin router
-    admin_guard = AdminCheckMiddleware(admin_ids)
+    admin_guard = AdminCheckMiddleware(admin_ids, services.admin_directory_service)
     # AdminCheckMiddleware — точечный: проверяет на админа только в админских хендлерах
     admin_router.message.middleware(admin_guard)
     admin_router.callback_query.middleware(admin_guard)

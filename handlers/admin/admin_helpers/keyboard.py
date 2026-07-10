@@ -3,8 +3,12 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from status.item_status import ItemStatus
 from status.rental_status import RentalStatus
 from status.user_status import AccountStatus
+from status.admin_status import AdminRole
 from status.support_ticket_status import SupportTicketStatus
 from schemas.rental import RentalAdminDetailsOut
+from schemas.admin import AdminOut
+from utils.admin_access import can_manage_items, can_ban_users
+
 from utils.callbacks import (ADMIN_ADD_ITEM_CB, BACK_TO_ADMIN_MENU_CB, ADMIN_SUPPORT, ADMIN_SUPPORT_ITEMS, ADMIN_SUPPORT_RENTALS,
                              ADMIN_EXIT_PREFIX, ADMIN_USERS_MOD, ADMIN_CONTENT, ADMIN_ITEMS_MOD, ADMIN_SUPPORT_GENERAL,
                              DEALS_VIEW_PREFIX, DEALS_PROGRESS_PREFIX, DEALS_CONFIRM_PREFIX, DEALS_REJECT_PREFIX, DEALS_COMMENT_PREFIX,
@@ -16,34 +20,37 @@ def _button_rows_by_two(buttons: list[InlineKeyboardButton]) -> list[list[Inline
     return [buttons[index:index + 2] for index in range(0, len(buttons), 2)]
 
 # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-def get_admin_menu_keyboard() -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(text="🆕 Новые заявки", callback_data=DEALS_NEW_PREFIX),
-                InlineKeyboardButton(text="📋 Все заявки", callback_data=DEALS_ALL_PREFIX), # DEALS_PREFIX
-            ],
-            [
-                InlineKeyboardButton(text="👥 Наши клиенты", callback_data=ADMIN_USERS_MOD),
-                InlineKeyboardButton(text="🆘 Обращения клиентов", callback_data=ADMIN_SUPPORT),
-            ],
-            [
-                InlineKeyboardButton(text="📦 Модерация товаров", callback_data=ADMIN_ITEMS_MOD),
-                InlineKeyboardButton(text="➕ Создать товар", callback_data=ADMIN_ADD_ITEM_CB),
-            ],
-            [
-                InlineKeyboardButton(text="📚 Контент/FAQ", callback_data=ADMIN_CONTENT),
-            ],
-            [
-                InlineKeyboardButton(text="🔙 Назад в меню", callback_data=ADMIN_EXIT_PREFIX),
-            ],
-            # 📊 Статистика,
-            # 📢 Рассылка сообщений,
-            # ⚙️ Настройки бота
-        ]
-    )
+def get_admin_menu_keyboard(admin: AdminOut | None = None) -> InlineKeyboardMarkup:
+    """Собрать главное меню админки с учётом роли сотрудника."""
+    rows = [
+        [
+            InlineKeyboardButton(text="🆕 Новые заявки", callback_data=DEALS_NEW_PREFIX),
+            InlineKeyboardButton(text="📋 Все заявки", callback_data=DEALS_ALL_PREFIX),
+        ],
+        [InlineKeyboardButton(text="🆘 Обращения клиентов", callback_data=ADMIN_SUPPORT)],
+    ]
+
+    if can_ban_users(admin):
+        rows.insert(1, [InlineKeyboardButton(text="👥 Наши клиенты", callback_data=ADMIN_USERS_MOD)])
+
+    if can_manage_items(admin):
+        rows.append([
+            InlineKeyboardButton(text="📦 Модерация товаров", callback_data=ADMIN_ITEMS_MOD),
+            InlineKeyboardButton(text="➕ Создать товар", callback_data=ADMIN_ADD_ITEM_CB),
+        ])
+
+    if getattr(admin, "role", None) == AdminRole.OWNER:
+        rows.append([InlineKeyboardButton(text="📚 Контент/FAQ", callback_data=ADMIN_CONTENT)])
+
+    # 📊 Статистика,
+    # 📢 Рассылка сообщений,
+    # ⚙️ Настройки бота
+
+    rows.append([InlineKeyboardButton(text="🔙 Назад в меню", callback_data=ADMIN_EXIT_PREFIX)])
+    return InlineKeyboardMarkup(inline_keyboard=rows)
 
 def get_back_to_admin_menu_keyboard() -> InlineKeyboardMarkup:
+    """Собрать кнопку возврата в главное админ-меню."""
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [InlineKeyboardButton(text="🔙 Назад в админ-меню", callback_data=BACK_TO_ADMIN_MENU_CB)]
@@ -52,6 +59,7 @@ def get_back_to_admin_menu_keyboard() -> InlineKeyboardMarkup:
 
 # ────────────────────────────────────────────────── ADMIN ITEMS ───────────────────────────────────────────────────────
 def get_admin_items_menu_keyboard() -> InlineKeyboardMarkup:
+    """Собрать меню действий для управления товарами."""
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [InlineKeyboardButton(text="🔎 Найти товар", callback_data=ADMIN_ITEMS_MOD_FIND)],
@@ -63,6 +71,7 @@ def get_admin_items_menu_keyboard() -> InlineKeyboardMarkup:
     )
 
 def get_admin_items_list_keyboard(items: list, status: str, page: int, has_next: bool) -> InlineKeyboardMarkup: # status: ItemStatus
+    """Собрать клавиатуру списка товаров с пагинацией."""
     kb = []
 
     for item in items:
@@ -84,7 +93,7 @@ def get_admin_items_list_keyboard(items: list, status: str, page: int, has_next:
     return InlineKeyboardMarkup(inline_keyboard=kb)
 
 def get_admin_item_details_keyboard(item_id: int, status_value: ItemStatus) -> InlineKeyboardMarkup:
-
+    """Собрать клавиатуру действий для карточки товара."""
     kb = [[InlineKeyboardButton(text="🔄 Обновить", callback_data=f"admin:items:view:{item_id}")]]
 
     if status_value == ItemStatus.DRAFT:
@@ -108,6 +117,7 @@ def get_admin_item_details_keyboard(item_id: int, status_value: ItemStatus) -> I
 
 # ────────────────────────────────────────────────── ADMIN USERS ───────────────────────────────────────────────────────
 def get_admin_users_menu_keyboard() -> InlineKeyboardMarkup:
+    """Собрать меню управления клиентами."""
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [InlineKeyboardButton(text="🔎 Найти клиента по id", callback_data="admin:users:find")],
@@ -115,13 +125,15 @@ def get_admin_users_menu_keyboard() -> InlineKeyboardMarkup:
         ]
     )
 
-def get_admin_user_card_keyboard(user_id: int, account_status: AccountStatus) -> InlineKeyboardMarkup:
+def get_admin_user_card_keyboard(user_id: int, account_status: AccountStatus, admin: AdminOut | None = None) -> InlineKeyboardMarkup:
+    """Собрать клавиатуру карточки клиента с учётом прав сотрудника."""
     kb = []
 
-    if account_status == AccountStatus.ACTIVE:
-        kb.append([InlineKeyboardButton(text="🚫 Забанить", callback_data=f"admin:users:ban:{user_id}")])
-    elif account_status == AccountStatus.BANNED:
-        kb.append([InlineKeyboardButton(text="✅ Разбанить", callback_data=f"admin:users:unban:{user_id}")])
+    if can_ban_users(admin):
+        if account_status == AccountStatus.ACTIVE:
+            kb.append([InlineKeyboardButton(text="🚫 Забанить", callback_data=f"admin:users:ban:{user_id}")])
+        elif account_status == AccountStatus.BANNED:
+            kb.append([InlineKeyboardButton(text="✅ Разбанить", callback_data=f"admin:users:unban:{user_id}")])
 
     kb.append([InlineKeyboardButton(text="🔄 Обновить", callback_data=f"admin:users:view:{user_id}")])
     kb.append([InlineKeyboardButton(text="🔙 Назад", callback_data="admin:users")])
@@ -131,12 +143,11 @@ def get_admin_user_card_keyboard(user_id: int, account_status: AccountStatus) ->
 
 # ────────────────────────────────────────────────── ADMIN DEALS ───────────────────────────────────────────────────────
 def get_admin_deals_list_keyboard(rentals_rows: list[RentalAdminDetailsOut], page: int, has_next: bool, *, mode: str = "all") -> InlineKeyboardMarkup:
+    """Собрать клавиатуру списка заявок с фильтром и пагинацией."""
     kb = []
     for row in rentals_rows:
         r = row.rental
-        kb.append(
-            [InlineKeyboardButton(text=f"🔎 Открыть #{r.id}", callback_data=f"admin:deals:view:{r.id}")]
-        )
+        kb.append([InlineKeyboardButton(text=f"🔎 Открыть #{r.id}", callback_data=f"admin:deals:view:{r.id}")])
 
     nav = []
     if page > 1:
@@ -157,6 +168,7 @@ def get_admin_deals_list_keyboard(rentals_rows: list[RentalAdminDetailsOut], pag
     return InlineKeyboardMarkup(inline_keyboard=kb)
 
 def get_admin_deal_details_keyboard(rental_id: int, status: RentalStatus) -> InlineKeyboardMarkup:
+    """Собрать клавиатуру действий для карточки заявки."""
     buttons = [InlineKeyboardButton(text="🔄 Обновить", callback_data=f"admin:deals:view:{rental_id}")]
 
     if status == RentalStatus.REQUESTED:
@@ -193,6 +205,7 @@ def get_admin_new_rental_notification_keyboard(rental_id: int) -> InlineKeyboard
     return InlineKeyboardMarkup(inline_keyboard=_button_rows_by_two(buttons))
 
 def get_admin_dispute_target_keyboard(rental_id: int) -> InlineKeyboardMarkup:
+    """Собрать клавиатуру выбора целевого статуса для спорной заявки."""
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [InlineKeyboardButton(text="➡️ Перевести в ACTIVE", callback_data=f"admin:deals:resolve_target:{rental_id}:active")],
@@ -204,6 +217,7 @@ def get_admin_dispute_target_keyboard(rental_id: int) -> InlineKeyboardMarkup:
 
 # ───────────────────────────────────────────────── ADMIN SUPPORT ──────────────────────────────────────────────────────
 def get_admin_support_sections_keyboard() -> InlineKeyboardMarkup:
+    """Собрать клавиатуру разделов обращений клиентов."""
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [InlineKeyboardButton(text="📦 Вопросы по товарам", callback_data=ADMIN_SUPPORT_ITEMS)],
@@ -214,6 +228,7 @@ def get_admin_support_sections_keyboard() -> InlineKeyboardMarkup:
     )
 
 def get_admin_support_list_keyboard(tickets_rows: list[dict], page: int, has_next: bool, kind: str) -> InlineKeyboardMarkup:
+    """Собрать клавиатуру списка тикетов поддержки с пагинацией."""
     kb = []
 
     for row in tickets_rows:
@@ -235,6 +250,7 @@ def get_admin_support_list_keyboard(tickets_rows: list[dict], page: int, has_nex
 #get_admin_support_list_kb
 
 def get_admin_support_ticket_keyboard(ticket_id: int, status: SupportTicketStatus) -> InlineKeyboardMarkup:
+    """Собрать клавиатуру карточки тикета поддержки."""
     kb = [[InlineKeyboardButton(text="🔄 Обновить", callback_data=f"admin:support:view:{ticket_id}")]]
 
     if status == SupportTicketStatus.OPEN:
@@ -246,6 +262,7 @@ def get_admin_support_ticket_keyboard(ticket_id: int, status: SupportTicketStatu
 
 
 def get_admin_support_ticket_notification_keyboard(ticket_id: int) -> InlineKeyboardMarkup:
+    """Собрать клавиатуру уведомления сотрудников о новом тикете."""
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
@@ -259,6 +276,7 @@ def get_admin_support_ticket_notification_keyboard(ticket_id: int) -> InlineKeyb
 # get_admin_ticket_kb
 
 def get_admin_support_menu_kb() -> InlineKeyboardMarkup:
+    """Собрать устаревшую клавиатуру меню поддержки для совместимости."""
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [InlineKeyboardButton(text="📭 Открытые тикеты", callback_data="admin:support:open")],
@@ -273,6 +291,7 @@ EDIT_ITEM_CB = "edit_item" # "✏️ Редактировать конкретн
 EDIT_FIELD_CB = "edit_field:"
 
 def build_edit_item_keyboard(item_id: int) -> InlineKeyboardMarkup:
+    """Собрать клавиатуру редактирования товара."""
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [InlineKeyboardButton(text="📝 Название", callback_data=f"{EDIT_FIELD_CB}title")],

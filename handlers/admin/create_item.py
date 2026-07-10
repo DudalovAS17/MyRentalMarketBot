@@ -12,6 +12,8 @@ from services.category_service import CategoryService
 from schemas.item import ItemCreateDraft, ItemCreate
 from states.item import ItemCreateStates
 from keyboards.common import cancel_keyboard
+from status.admin_status import AdminRole
+from utils.admin_access import require_admin_role
 from utils.functions import send_or_edit
 from utils.errors import ServiceError, ValidationError
 from utils.validators import parse_callback
@@ -24,17 +26,22 @@ admin_create_item_router = Router()
 
 # ─────────────────────────────────────────────── helpers ──────────────────────────────────────────────────────────────
 async def _save_draft(state: FSMContext, draft: ItemCreateDraft) -> None:
+    """Сохранить черновик создаваемого товара в FSM-контекст."""
     await state.update_data(new_item=draft.model_dump())
 
 async def _get_draft(state: FSMContext) -> ItemCreateDraft:
+    """Загрузить черновик создаваемого товара из FSM-контекста."""
     data = await state.get_data()
     return ItemCreateDraft.model_validate(data.get("new_item") or {})
 
 # ─────────────────────────────────────────────── Основной FSM ─────────────────────────────────────────────────────────
 @admin_create_item_router.callback_query(F.data == ADMIN_ADD_ITEM_CB)
-async def start_create_item_by_admin(callback: CallbackQuery, state: FSMContext, category_service: CategoryService, user) -> None:
+async def start_create_item_by_admin(callback: CallbackQuery, state: FSMContext, category_service: CategoryService, user, admin) -> None:
     """FSM: Запуск процесса создания товара из админки"""
     await callback.answer()
+
+    if not await require_admin_role(callback, admin, {AdminRole.ADMIN, AdminRole.OWNER}):
+        return
 
     # Очистим все предыдущие данные (data сейчас: пусто)
     await state.clear()

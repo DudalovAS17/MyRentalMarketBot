@@ -4,11 +4,13 @@ from aiogram.fsm.context import FSMContext
 from collections.abc import Awaitable, Callable
 
 from services.user_service import UserService
+from services.admin_service import AdminActionService
 from .admin_helpers.parse import get_admin_user_id_or_alert, parse_admin_user_id
 from .admin_helpers.show import show_user_card
 from .admin_helpers.keyboard import get_admin_users_menu_keyboard
 
 from states.admin import AdminStates
+from status.admin_status import AdminActionType, AdminEntityType
 from utils.functions import send_or_edit
 from utils.callbacks import ADMIN_USERS_MOD, ADMIN_USERS_MOD_VIEW, ADMIN_USERS_MOD_FIND, ADMIN_USERS_MOD_BAN, ADMIN_USERS_MOD_UNBAN
 
@@ -74,7 +76,7 @@ async def admin_users_ban_prompt(callback: CallbackQuery, state: FSMContext) -> 
     await send_or_edit(callback, "Введите причину бана одним сообщением:", None)
 
 @admin_users_router.message(AdminStates.waiting_user_ban_reason)
-async def admin_users_ban_apply(message: Message, state: FSMContext, user_service: UserService, user) -> None:
+async def admin_users_ban_apply(message: Message, state: FSMContext, user_service: UserService, admin_service: AdminActionService, admin) -> None:
     """Применить бан клиента с причиной"""
     data = await state.get_data()
 
@@ -96,12 +98,17 @@ async def admin_users_ban_apply(message: Message, state: FSMContext, user_servic
         user_service=user_service,
         user_id=user_id,
         action_call=lambda: user_service.ban_user(user_id=user_id, reason=reason, admin_telegram_id=message.from_user.id),
+        audit_call=lambda: admin_service.log_action(
+            admin_tg_id=message.from_user.id, admin_id=admin.id,
+            action_type=AdminActionType.BAN_USER,
+            entity_type=AdminEntityType.USER, entity_id=user_id, note=reason
+        )
     )
 
 
 # ──────────────────────────────────────── Логика разбана ──────────────────────────────────────────────────────────────
 @admin_users_router.callback_query(F.data.startswith(ADMIN_USERS_MOD_UNBAN))
-async def admin_users_unban(callback: CallbackQuery, user_service: UserService) -> None:
+async def admin_users_unban(callback: CallbackQuery, user_service: UserService, admin_service: AdminActionService, admin) -> None:
     """Разбанить пользователя"""
     await callback.answer()
 
@@ -113,7 +120,12 @@ async def admin_users_unban(callback: CallbackQuery, user_service: UserService) 
         event=callback,
         user_service=user_service,
         user_id=user_id,
-        action_call=lambda: user_service.unban_user(user_id)
+        action_call=lambda: user_service.unban_user(user_id),
+        audit_call=lambda: admin_service.log_action(
+            admin_tg_id=callback.from_user.id, admin_id=admin.id,
+            action_type=AdminActionType.UNBAN_USER,
+            entity_type=AdminEntityType.USER, entity_id=user_id
+        ),
     )
 
 
@@ -123,6 +135,7 @@ async def apply_user_action_and_show_card(
     user_service: UserService,
     user_id: int,
     action_call: Callable[[], Awaitable[object | None]],
+    audit_call: Callable[[], Awaitable[object]] | None = None,
 ) -> None:
     """Выполнить admin-action над пользователем и перерисовать карточку"""
     try:
@@ -134,5 +147,8 @@ async def apply_user_action_and_show_card(
     if not updated:
         await send_or_edit(event, f"❌ Пользователь #{user_id} не найден.", None)
         return
+
+    if audit_call is not None:
+        await audit_call()
 
     await show_user_card(event, user_service, user_id)

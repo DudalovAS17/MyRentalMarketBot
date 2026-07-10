@@ -17,7 +17,7 @@ from utils.validators import format_price
 from status.item_status import ItemStatus
 from utils.errors import ServiceError
 
-# ──────────────────────────────────────────────────   ─────────────────────────────────────────────────────────────
+# ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 async def show_deals_list(event: Message | CallbackQuery, admin_rental_service: AdminRentalService, page: int, *, only_new: bool = False) -> None:
     """Показать список заявок в админке: новые или все."""
 
@@ -127,7 +127,7 @@ async def show_items_list(
     )
 
 # ────────────────────────────────────────────────── users ─────────────────────────────────────────────────────────────
-async def show_user_card(event: Message | CallbackQuery, user_service: UserService, user_id: int) -> None:
+async def show_user_card(event: Message | CallbackQuery, user_service: UserService, user_id: int, admin=None) -> None:
     """Показать карточку пользователя в админке"""
 
     user = await user_service.get_by_id(user_id)
@@ -138,7 +138,7 @@ async def show_user_card(event: Message | CallbackQuery, user_service: UserServi
     await send_or_edit(
         event,
         format_user_card(user),
-        get_admin_user_card_keyboard(user.id, user.account_status)
+        get_admin_user_card_keyboard(user.id, user.account_status, admin)
     )
 
 
