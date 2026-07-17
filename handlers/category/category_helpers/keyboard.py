@@ -5,7 +5,7 @@ from schemas.category import CategoryOut
 from schemas.item import ItemOut
 from keyboards.common import build_category_keyboard
 from utils.callbacks import (SUBCAT_CB_PREFIX, BACK_TO_CAT, ITEM_DETAILS_CB, RENT_ITEM_CB, # SHOW_ALL_PHOTOS_CB,
-                             MESSAGE_OWNER_CB, CAROUSEL_NAV_CB, PHOTO_NAV_CB) # , REVIEWS_CB, ALL_CATEGORY_CB
+                             MESSAGE_OWNER_CB, CAROUSEL_NAV_CB, REVIEWS_CB) # , PHOTO_NAV_CB, ALL_CATEGORY_CB
 from utils.item_availability import can_request_item, item_unavailable_text
 
 """
@@ -57,8 +57,11 @@ def build_items_carousel_keyboard(
             InlineKeyboardButton(text="➡️", callback_data=f"{nav_cb_prefix}{subcategory_id}:{next_index}"),
         ])
 
-    buttons.append([InlineKeyboardButton(text="🔍 Подробнее", callback_data=f"{item_details_cb_prefix}{current_item_id}")])
-    buttons.append([InlineKeyboardButton(text="✅ Арендовать", callback_data=f"{RENT_ITEM_CB}{current_item_id}")]) # 🛒 Оставить заявку
+    buttons.append([
+        InlineKeyboardButton(text="🔍 Подробнее", callback_data=f"{item_details_cb_prefix}{current_item_id}"),
+        InlineKeyboardButton(text="✅ Арендовать", callback_data=f"{RENT_ITEM_CB}{current_item_id}")
+    ])
+    #buttons.append([InlineKeyboardButton(text="✅ Арендовать", callback_data=f"{RENT_ITEM_CB}{current_item_id}")]) # 🛒 Оставить заявку
 
     if parent_category_id:
         buttons.append([InlineKeyboardButton(text="🔙 Назад", callback_data=f"{cat_cb_prefix}{parent_category_id}")])
@@ -75,8 +78,8 @@ def build_item_details_kb(
     selected_subcategory_id: int | None,
     selected_item_index: int | None = None,
     end_date: str | None,
-    photo_count: int = 0, # Логика N1
-    photo_index: int = 0 # Логика N1
+    #photo_count: int = 0, # Логика N1
+    #photo_index: int = 0 # Логика N1
 ) -> InlineKeyboardMarkup:
     buttons: list[list[InlineKeyboardButton]] = []
 
@@ -88,6 +91,8 @@ def build_item_details_kb(
             callback_data="noop",
         )])
 
+    # Заменил на rich-логику!
+    """
     # Логика N1
     if photo_count > 1:
         safe_photo_index = photo_index % photo_count
@@ -102,10 +107,13 @@ def build_item_details_kb(
         buttons.append([InlineKeyboardButton(text="📸 Фото 1 / 1", callback_data="noop")])
 
     # Логика N2
-    #buttons.append([InlineKeyboardButton(text="📸 Показать все фото", callback_data=f"{SHOW_ALL_PHOTOS_CB}{item.id}")])
+    buttons.append([InlineKeyboardButton(text="📸 Показать все фото", callback_data=f"{SHOW_ALL_PHOTOS_CB}{item.id}")])
+    """
 
-    buttons.append([InlineKeyboardButton(text="💬 Написать менеджеру", callback_data=f"{MESSAGE_OWNER_CB}{item.id}")])
-    #buttons.append([InlineKeyboardButton(text="⭐ Отзывы", callback_data=f"{REVIEWS_CB}{item_id}")])
+    buttons.append([
+        InlineKeyboardButton(text="💬 Написать менеджеру", callback_data=f"{MESSAGE_OWNER_CB}{item.id}"),
+        InlineKeyboardButton(text="⭐ Отзывы", callback_data=f"{REVIEWS_CB}{item.id}")
+    ])
 
     if selected_subcategory_id:
         if selected_item_index is not None: # NEW

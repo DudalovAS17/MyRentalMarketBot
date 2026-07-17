@@ -1,18 +1,19 @@
 from aiogram import Router, F
 from aiogram.types import CallbackQuery
 from aiogram.fsm.context import FSMContext
-from aiogram.exceptions import TelegramBadRequest
+#from aiogram.exceptions import TelegramBadRequest
 
-from handlers.category.category_helpers.keyboard import (build_subcategories_keyboard, build_back_to_item_details_keyboard,
-                                                         build_items_carousel_keyboard, build_item_details_kb)
+from handlers.category.category_helpers.keyboard import (build_subcategories_keyboard, build_items_carousel_keyboard,
+                                                         build_item_details_kb) # build_back_to_item_details_keyboard
 from handlers.category.category_helpers.load import resolve_entity, load_list_or_notify
 from handlers.category.category_helpers.store import (store_selected_category, store_selected_subcategory,
                                                       store_selected_item, store_selected_item_index)
 from handlers.category.category_helpers.texts import (item_details_text, not_cat_id, serv_err_cat, not_cat, not_subcat_id,
                                                       serv_err_subcat, not_subcat, not_item_id, not_item, serv_err_item,
-                                                      serv_err_photo, not_photos,  subcategory_item_card_text) # serv_err_items
+                                                      subcategory_item_card_text) # serv_err_photo, not_photos, serv_err_items
 
-from handlers.category.category_helpers.formatters import busy_until_text, build_photo_media, get_photo_source
+from handlers.category.category_helpers.formatters import busy_until_text #, build_photo_media #, get_photo_source
+from handlers.category.category_helpers.rich_logic import send_or_edit_item_card
 from handlers.entries import show_categories
 from services.item_service import ItemService
 from services.category_service import CategoryService
@@ -21,16 +22,16 @@ from services.rental_service import RentalService
 
 from texts_otP.error_empty_states import EMPTY_SUBCATEGORIES, EMPTY_SUBCATEGORY_ITEMS
 from keyboards.common import build_fallback_inline_keyboard
-from schemas.photo import PhotoOut
-from utils.functions import send_or_edit, send_reply
+#from schemas.photo import PhotoOut
+from utils.functions import send_or_edit #, send_reply
 from utils.errors import ServiceError
-from utils.callbacks import (CAT_CB_PREFIX, SUBCAT_CB_PREFIX, ITEM_DETAILS_CB, SHOW_ALL_PHOTOS_CB, BACK_TO_CAT,
-                             CAROUSEL_NAV_CB, PHOTO_NAV_CB)
+from utils.callbacks import CAT_CB_PREFIX, SUBCAT_CB_PREFIX, ITEM_DETAILS_CB,  BACK_TO_CAT, CAROUSEL_NAV_CB # SHOW_ALL_PHOTOS_CB, PHOTO_NAV_CB
 from utils.validators import parse_callback
 
 category_router = Router()
 # Логика N1: "Карусель фото" - СЕЙЧАС
 # Логика N2: "Все фото товара" - СТОП
+# Логика N3: "Rich-карусель"
 
 @category_router.callback_query(F.data.startswith(CAT_CB_PREFIX))
 async def show_subcategories(callback: CallbackQuery, state: FSMContext, category_service: CategoryService) -> None:
@@ -235,11 +236,11 @@ async def show_item_details_in_subcategory(
         selected_subcategory_id=selected_subcategory_id,
         selected_item_index=selected_item_index, # NEW
         end_date=busy_until_text(open_rental),
-        photo_count=len(photos), # Логика N1
-        photo_index=0, # Логика N1
+        #photo_count=len(photos), # Логика N1
+        #photo_index=0, # Логика N1
     )
 
-    await send_or_edit_item_card(callback, photos, text=item_details, markup=keyboard, photo_index=0) # photo_index=0 - Логика N1
+    await send_or_edit_item_card(callback, photos, text=item_details, markup=keyboard) #, photo_index=0) # photo_index=0 - Логика N1
     # await send_or_edit(callback, item_details, markup=keyboard)
 
 
@@ -249,6 +250,8 @@ async def back_to_categories(callback: CallbackQuery, category_service: Category
     await show_categories(callback, category_service)
 
 
+# Без rich-логики (т.е. Логика N1 и Логика N2):
+"""
 # Логика N1
 @category_router.callback_query(F.data.startswith(PHOTO_NAV_CB))
 async def navigate_item_photos(
@@ -258,7 +261,7 @@ async def navigate_item_photos(
     photo_service: PhotoService,
     rental_service: RentalService,
 ) -> None:
-    """Переключить фото внутри подробной карточки товара без отправки новой галереи."""
+    ""Переключить фото внутри подробной карточки товара без отправки новой галереи.""
     await callback.answer()
 
     try:
@@ -312,10 +315,11 @@ async def navigate_item_photos(
 
     await send_or_edit_item_card(callback, photos, text=item_details, markup=keyboard, photo_index=safe_photo_index)
 
+
 # Логика N2
 @category_router.callback_query(F.data.startswith(SHOW_ALL_PHOTOS_CB))
 async def show_all_photos(callback: CallbackQuery, photo_service: PhotoService) -> None:
-    """Показать все фотографии товара"""
+    ""Показать все фотографии товара""
     await callback.answer()
 
     item_id = parse_callback(callback.data, SHOW_ALL_PHOTOS_CB)
@@ -353,9 +357,8 @@ async def show_all_photos(callback: CallbackQuery, photo_service: PhotoService) 
     )
 
 
-# ────────────────────────────────────────────────── helper ────────────────────────────────────────────────────────────
 async def send_or_edit_item_card(callback: CallbackQuery, photos: list[PhotoOut], text: str, markup, photo_index: int = 0) -> None:
-    """Показать карточку товара: с фото, если оно есть, иначе обычным текстом."""
+    ""Показать карточку товара: с фото, если оно есть, иначе обычным текстом.""
 
     # Логика N2
     #main_photo = photos[0] if photos else None
@@ -363,7 +366,6 @@ async def send_or_edit_item_card(callback: CallbackQuery, photos: list[PhotoOut]
     main_photo = photos[photo_index % len(photos)] if photos else None
 
     photo_source = get_photo_source(main_photo)
-
     if not photo_source:
         await send_or_edit(callback, text, markup=markup)
         return
@@ -404,3 +406,4 @@ async def send_or_edit_item_card(callback: CallbackQuery, photos: list[PhotoOut]
             reply_markup=markup,
             parse_mode="HTML",
         )
+"""

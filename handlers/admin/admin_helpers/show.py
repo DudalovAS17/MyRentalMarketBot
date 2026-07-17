@@ -16,7 +16,7 @@ from utils.functions import send_or_edit
 from utils.validators import format_price
 from status.item_status import ItemStatus
 from utils.errors import ServiceError
-from texts.error_empty_states import (DB_ERROR, EMPTY_ADMIN_RENTALS, EMPTY_ADMIN_NEW_RENTALS,
+from texts_otP.error_empty_states import (DB_ERROR, EMPTY_ADMIN_RENTALS, EMPTY_ADMIN_NEW_RENTALS,
                                       ADMIN_RENTAL_NOT_FOUND, EMPTY_SUPPORT_TICKETS)
 
 # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
