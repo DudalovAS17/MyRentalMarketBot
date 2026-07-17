@@ -83,7 +83,7 @@ class Settings(BaseSettings):
     #database_url_override: str | None = Field(default=None, validation_alias="DATABASE_URL")
     db_user: str = Field(default="postgres", alias="POSTGRES_USER")
     db_pass: SecretStr = Field(alias="POSTGRES_PASSWORD")
-    db_name: str = Field(default="aiogram-rentals-bot", alias="POSTGRES_DB")
+    db_name: str = Field(default="rental_market_bot", alias="POSTGRES_DB")
     db_port: int = Field(default=5432, alias="DB_PORT")
     db_host: str = Field(default="postgres", alias="DB_HOST")
 
