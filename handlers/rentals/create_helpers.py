@@ -9,10 +9,10 @@ from handlers.rentals.rental_helpers.texts import (not_item_id, not_item_for_ren
                                                    format_rent_delivery_address_text) # , format_rent_details_request_text
 # serv_err_item, no_rent_data_err,
 
-from handlers.rentals.rental_helpers.validate import (parse_rent_item_id, calculate_total_rent_price, calculate_price_for_fixed_period_total,
-                                                      abort_if_item_unavailable, parse_rent_period_code, parse_rent_details_message,
-                                                      parse_rent_quantity_code, parse_delivery_choice, parse_positive_int,
-                                                      normalize_phone, is_quantity_available, is_rent_draft_complete)
+from handlers.rentals.rental_helpers.parsers import (parse_rent_item_id, parse_rent_period_code, parse_rent_details_message,
+                                                     parse_rent_quantity_code, parse_delivery_choice, parse_positive_int,
+                                                     normalize_phone, is_rent_draft_complete)
+#  is_quantity_available, abort_if_item_unavailable,  calculate_total_rent_price, calculate_price_for_fixed_period_total,
 
 from handlers.rentals.rental_helpers.keyboard import (build_rent_cancel_keyboard, build_rent_success_keyboard,
                                                       build_rent_period_keyboard, build_rent_comment_keyboard,
@@ -24,3 +24,4 @@ from handlers.rentals.rental_helpers.store import (get_rent_draft_context_or_abo
                                                    get_rent_draft_context_or_abort, store_rent_details_message, save_rent_draft)
 
 #from handlers.rentals.rental_helpers.notif import notify_item_about_rent_request
+

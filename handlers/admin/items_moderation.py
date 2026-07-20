@@ -11,7 +11,6 @@ from .admin_helpers.show import show_items_list
 from .admin_helpers.texts import format_item_details
 
 from status.item_status import ItemStatus
-from status.admin_status import AdminActionType, AdminEntityType
 from schemas.item import ItemUpdate
 from states.admin import AdminStates
 from utils.functions import send_or_edit
@@ -152,18 +151,11 @@ async def apply_item_status_action(
             await event.answer("❌ Нельзя изменить статус товара.")
         return
 
-    action_type = {
-        ItemStatus.ACTIVE: AdminActionType.UPDATE_ITEM,
-        ItemStatus.HIDDEN: AdminActionType.HIDE_ITEM,
-        ItemStatus.ARCHIVED: AdminActionType.ARCHIVE_ITEM,
-    }.get(new_status, AdminActionType.UPDATE_ITEM)
-    await admin_service.log_action(
+    await admin_service.log_item_status_change(
         admin_tg_id=event.from_user.id,
         admin_id=getattr(admin, "id", None),
-        action_type=action_type,
-        entity_type=AdminEntityType.ITEM,
         entity_id=item_id,
-        payload={"new_status": new_status.value},
+        new_status=new_status,
     )
 
     await send_or_edit(

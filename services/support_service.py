@@ -4,6 +4,7 @@ from typing import Optional
 from db.repositories.support_ticket import SupportTicketRepository
 
 from schemas.support import SupportTicketOut, SupportTicketCreateInternal, SupportMessageOut
+from status.support_ticket_status import SupportTicketStatus
 from utils.errors import NotFoundError, ConflictError, ValidationError
 from utils.domain_exceptions import TicketAlreadyOpen
 
@@ -44,11 +45,16 @@ class SupportService:
     # ─────────────────────────────────────── Business validation ─────────────────────────────────────────────────────
     # не используется
     @staticmethod
-    def _normalize_required_text(value: str, field_name: str) -> str:
+    def normalize_required_text(value: str, field_name: str) -> str:
         normalized = value.strip()
         if not normalized:
             raise ValidationError(f"{field_name} не может быть пустым")
         return normalized
+
+    async def _ensure_user_has_no_open_ticket(self, user_id: int, *, kind: str | None = None) -> None:
+        open_ticket = await self.repo.get_open_by_user_id(user_id, kind=kind)
+        if open_ticket:
+            raise TicketAlreadyOpen(ticket_id=open_ticket.id)
 
     @staticmethod
     def ticket_kind_for_data(ticket_data: SupportTicketCreateInternal) -> str:
@@ -59,10 +65,47 @@ class SupportService:
             return "items"
         return "general"
 
-    async def _ensure_user_has_no_open_ticket(self, user_id: int, *, kind: str | None = None) -> None:
-        open_ticket = await self.repo.get_open_by_user_id(user_id, kind=kind)
-        if open_ticket:
-            raise TicketAlreadyOpen(ticket_id=open_ticket.id)
+    # То же самое, но через id
+    @staticmethod
+    def ticket_kind_for_context(*, rental_id: int | None = None, item_id: int | None = None) -> str:
+        """Определить контур обращения по связанному объекту."""
+        if rental_id is not None:
+            return "rentals"
+        if item_id is not None:
+            return "items"
+        return "general"
+
+    @staticmethod
+    def subject_for_context(*, rental_id: int | None = None, item_id: int | None = None) -> str | None:
+        """Сформировать служебную тему обращения по контексту."""
+        if item_id is not None:
+            return f"Вопрос по товару #{item_id}"
+        if rental_id is not None:
+            return f"Заявка на аренду #{rental_id}"
+        return None
+
+    @staticmethod
+    def is_open_ticket(ticket: SupportTicketOut) -> bool:
+        """Проверить, что тикет открыт."""
+        return ticket.status == SupportTicketStatus.OPEN
+
+    @classmethod
+    def can_append_user_reply(cls, ticket: SupportTicketOut, *, user_id: int) -> bool:
+        """Проверить, может ли клиент добавить ответ в тикет."""
+        return ticket.user_id == user_id and cls.is_open_ticket(ticket)
+
+    # @staticmethod
+    # def admin_ticket_actions_for_status(status: SupportTicketStatus) -> tuple[str, ...]:
+    #     """Вернуть допустимые admin UI-actions для тикета поддержки."""
+    #     if status == SupportTicketStatus.OPEN:
+    #         return "reply", "close"
+    #     return ()
+
+    @staticmethod
+    def validate_ticket_context(ticket_data: SupportTicketCreateInternal) -> None:
+        """Проверить, что обращение связано не более чем с одним бизнес-контекстом."""
+        if ticket_data.item_id is not None and ticket_data.rental_id is not None:
+            raise ValidationError("Обращение нельзя одновременно связать с товаром и заявкой аренды")
 
     # ────────────────────────────────────────── Read methods ──────────────────────────────────────────────────────────
     async def get_ticket_by_id(self, ticket_id: int, *, strict: bool = False) -> Optional[SupportTicketOut]:
@@ -96,6 +139,12 @@ class SupportService:
     # ─────────────────────────────────────────── write methods ────────────────────────────────────────────────────────
     async def create(self, *, ticket_data: SupportTicketCreateInternal) -> SupportTicketOut:
         """Создать обращение, если у пользователя нет открытого обращения в этом контуре."""
+
+        self.validate_ticket_context(ticket_data)
+        # normalized_text = self.normalize_required_text(ticket_data.text, "Сообщение")
+        # normalized_subject = ticket_data.subject.strip() if ticket_data.subject else None
+        # ticket_data = ticket_data.model_copy(update={"text": normalized_text, "subject": normalized_subject})
+
         await self._ensure_user_has_no_open_ticket(
             ticket_data.user_id,
             kind=self.ticket_kind_for_data(ticket_data),
@@ -107,6 +156,9 @@ class SupportService:
     # ─────────────────────────────────────────── Admin actions ────────────────────────────────────────────────────────
     async def close_ticket_by_admin(self, *, ticket_id: int, closed_by_admin_id: int = None, strict: bool = False) -> bool:
         """Закрыть тикет обращения администратором"""
+        if closed_by_admin_id is None:
+            raise ValidationError("Некорректный ID сотрудника")
+
         ok = await self.repo.close(ticket_id=ticket_id, closed_by_admin_id=closed_by_admin_id)
         if not ok and strict: # тогда: тикета нет / тикет есть, но он уже CLOSED
             raise ConflictError("Обращение в поддержку не найдено или уже закрыто")
@@ -120,7 +172,7 @@ class SupportService:
     async def append_user_reply(self, *, ticket_id: int, user_id: int, reply_text: str, strict: bool = False) -> \
     Optional[SupportTicketOut]:
         """Добавить сообщение клиента в существующий открытый тикет."""
-        normalized = self._normalize_required_text(reply_text, "Ответ")
+        normalized = self.normalize_required_text(reply_text, "Ответ")
         ticket = await self.get_ticket_by_id(ticket_id)
         if not ticket or ticket.user_id != user_id:
             if strict:
@@ -156,7 +208,7 @@ class SupportService:
 
     async def save_admin_reply(self, *, ticket_id: int, sender_admin_id: int, reply_text: str, strict: bool = False) -> Optional[SupportTicketOut]:
         """Сохранить ответ админа в истории сообщений и отметить активность."""
-        normalized = self._normalize_required_text(reply_text, "Ответ")
+        normalized = self.normalize_required_text(reply_text, "Ответ")
         obj = await self.repo.add_admin_message(ticket_id=ticket_id, sender_admin_id=sender_admin_id, text=normalized)
         if not obj:
             if strict:

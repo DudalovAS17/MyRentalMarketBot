@@ -6,10 +6,11 @@ from aiogram import Bot
 from aiogram.exceptions import TelegramAPIError, TelegramBadRequest, TelegramForbiddenError, TelegramRetryAfter
 from aiogram.types import InlineKeyboardMarkup
 
+from keyboards.common import build_support_continue_keyboard
 from schemas.rental import RentalAdminDetailsOut, RentalDetailsOut
 from schemas.support import SupportTicketOut
 from schemas.user import UserOut
-from handlers.notification import (
+from texts_otP.notification import (
     format_client_cancelled_rental,
     format_new_rental_request,
     format_new_support_ticket,
@@ -20,7 +21,6 @@ from handlers.notification import (
     format_user_rental_status_changed,
     format_user_support_created,
 )
-from handlers.support.helpers_support import build_support_continue_keyboard
 
 logger = logging.getLogger(__name__)
 

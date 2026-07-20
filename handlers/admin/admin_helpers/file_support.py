@@ -6,12 +6,8 @@ from services.support_service import SupportService
 
 from schemas.support import SupportTicketOut
 from schemas.user import UserOut
-from status.support_ticket_status import SupportTicketStatus
 from utils.functions import send_or_edit
 
-def is_open_ticket(ticket: SupportTicketOut) -> bool:
-    """Проверить, что тикет открыт"""
-    return ticket.status == SupportTicketStatus.OPEN
 
 async def load_open_support_ticket_or_notify(
     event: Message | CallbackQuery,
@@ -26,7 +22,7 @@ async def load_open_support_ticket_or_notify(
         await send_or_edit(event, f"❌ Тикет #{ticket_id} не найден.", None)
         return None
 
-    if not is_open_ticket(ticket):
+    if not support_service.is_open_ticket(ticket):
         await send_or_edit(event, f"⚠️ Тикет #{ticket_id} уже закрыт.", None)
         return None
 

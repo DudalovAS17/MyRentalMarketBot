@@ -193,10 +193,12 @@ class RentalRepository(BaseRepository):
             return await self._list(s, stmt)
 
     # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-    async def create(self, rental_data: RentalCreate) -> Rental:
-        """Создать новую заявку клиента на аренду товара."""
+    async def create(self, rental_data: RentalCreate, *, status: RentalStatus = RentalStatus.REQUESTED) -> Rental:
+        """Создать новую заявку клиента на аренду товара (с явно заданным начальным статусом!)."""
+        payload = rental_data.model_dump()
+        payload["status"] = status
         async with self._session() as s:
-            obj = Rental(**rental_data.model_dump())
+            obj = Rental(**payload)
             # obj = Rental(**rental_data.model_dump(exclude_none=True))
             return await self._add_commit_refresh(s, obj)
 

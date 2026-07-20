@@ -3,6 +3,8 @@ from typing import Optional
 
 from db.repositories.admin import AdminActionRepository
 from schemas.admin import AdminActionOut
+from status.admin_status import AdminActionType, AdminEntityType
+from status.item_status import ItemStatus
 from utils.errors import ValidationError
 
 class AdminActionService:
@@ -41,6 +43,7 @@ class AdminActionService:
         if not normalized:
             raise ValidationError(f"{field_name} не может быть пустым")
         return normalized
+
 
     # ────────────────────────────────────────── Read methods ──────────────────────────────────────────────────────────
     async def list_recent(self, *, limit: Optional[int] = None, offset: int = 0) -> list[AdminActionOut]:
@@ -111,3 +114,27 @@ class AdminActionService:
         )
 
         return self._to_out(obj)
+
+
+    async def log_item_status_change(
+        self,
+        *,
+        admin_tg_id: int,
+        entity_id: int,
+        new_status: ItemStatus,
+        admin_id: Optional[int] = None,
+    ) -> AdminActionOut:
+        """Записать audit-событие смены статуса товара."""
+        action_type = {
+            ItemStatus.ACTIVE: AdminActionType.UPDATE_ITEM,
+            ItemStatus.HIDDEN: AdminActionType.HIDE_ITEM,
+            ItemStatus.ARCHIVED: AdminActionType.ARCHIVE_ITEM,
+        }.get(new_status, AdminActionType.UPDATE_ITEM)
+        return await self.log_action(
+            admin_tg_id=admin_tg_id,
+            admin_id=admin_id,
+            action_type=action_type,
+            entity_type=AdminEntityType.ITEM,
+            entity_id=entity_id,
+            payload={"new_status": new_status.value},
+        )

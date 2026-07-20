@@ -5,7 +5,7 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, KeyboardBu
 from schemas.category import CategoryOut
 from status.rental_status import OPEN_STATUSES, STATUS_LABELS
 from utils.callbacks import (CAT_CB_PREFIX, BACK_TO_MENU_CB, RENTAL_DETAILS_CB, PROFILE_BACK_TO_SETTINGS, MY_RENTALS_CB,
-                             BACK_TO_CAT, SUPPORT_START)
+                             BACK_TO_CAT, SUPPORT_START, SUPPORT_CONTINUE)
 # SEARCH_CITY_CB, SEARCH_FILTERS_CB, CANCEL_RENT_FLOW_CB, CONFIRM_RENT_CB, RENT_BACK_CB, RENT_CHANGE_CB,
 
 # ──────────────────────────────────────────── base ────────────────────────────────────────────────────────────────────
@@ -243,3 +243,13 @@ def get_back_inline_keyboard(step_callback: str = None) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
 # build_rent_end_date_keyboard - Клавиатура выбора даты окончания аренды.
+
+
+# ─────────────────────────────────────────── notify/support ───────────────────────────────────────────────────────────
+def build_support_continue_keyboard(ticket_id: int) -> InlineKeyboardMarkup:
+    """Собрать клавиатуру для продолжения открытого тикета клиентом."""
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="✉️ Ответить в тикет", callback_data=f"{SUPPORT_CONTINUE}{ticket_id}")]
+        ]
+    )

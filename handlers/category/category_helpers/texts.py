@@ -1,6 +1,6 @@
 from html import escape
 
-from status.item_status import ItemStatus
+from services.item_service import ItemRentalAvailability
 from schemas.item import ItemOut, ItemCharacteristicOut
 from utils.validators import format_price #, format_days
 from texts_otP.error_empty_states import ITEM_NOT_FOUND
@@ -74,20 +74,14 @@ def item_details_text(
         #f"<p>👇 Выберите действие ниже</p>"
     )
 
-
 # availability_text = "Доступно для аренды" if item.is_available else "Временно недоступно"
 
 # карусель
-def subcategory_item_card_text(
-    item: ItemOut,
-    current_index: int,
-    total_items: int,
-    characteristics: list[ItemCharacteristicOut],
-) -> str:
+def subcategory_item_card_text(item: ItemOut, availability: ItemRentalAvailability) -> str:
     """Rich-карточка товара для карусели внутри подкатегории."""
     return (
         f"<h2>{escape(item.title)}</h2>\n" # 📦 
-        f"<p><strong>💰{min_price} | {item_availability_text(item)} </strong></p>\n"
+        f"<p><strong>💰{min_price} | {item_availability_text(availability)} </strong></p>\n"
         #f"<p>📍 <strong>{current_index + 1} из {total_items}</strong></p>"
     )
 
@@ -103,9 +97,9 @@ def rich_table(rows: list[tuple[str, str]]) -> str:
     ]
     return "<table bordered striped>\n" + "\n".join(table_rows) + "\n</table>"
 
-def item_summary_table(item: ItemOut) -> str:
+def item_summary_table(item: ItemOut, availability: ItemRentalAvailability) -> str:
     """Сформировать rich-таблицу с ценой, сроком и наличием."""
-    availability = item_availability_text(item)
+    availability = item_availability_text(availability)
     return rich_table(
         [
             ("💰 Цена", f"{format_price(item.price)} ₽ / день"),
@@ -126,13 +120,18 @@ def characteristics_table(characteristics: list[ItemCharacteristicOut], *, limit
     rows = [(characteristic.name, characteristic.value) for characteristic in visible_characteristics]
     return rich_table(rows)
 
-def item_availability_text(item: ItemOut) -> str:
-    """Понятный клиентский статус товара для карточки MVP."""
-    if item.status != ItemStatus.ACTIVE:
-        return "⛔ Сейчас недоступно"
-    if item.available_quantity > 0:
-        return f"✅ В наличии: <b>{item.available_quantity} шт.</b>"
-    return "🟡 Наличие уточняет менеджер"
+def item_availability_text(availability: ItemRentalAvailability) -> str:
+    """Понятный клиентский статус товара по результату бизнес-проверки."""
+    if availability.can_request:
+        if availability.available_quantity is not None:
+            return f"✅ В наличии: <b>{availability.available_quantity} шт.</b>"
+        return "✅ В наличии"
+
+    if availability.reason == "out_of_stock":
+        return "🟡 Наличие уточняет менеджер"
+    if availability.reason == "busy":
+        return "⛔ Сейчас занято"
+    return "⛔ Сейчас недоступно"
 
 
 # Карточки товаров без rich-логики

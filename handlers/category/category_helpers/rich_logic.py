@@ -2,9 +2,7 @@ from typing import Any
 from aiogram.types import CallbackQuery, InputMediaPhoto, InputRichMessage
 from aiogram.exceptions import TelegramBadRequest
 
-from handlers.category.category_helpers.formatters import get_photo_source
 from schemas.photo import PhotoOut
-
 
 async def send_or_edit_item_card(callback: CallbackQuery, photos: list[PhotoOut], text: str, markup) -> None:
     """Показать rich-карточку товара с фото внутри rich-сообщения."""
@@ -60,6 +58,12 @@ def build_rich_photo_sources(photos: list[PhotoOut]) -> list[str]:
 
     return photo_sources
 
+def get_photo_source(photo: PhotoOut) -> str | None:
+    """Вернуть источник фото: telegram_file_id или внешний URL."""
+    if photo is None:
+        return None
+
+    return photo.telegram_file_id or photo.url
 
 def build_rich_item_card_message(text: str, photo_sources: list[str]) -> InputRichMessage:
     """Собрать rich-сообщение и явно привязать медиа для HTML-ссылки tg://photo?id=... ."""
@@ -79,7 +83,6 @@ def build_rich_item_card_message(text: str, photo_sources: list[str]) -> InputRi
 
     return InputRichMessage(**kwargs)
 
-
 def build_rich_item_media_html(photo_sources: list[str]) -> str:
     """Сформировать rich-блок медиа: одно фото или slideshow для нескольких фото."""
     if not photo_sources:
@@ -93,7 +96,6 @@ def build_rich_item_media_html(photo_sources: list[str]) -> str:
         for index, _ in enumerate(photo_sources)
     )
     return f"<tg-slideshow>\n{image_tags}\n</tg-slideshow>\n"
-
 
 RICH_ITEM_PHOTO_ID_PREFIX = "item_photo"
 def build_rich_photo_id(index: int) -> str:
@@ -112,3 +114,25 @@ async def replace_with_rich_message(message, rich_message: InputRichMessage, mar
         pass
 
     await message.answer_rich(rich_message=rich_message, reply_markup=markup)
+
+
+# старое
+"""
+from collections.abc import Sequence
+from aiogram.types import InputMediaPhoto
+from schemas.photo import PhotoOut
+
+def build_photo_media(photos: Sequence[PhotoOut]) -> list[InputMediaPhoto]:
+    ""Собрать media group для отправки фотографий товара""
+    media: list[InputMediaPhoto] = []
+
+    for photo in photos:
+        photo_source = get_photo_source(photo)
+
+        if not photo_source:
+            continue
+
+        media.append(InputMediaPhoto(media=photo_source))
+
+    return media
+"""

@@ -12,19 +12,18 @@ from handlers.category.category_helpers.texts import (item_details_text, not_cat
                                                       serv_err_subcat, not_subcat, not_item_id, not_item, serv_err_item,
                                                       subcategory_item_card_text) # serv_err_photo, not_photos, serv_err_items
 
-from handlers.category.category_helpers.formatters import busy_until_text #, build_photo_media #, get_photo_source
 from handlers.category.category_helpers.rich_logic import send_or_edit_item_card
 from handlers.entries import show_categories
 from services.item_service import ItemService
 from services.category_service import CategoryService
 from services.photo_service import PhotoService
-from services.rental_service import RentalService
+#from services.rental_service import RentalService
 
 from texts_otP.error_empty_states import EMPTY_SUBCATEGORIES, EMPTY_SUBCATEGORY_ITEMS
 from keyboards.common import build_fallback_inline_keyboard
 #from schemas.photo import PhotoOut
 from utils.functions import send_or_edit #, send_reply
-from utils.errors import ServiceError
+#from utils.errors import ServiceError
 from utils.callbacks import CAT_CB_PREFIX, SUBCAT_CB_PREFIX, ITEM_DETAILS_CB,  BACK_TO_CAT, CAROUSEL_NAV_CB # SHOW_ALL_PHOTOS_CB, PHOTO_NAV_CB
 from utils.validators import parse_callback
 
@@ -97,7 +96,9 @@ async def show_items_in_subcategory(
     # карусель
     current_item = items[current_index]
     await store_selected_item_index(state, current_item.id, current_index) # NEW
+    availability = item_service.item_rental_availability(current_item)
     keyboard = build_items_carousel_keyboard(
+        availability,
         current_item_id=current_item.id,
         subcategory_id=subcategory.id,
         parent_category_id=subcategory.parent_id,
@@ -110,12 +111,13 @@ async def show_items_in_subcategory(
     )
 
     photos = await photo_service.get_photos_by_item_id(current_item.id)
-    characteristics = await item_service.list_item_characteristics_by_item_id(current_item.id, limit=3)
+    #characteristics = await item_service.list_item_characteristics_by_item_id(current_item.id, limit=3)
+    availability = item_service.item_rental_availability(current_item)
 
     await send_or_edit_item_card(
         callback=callback,
         photos=photos,
-        text=subcategory_item_card_text(current_item, current_index, total, characteristics),
+        text=subcategory_item_card_text(current_item, availability), # current_index, total, characteristics
         markup=keyboard,
     )
 
@@ -168,7 +170,9 @@ async def navigate_items_carousel(
     current_index = current_index % total
     current_item = items[current_index]
     await store_selected_item_index(state, current_item.id, current_index) # NEW
+    availability = item_service.item_rental_availability(current_item)
     keyboard = build_items_carousel_keyboard(
+        availability,
         current_item_id=current_item.id,
         subcategory_id=subcategory.id,
         parent_category_id=subcategory.parent_id,
@@ -181,12 +185,13 @@ async def navigate_items_carousel(
     )
 
     photos = await photo_service.get_photos_by_item_id(current_item.id)
-    characteristics = await item_service.list_item_characteristics_by_item_id(current_item.id, limit=3)
+    #characteristics = await item_service.list_item_characteristics_by_item_id(current_item.id, limit=3)
+    availability = item_service.item_rental_availability(current_item)
 
     await send_or_edit_item_card(
         callback=callback,
         photos=photos,
-        text=subcategory_item_card_text(current_item, current_index, len(items), characteristics),
+        text=subcategory_item_card_text(current_item, availability), # current_index, len(items), characteristics
         markup=keyboard,
     )
 
@@ -199,7 +204,7 @@ async def show_item_details_in_subcategory(
     state: FSMContext,
     item_service: ItemService,
     photo_service: PhotoService,
-    rental_service: RentalService,
+    #rental_service: RentalService,
 ) -> None:
     """Просмотр карточки конкретного товара"""
     await callback.answer()
@@ -222,20 +227,22 @@ async def show_item_details_in_subcategory(
     characteristics = await item_service.list_item_characteristics_by_item_id(item.id, limit=3)
     item_details = item_details_text(item, category_name, subcategory_name, characteristics)
 
-    # Проверяем занятость (если есть активная/открытая аренда)
-    try:
-        open_rental = await rental_service.get_open_rental_for_item(item.id)
-    except ServiceError:
-        open_rental = None  # если проверка не удалась — не блокируем UX
+    # # Проверяем занятость (если есть активная/открытая аренда)
+    # try:
+    #     open_rental = await rental_service.get_open_rental_for_item(item.id)
+    # except ServiceError:
+    #     open_rental = None  # если проверка не удалась — не блокируем UX
 
     photos = await photo_service.get_photos_by_item_id(item.id)
+    availability = item_service.item_rental_availability(item)
 
     keyboard = build_item_details_kb(
-        item=item,
-        has_open_rental=open_rental is not None, # is_busy
+        item,
+        availability,
+        #has_open_rental=open_rental is not None, # is_busy
         selected_subcategory_id=selected_subcategory_id,
         selected_item_index=selected_item_index, # NEW
-        end_date=busy_until_text(open_rental),
+        #end_date=busy_until_text(open_rental),
         #photo_count=len(photos), # Логика N1
         #photo_index=0, # Логика N1
     )

@@ -1,5 +1,6 @@
 import logging
-from typing import Optional #, Sequence
+from decimal import Decimal
+from typing import Optional
 
 from db.repositories.rental import RentalRepository
 
@@ -8,11 +9,14 @@ from schemas.item import ItemOut
 from schemas.user import UserOut
 from status.item_status import ItemStatus
 from status.rental_status import RentalStatus, is_open_status, can_transition, STATUS_LABELS
-from utils.domain_exceptions import ItemNotAvailable
+from utils.parsers import parse_period_prices
 from utils.errors import NotFoundError, ForbiddenError, ConflictError, ValidationError
+from utils.domain_exceptions import ItemNotAvailable
 
 
 logger = logging.getLogger(__name__)
+
+
 
 class RentalService:
     """Сервис для работы с заявками клиентов на аренду товаров компании."""
@@ -39,6 +43,32 @@ class RentalService:
 
     # ─────────────────────────────────────── Business validation ─────────────────────────────────────────────────────
     @staticmethod
+    def calculate_total_rent_price(price_per_day: Decimal | int | float, days: int) -> tuple[Decimal, Decimal]:
+        """Рассчитать цену за день и итоговую стоимость аренды"""
+        normalized_price = price_per_day if isinstance(price_per_day, Decimal) else Decimal(str(price_per_day))
+        total_rent_price = (normalized_price * Decimal(days)).quantize(Decimal("0.01"))
+        return normalized_price, total_rent_price
+
+    @staticmethod
+    def calculate_price_for_fixed_period_total(
+        item_price: Decimal | int | float,
+        period_code: str,
+        price_text: str | None = None,
+    ) -> Decimal | None:
+        """Рассчитать стоимость заявки для выбранного фиксированного периода."""
+        period_prices = parse_period_prices(price_text)
+        if period_code in period_prices:
+            return period_prices[period_code]
+
+        price = item_price if isinstance(item_price, Decimal) else Decimal(str(item_price))
+        return price.quantize(Decimal("0.01"))
+
+    @staticmethod
+    def is_quantity_available(quantity: int, available_quantity: int | None) -> bool:
+        """Проверить бизнес-доступность выбранного количества (положительное и не превышает доступное)."""
+        return quantity >= 1 and (available_quantity is None or quantity <= available_quantity)
+
+    @staticmethod
     def _validate_transition(old_status: RentalStatus, new_status: RentalStatus, *, strict: bool) -> bool:
         if can_transition(old_status, new_status):
             return True
@@ -46,29 +76,56 @@ class RentalService:
             raise ConflictError(f"Нельзя изменить статус заявки: {old_status.value} -> {new_status.value}")
         return False
 
+    @staticmethod
+    def _build_create_payload(data: RentalCreate, *, item: ItemOut) -> RentalCreate:
+        """Собрать согласованный payload создания заявки.
+        Для MVP стоимость считается как цена товара × количество."""
+        total_price = item.price * data.quantity
+        return data.model_copy(update={"total_price": total_price})
+
     # @staticmethod
     # def _validate_date_create(data: RentalCreate) -> None:
     #     if data.start_date and data.end_date and data.end_date <= data.start_date:
     #         raise ValidationError("Дата окончания аренды должна быть позже даты начала")
 
+    def ensure_item_quantity_requestable(self, item: ItemOut, *, quantity: int) -> None:
+        """Гарантировать, что товар и количество можно отправить в заявку аренды.
+
+        MVP-логика:
+        - товар должен быть ACTIVE;
+        - количество должно быть >= 1;
+        - если available_quantity задано, оно должно быть > 0;
+        - запрошенное quantity не должно превышать available_quantity.
+        """
+        if item.status != ItemStatus.ACTIVE:
+            raise ItemNotAvailable(
+                item_id=item.id,
+                reason="inactive",
+                item_status=item.status,
+                available_quantity=item.available_quantity,
+            )
+
+        if quantity < 1:
+            raise ConflictError("Количество должно быть не меньше 1")
+
+        if item.available_quantity is not None and item.available_quantity <= 0:
+            raise ItemNotAvailable(
+                item_id=item.id,
+                reason="out_of_stock",
+                item_status=item.status,
+                available_quantity=item.available_quantity,
+            )
+
+        if not self.is_quantity_available(quantity, item.available_quantity):
+            raise ConflictError("Запрошенное количество больше доступного наличия")
+
     async def _validate_create(self, data: RentalCreate, *, item: ItemOut) -> None:
         """Проверить бизнес-условия создания заявки."""
-        if data.quantity < 1:
-            raise ValidationError("Количество товара должно быть не меньше 1")
 
         if item.id != data.item_id:
             raise ValidationError("Товар заявки не совпадает с проверяемым товаром")
 
-        if item.status != ItemStatus.ACTIVE:
-            raise ConflictError("Товар сейчас недоступен для аренды")
-
-        if item.available_quantity <= 0:
-            raise ConflictError("Товара сейчас нет в наличии")
-
-        if data.quantity > item.available_quantity:
-            raise ConflictError("Запрошенное количество больше доступного наличия")
-
-        await self.ensure_item_available(data.item_id)
+        self.ensure_item_quantity_requestable(item, quantity=data.quantity)
 
     # ────────────────────────────────────────── Read methods ──────────────────────────────────────────────────────────
     async def get_by_id(self, rental_id: int, *, strict: bool = False) -> Optional[RentalOut]:
@@ -108,7 +165,8 @@ class RentalService:
         #self._validate_date_create(data)
         await self._validate_create(data, item=item)
 
-        rental = await self.repo.create(data)
+        # create_data = self._build_create_payload(data, item=item)
+        rental = await self.repo.create(data, status=RentalStatus.REQUESTED) # create_data
 
         dto = self._to_out(rental)
         logger.info("Создана заявка: id=%s user_id=%s item_id=%s", dto.id, dto.user_id, dto.item_id)
@@ -184,29 +242,12 @@ class RentalService:
 
         return self._to_out(rental)
 
-    async def ensure_item_available(self, item_id: int) -> None:
-        """Гарантия: товар нельзя арендовать, если по нему есть открытая заявка.
+    # Убирал логику:
+    # ensure_item_available - Гарантия: товар нельзя арендовать, если по нему есть открытая заявка.
+    # has_open_rentals_for_item - Проверить, есть ли у товара открытые заявки.
 
-        Для текущего MVP считаем: один товар = одна активная доступная единица.
-        """
-        open_rental = await self._get_open_rental_for_item(item_id)
-        if not open_rental:
-            return
-
-        raise ItemNotAvailable(
-            item_id=item_id,
-            rental_id=open_rental.id,
-            status=open_rental.status,
-            #end_date=open_rental.end_date,
-        )
-
-    async def has_open_rentals_for_item(self, item_id: int) -> bool:
-        """Проверить, есть ли у товара открытые заявки."""
-        return await self.repo.has_open_rentals_for_item(item_id)
-
-
-
-
+    # А тут переписали логику через ensure_item_quantity_requestable()
+    # async def abort_if_item_unavailable - Вернуть True, если rent-flow нужно остановить из-за недоступности товара.
 
 
 

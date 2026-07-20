@@ -67,24 +67,21 @@ async def admin_support_list_page(callback: CallbackQuery, support_service: Supp
 @admin_support_router.callback_query(F.data.startswith(ADMIN_SUPPORT_VIEW))
 async def admin_support_view(callback: CallbackQuery, support_service: SupportService, user_service: UserService) -> None:
     """Показывает карточку тикета поддержки"""
-    await callback.answer()
-
     ticket_id = parse_support_ticket_id(callback.data)
     if ticket_id is None:
-        #await callback.answer("Некорректный ID", show_alert=True)
+        await callback.answer("Некорректный ID", show_alert=True)
         return
 
+    await callback.answer()
     await show_support_ticket_card_or_not_found(callback, user_service, support_service, ticket_id)
 
 # ────────────────────────────────────────── Ответа на тикет ───────────────────────────────────────────────────────────
 @admin_support_router.callback_query(F.data.startswith(ADMIN_SUPPORT_REPLY))
 async def admin_support_reply_prompt(callback: CallbackQuery, state: FSMContext, support_service: SupportService):
     """Запросить текст ответа на тикет"""
-    await callback.answer()
-
     ticket_id = parse_support_ticket_id(callback.data)
     if ticket_id is None:
-        #await callback.answer("Некорректный ID", show_alert=True)
+        await callback.answer("Некорректный ID", show_alert=True)
         return
 
     ticket = await load_open_support_ticket_or_notify(callback, support_service, ticket_id)
@@ -94,6 +91,7 @@ async def admin_support_reply_prompt(callback: CallbackQuery, state: FSMContext,
     await state.set_state(AdminSupportStates.waiting_reply_text)
     await state.update_data(ticket_id=ticket_id)
 
+    await callback.answer()
     await send_or_edit(callback, f"✉️ Введите ответ для тикета #{ticket_id}:", None)
 
 
@@ -164,11 +162,9 @@ async def admin_support_close(
         notification_service: NotificationService,
 ) -> None:
     """Закрытие тикета (без причины в MVP)"""
-    await callback.answer()
-
     ticket_id = parse_support_ticket_id(callback.data)
     if ticket_id is None:
-        # await callback.answer("Некорректный ID", show_alert=True)
+        await callback.answer("Некорректный ID", show_alert=True)
         return
 
     ticket = await load_open_support_ticket_or_notify(callback, support_service, ticket_id)
@@ -204,6 +200,7 @@ async def admin_support_close(
     # Перерисовываем карточку тикета
     updated_ticket = await support_service.get_ticket_by_id(ticket_id) or ticket
 
+    await callback.answer()
     await send_or_edit(
         callback,
         (("⚠️ Тикет закрыт, но пользователя не удалось уведомить.\n\n" if not delivered else "") + format_ticket_card(

@@ -1,14 +1,8 @@
 import re
-from aiogram.types import CallbackQuery, Message
-from decimal import Decimal, InvalidOperation
+from aiogram.types import CallbackQuery
 
-from handlers.rentals.rental_helpers.texts import item_not_available_message
 from handlers.rentals.rental_helpers.keyboard import PERIOD_LABELS, RENT_PERIOD_CB
-from services.rental_service import RentalService
 
-from schemas.item import ItemOut
-from utils.domain_exceptions import ItemNotAvailable
-from utils.item_availability import can_request_item, item_unavailable_text
 
 CUSTOM_DATES_RE = re.compile(r"^\s*(\d{2}\.\d{2}\.\d{4})\s*[-—–]\s*(\d{2}\.\d{2}\.\d{4})\s*$")
 # ──────────────────────────────────────── PARSE ───────────────────────────────────────────────────────────────────────
@@ -75,81 +69,6 @@ def parse_rent_details_message(text: str | None) -> tuple[int, str, str | None] 
     comment = parts[2] if len(parts) == 3 and parts[2] else None
     return days, parts[1], comment
 
-def _money_from_text(value: str) -> Decimal | None:
-    """Достать первое денежное значение из текстового фрагмента."""
-    match = re.search(r"(\d[\d\s]*(?:[,.]\d+)?)", value)
-    if not match:
-        return None
-
-    try:
-        return Decimal(match.group(1).replace(" ", "").replace(",", ".")).quantize(Decimal("0.01"))
-    except (InvalidOperation, ValueError):
-        return None
-
-def parse_period_prices(price_text: str | None) -> dict[str, Decimal]:
-    """Распарсить цены по диапазонам из человеко-читаемого текста цены товара."""
-    if not price_text:
-        return {}
-
-    normalized = price_text.lower().replace("ё", "е")
-    patterns = {
-        "1d": r"(?:сутки|1\s*(?:день|дн|сут))\D*(\d[\d\s]*(?:[,.]\d+)?)",
-        "2_7d": r"2\s*[-–—]\s*7\s*(?:дн|сут|дней)?\D*(\d[\d\s]*(?:[,.]\d+)?)",
-        "8_14d": r"8\s*[-–—]\s*14\s*(?:дн|сут|дней)?\D*(\d[\d\s]*(?:[,.]\d+)?)",
-        "15_plus": r"(?:>|от)?\s*15\+?\s*(?:дн|сут|дней)?\D*(\d[\d\s]*(?:[,.]\d+)?)",
-    }
-
-    prices: dict[str, Decimal] = {}
-    for code, pattern in patterns.items():
-        match = re.search(pattern, normalized)
-        if not match:
-            continue
-        price = _money_from_text(match.group(1))
-        if price is not None:
-            prices[code] = price
-
-    return prices
-
-
-# ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-async def abort_if_item_unavailable(event: CallbackQuery | Message, rental_service: RentalService, item: ItemOut) -> bool:
-    """Вернуть True, если rent-flow нужно остановить из-за недоступности товара."""
-
-    message = event.message if isinstance(event, CallbackQuery) else event
-
-    if not can_request_item(item):
-        if message:
-            await message.answer(item_unavailable_text(item))
-        return True
-
-    try:
-        await rental_service.ensure_item_available(item.id)
-    except ItemNotAvailable:
-        message = event.message if isinstance(event, CallbackQuery) else event
-        if message:
-            await message.answer(item_not_available_message)
-        return True
-
-    return False
-
-# ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-def calculate_total_rent_price(price_per_day: Decimal | int | float, days: int) -> tuple[Decimal, Decimal]:
-    """Рассчитать цену за день и итоговую стоимость аренды"""
-    normalized_price = price_per_day if isinstance(price_per_day, Decimal) else Decimal(str(price_per_day))
-    total_rent_price = (normalized_price * Decimal(days)).quantize(Decimal("0.01"))
-    return normalized_price, total_rent_price
-
-def calculate_price_for_fixed_period_total(
-    item_price: Decimal | int | float,
-    period_code: str,
-    price_text: str | None = None,
-) -> Decimal | None:
-    """Получить готовую цену для выбранного диапазона."""
-    period_prices = parse_period_prices(price_text)
-    if period_code in period_prices:
-        return period_prices[period_code]
-
-    return item_price if isinstance(item_price, Decimal) else Decimal(str(item_price)).quantize(Decimal("0.01"))
 
 # ──────────────────────────────────────────── for Rental FSM ──────────────────────────────────────────────────────────
 def parse_positive_int(text: str | None) -> int | None:
@@ -179,10 +98,6 @@ def parse_rent_period_code(data: str | None) -> str | None:
         return None
     code = data.removeprefix(RENT_PERIOD_CB)
     return code if code in PERIOD_LABELS else None
-
-def is_quantity_available(quantity: int, available_quantity: int | None) -> bool:
-    """Проверить, что выбранное количество положительное и не превышает доступное."""
-    return quantity >= 1 and (available_quantity is None or quantity <= available_quantity)
 
 def parse_delivery_choice(data: str | None) -> bool | None:
     """Распарсить выбор доставки из callback."""

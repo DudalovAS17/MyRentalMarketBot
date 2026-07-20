@@ -1,12 +1,13 @@
 from collections.abc import Sequence
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
+from handlers.category.category_helpers.texts import item_availability_text
+from services.item_service import ItemRentalAvailability
 from schemas.category import CategoryOut
 from schemas.item import ItemOut
 from keyboards.common import build_category_keyboard
 from utils.callbacks import (SUBCAT_CB_PREFIX, BACK_TO_CAT, ITEM_DETAILS_CB, RENT_ITEM_CB, # SHOW_ALL_PHOTOS_CB,
                              MESSAGE_OWNER_CB, CAROUSEL_NAV_CB, REVIEWS_CB) # , PHOTO_NAV_CB, ALL_CATEGORY_CB
-from utils.item_availability import can_request_item, item_unavailable_text
 
 """
 build_category_keyboard - показ категорий
@@ -33,6 +34,7 @@ def build_subcategories_keyboard(subcategories: Sequence[CategoryOut], category:
 
 
 def build_items_carousel_keyboard(
+    availability: ItemRentalAvailability,
     *,
     current_item_id: int,
     subcategory_id: int,
@@ -59,9 +61,11 @@ def build_items_carousel_keyboard(
 
     buttons.append([
         InlineKeyboardButton(text="🔍 Подробнее", callback_data=f"{item_details_cb_prefix}{current_item_id}"),
-        InlineKeyboardButton(text="✅ Арендовать", callback_data=f"{RENT_ITEM_CB}{current_item_id}")
+        InlineKeyboardButton(
+            text="✅ Арендовать" if availability.can_request else item_availability_text(availability),
+            callback_data=f"{RENT_ITEM_CB}{current_item_id}" if availability.can_request else "noop",
+        ),
     ])
-    #buttons.append([InlineKeyboardButton(text="✅ Арендовать", callback_data=f"{RENT_ITEM_CB}{current_item_id}")]) # 🛒 Оставить заявку
 
     if parent_category_id:
         buttons.append([InlineKeyboardButton(text="🔙 Назад", callback_data=f"{cat_cb_prefix}{parent_category_id}")])
@@ -73,23 +77,30 @@ def build_items_carousel_keyboard(
 
 def build_item_details_kb(
     item: ItemOut,
+    availability: ItemRentalAvailability,
     *,
-    has_open_rental: bool, #is_busy: bool,
+    #has_open_rental: bool, #is_busy: bool,
     selected_subcategory_id: int | None,
     selected_item_index: int | None = None,
-    end_date: str | None,
+    #end_date: str | None,
     #photo_count: int = 0, # Логика N1
     #photo_index: int = 0 # Логика N1
 ) -> InlineKeyboardMarkup:
     buttons: list[list[InlineKeyboardButton]] = []
 
-    if can_request_item(item, has_open_rental=has_open_rental):
+    if availability.can_request:
         buttons.append([InlineKeyboardButton(text="✅ Арендовать", callback_data=f"{RENT_ITEM_CB}{item.id}")])
-    else: # if is_busy
-        buttons.append([InlineKeyboardButton(
-            text=item_unavailable_text(item, has_open_rental=has_open_rental, busy_until=end_date),
-            callback_data="noop",
-        )])
+    else:
+        buttons.append([InlineKeyboardButton(text=item_availability_text(availability), callback_data="noop")])
+
+    # Убрал эту логику
+    # if can_request_item(item, has_open_rental=has_open_rental):
+    #     buttons.append([InlineKeyboardButton(text="✅ Арендовать", callback_data=f"{RENT_ITEM_CB}{item.id}")])
+    # else: # if is_busy
+    #     buttons.append([InlineKeyboardButton(
+    #         text=item_unavailable_text(item, has_open_rental=has_open_rental, busy_until=end_date),
+    #         callback_data="noop",
+    #     )])
 
     # Заменил на rich-логику!
     """

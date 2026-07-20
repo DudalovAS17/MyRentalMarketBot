@@ -19,7 +19,8 @@ from schemas.rental import RentalCreate, RentalCreateDraft
 from schemas.user import UserUpdate
 
 from utils.functions import send_or_edit, render_rent_ui, abort_rent_flow
-from utils.errors import ServiceError
+from utils.errors import ServiceError, ConflictError
+from utils.domain_exceptions import ItemNotAvailable
 from utils.callbacks import (CONFIRM_RENT_CB, CANCEL_RENT_FLOW_CB, RENT_ITEM_CB, RENT_PERIOD_CB, RENT_QUANTITY_CB,
                              RENT_DELIVERY_CB, RENT_BACK_CB, RENT_USE_PROFILE_NAME_CB, RENT_USE_PROFILE_PHONE_CB,
                              RENT_SKIP_COMMENT_CB) # , RENT_CHANGE_CB
@@ -99,8 +100,16 @@ async def start_rent_process(callback: CallbackQuery, state: FSMContext, item_se
     if item is None:
         return
 
-    if await ch.abort_if_item_unavailable(callback, rental_service, item):
-        return # товар недоступен
+    # if await ch.abort_if_item_unavailable(callback, rental_service, item):
+    #     return # товар недоступен
+    try:
+        rental_service.ensure_item_quantity_requestable(item, quantity=1)
+    except ItemNotAvailable:
+        await callback.answer("Товар сейчас недоступен для аренды", show_alert=True)
+        return
+    except ConflictError as e:
+        await callback.answer(str(e), show_alert=True)
+        return
 
     draft = RentalCreateDraft(item_id=item.id, quantity=1, client_name=user.full_name, client_phone=user.phone)
 
@@ -124,7 +133,7 @@ async def start_rent_process(callback: CallbackQuery, state: FSMContext, item_se
 
 
 @rental_router.callback_query(RentalCreateStates.quantity, F.data.startswith(RENT_QUANTITY_CB))
-async def process_quantity_button(callback: CallbackQuery, state: FSMContext, item_service: ItemService) -> None:
+async def process_quantity_button(callback: CallbackQuery, state: FSMContext, item_service: ItemService, rental_service: RentalService) -> None:
     """Обработать callback выбора количества и перейти к сроку аренды."""
 
     ctx = await load_context(callback, state, item_service)
@@ -143,7 +152,7 @@ async def process_quantity_button(callback: CallbackQuery, state: FSMContext, it
     await callback.answer()
 
     quantity = ch.parse_rent_quantity_code(callback.data)
-    if quantity is None or not ch.is_quantity_available(quantity, item.available_quantity):
+    if quantity is None or not rental_service.is_quantity_available(quantity, item.available_quantity):
         await callback.answer("Некорректное количество.", show_alert=True)
         return
 
@@ -153,7 +162,7 @@ async def process_quantity_button(callback: CallbackQuery, state: FSMContext, it
     await _render_period(callback, state, item, rent_ui_message_id)
 
 @rental_router.message(RentalCreateStates.quantity)
-async def process_quantity_message(message: Message, state: FSMContext, item_service: ItemService) -> None:
+async def process_quantity_message(message: Message, state: FSMContext, item_service: ItemService, rental_service: RentalService) -> None:
     """Обработать ручной ввод количества и перейти к сроку аренды."""
     ctx = await load_context(message, state, item_service)
     if ctx is None:
@@ -161,7 +170,7 @@ async def process_quantity_message(message: Message, state: FSMContext, item_ser
     draft, rent_ui_message_id, item = ctx
 
     quantity = ch.parse_positive_int(message.text)
-    if quantity is None or not ch.is_quantity_available(quantity, item.available_quantity):
+    if quantity is None or not rental_service.is_quantity_available(quantity, item.available_quantity):
         await message.answer(f"⚠️ Введите число от 1 до {item.available_quantity}.")
         return
 
@@ -181,7 +190,16 @@ async def process_fixed_period(callback: CallbackQuery, state: FSMContext, item_
         return
     draft, rent_ui_message_id, item = ctx
 
-    if await ch.abort_if_item_unavailable(callback, rental_service, item):
+
+    # if await ch.abort_if_item_unavailable(callback, rental_service, item):
+    #     return
+    try:
+        rental_service.ensure_item_quantity_requestable(item, quantity=1)
+    except ItemNotAvailable:
+        await callback.answer("Товар сейчас недоступен для аренды", show_alert=True)
+        return
+    except ConflictError as e:
+        await callback.answer(str(e), show_alert=True)
         return
 
     period_code = ch.parse_rent_period_code(callback.data)
@@ -191,7 +209,7 @@ async def process_fixed_period(callback: CallbackQuery, state: FSMContext, item_
 
     # сохраняем period_text, total_price в draft (Считаем итоговую стоимость)
     draft.rental_period_text = ch.PERIOD_LABELS[period_code]
-    draft.total_price = ch.calculate_price_for_fixed_period_total(item.price, period_code, item.price_text)
+    draft.total_price = rental_service.calculate_price_for_fixed_period_total(item.price, period_code, item.price_text)
     await ch.save_rent_draft(state, draft)
 
     await _render_delivery(callback, state, item, draft, rent_ui_message_id)
@@ -374,7 +392,15 @@ async def confirm_rent(
         return
     draft, rent_ui_message_id, item = ctx
 
-    if await ch.abort_if_item_unavailable(callback, rental_service, item):
+    # if await ch.abort_if_item_unavailable(callback, rental_service, item):
+    #     return
+    try:
+        rental_service.ensure_item_quantity_requestable(item, quantity=1)
+    except ItemNotAvailable:
+        await callback.answer("Товар сейчас недоступен для аренды", show_alert=True)
+        return
+    except ConflictError as e:
+        await callback.answer(str(e), show_alert=True)
         return
 
     if not ch.is_rent_draft_complete(draft):

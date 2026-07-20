@@ -1,19 +1,38 @@
 from dataclasses import dataclass
+from typing import Literal
 
-from status.rental_status import RentalStatus
+from status.item_status import ItemStatus
 
 class DomainError(Exception):
     """Базовый класс доменных ошибок"""
 
-"""ItemNotAvailable — это доменный сигнал “товар занята” с полезными данными.
-Роль — структурировано сообщить, ПОЧЕМУ операция невозможна (не описывает сущность БД и не DTO).
-ItemNotAvailable — это НЕ ошибка исполнения, а ожидаемая бизнес-ситуация."""
-@dataclass
+ItemUnavailableReason = Literal["inactive", "out_of_stock", "unavailable",]
+
+@dataclass(slots=True)
 class ItemNotAvailable(DomainError):
-    """Сигнализирует, что товар заблокирован активной арендой."""
-    item_id: int # какой товар
-    rental_id: int # какая аренда блокирует
-    status: RentalStatus # её статус
+    """Сигнализирует, что товар сейчас нельзя отправить в заявку аренды.
+
+    MVP-логика:
+    - товар не ACTIVE;
+    - доступное количество равно 0;
+    - товар недоступен по другой причине.
+
+    Не связан с открытыми заявками/арендами.
+    """
+
+    item_id: int
+    reason: ItemUnavailableReason = "unavailable"
+    available_quantity: int | None = None
+    item_status: ItemStatus | None = None
+
+    def __str__(self) -> str:
+        if self.reason == "inactive":
+            return "Товар сейчас недоступен для аренды"
+
+        if self.reason == "out_of_stock":
+            return "Товара пока нет в наличии"
+
+        return "Товар сейчас нельзя арендовать"
 
 @dataclass
 class TicketAlreadyOpen(DomainError):

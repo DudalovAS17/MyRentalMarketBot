@@ -5,9 +5,9 @@ from aiogram.fsm.context import FSMContext
 
 from handlers.entries import show_main_menu, request_phone_confirmation
 from handlers.support.helpers_support import (build_support_request_text, build_support_cancel_keyboard,
-                                              build_support_already_open_text, build_support_already_open_after_create_text,
-                                              build_support_continue_keyboard)
+                                              build_support_already_open_text, build_support_already_open_after_create_text)
 from handlers.admin.admin_helpers.keyboard import get_admin_support_ticket_notification_keyboard
+from keyboards.common import build_support_continue_keyboard
 from services.support_service import SupportService, TicketAlreadyOpen
 from services.item_service import ItemService
 from services.rental_service import RentalService
@@ -115,11 +115,12 @@ async def support_continue_open_ticket(callback: CallbackQuery, state: FSMContex
         return
 
     ticket = await support_service.get_ticket_by_id(ticket_id)
-    if ticket is None or ticket.user_id != user.id:
+    if ticket is None: #or ticket.user_id != user.id:
         await callback.answer(DB_ERROR, show_alert=True)
         return
 
-    if ticket.status.value != "open":
+    if not support_service.can_append_user_reply(ticket, user_id=user.id):
+    #if ticket.status.value != "open":
         await callback.answer(TICKET_CLOSED, show_alert=True)
         return
 
@@ -162,12 +163,7 @@ async def start_support_flow(
             await request_phone_confirmation(event)
         return
 
-    if rental_id is not None:
-        ticket_kind = "rentals"
-    elif item_id is not None:
-        ticket_kind = "items"
-    else:
-        ticket_kind = "general"
+    ticket_kind = support_service.ticket_kind_for_context(rental_id=rental_id, item_id=item_id)
 
     open_ticket = await support_service.get_open_ticket_by_user(user.id, kind=ticket_kind)
     if open_ticket:
@@ -222,12 +218,7 @@ async def receive_support_text(
                                         reply_markup=get_admin_support_ticket_notification_keyboard(ticket.id))
         return
 
-    if item_id:
-        subject = f"Вопрос по товару #{item_id}"
-    elif rental_id:
-        subject = f"Заявка на аренду #{rental_id}"
-    else:
-        subject = None
+    subject = support_service.subject_for_context(rental_id=rental_id, item_id=item_id)
 
     try:
         internal = SupportTicketCreateInternal(

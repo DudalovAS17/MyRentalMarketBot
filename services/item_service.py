@@ -1,8 +1,8 @@
 import logging
 from typing import Optional
+from dataclasses import dataclass
 
 from db.repositories.item import ItemRepository
-
 from services.rental_service import RentalService
 
 from schemas.item import ItemCreate, ItemUpdate, ItemOut, ItemCharacteristicOut
@@ -10,6 +10,12 @@ from utils.errors import ConflictError, NotFoundError
 from status.item_status import can_transition, ItemStatus
 
 logger = logging.getLogger(__name__)
+
+@dataclass(frozen=True)
+class ItemRentalAvailability:
+    can_request: bool
+    reason: str
+    available_quantity: int | None = None
 
 class ItemService:
     """Сервис для работы с товарами каталога компании."""
@@ -188,6 +194,21 @@ class ItemService:
 
         return self._to_out(updated)
 
+    # ?
+    @staticmethod
+    def admin_item_actions_for_status(status: ItemStatus) -> tuple[str, ...]:
+        """Вернуть допустимые admin UI-actions для текущего статуса товара."""
+        actions: list[str] = []
+        if can_transition(status, ItemStatus.ACTIVE):
+            actions.append("approve" if status == ItemStatus.DRAFT else "unhide")
+        if can_transition(status, ItemStatus.HIDDEN):
+            actions.append("hide")
+        if can_transition(status, ItemStatus.ARCHIVED):
+            actions.append("archive")
+        actions.extend(("edit_quantity", "edit_price"))
+        return tuple(actions)
+
+
     # ─────────────────────────────────────── Business validation ─────────────────────────────────────────────────────
     async def _ensure_no_open_rentals_for_status(self, *, item_id: int, new_status: ItemStatus, strict: bool) -> bool:
         """Не разрешать скрывать/архивировать товар, если по нему есть открытые заявки аренды."""
@@ -202,7 +223,34 @@ class ItemService:
             raise ConflictError(f"Нельзя изменить статус товара id={item_id}: есть открытые заявки аренды")
         return False
 
+    # ItemRentalAvailability here
+    @staticmethod
+    def item_rental_availability(item: ItemOut) -> ItemRentalAvailability: # , *, has_open_rental: bool = False
+        """Вернуть доступность товара для аренды и нормализованный код причины."""
+        if item.status != ItemStatus.ACTIVE:
+            return ItemRentalAvailability(
+                can_request=False,
+                reason="inactive",
+                available_quantity=item.available_quantity,
+            )
+        if item.available_quantity <= 0:
+            return ItemRentalAvailability(
+                can_request=False,
+                reason="out_of_stock",
+                available_quantity=item.available_quantity,
+            )
+        # if has_open_rental: # пока убираем эту логику - у нас просто кол-во товаров.
+        #     return ItemRentalAvailability(
+        #         can_request=False,
+        #         reason="busy",
+        #         available_quantity=item.available_quantity,
+        #     )
 
+        return ItemRentalAvailability(
+            can_request=True,
+            reason="available",
+            available_quantity=item.available_quantity,
+        )
 
     # ─────────────────────────────────────────────Item Characteristic──────────────────────────────────────────────────
     async def list_item_characteristics_by_item_id(
