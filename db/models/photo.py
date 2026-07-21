@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from typing import Optional, TYPE_CHECKING
-from sqlalchemy import Integer, ForeignKey, Boolean, String, Index, CheckConstraint
+from sqlalchemy import Integer, ForeignKey, Boolean, String, Index, CheckConstraint, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from db.models.base import Base, TimestampMixin
@@ -46,14 +46,21 @@ class Photo(Base, TimestampMixin):
     # ------- Отношения | связи --------
 
     # каждая фотография знает, к какому товару относится
-    item: Mapped["Item"] = relationship("Item", back_populates="item_photos")
+    item: Mapped["Item"] = relationship("Item", back_populates="photos")
 
     __table_args__ = (
         # быстрый поиск всех фото по item_id (создаёт в базе индекс на колонку item_id)
         Index("ix_photos_item_order", "item_id", "sort_order"),
 
         Index("ix_photos_item_main", "item_id", "is_main"),
-        # TODO: enforce only one main photo per item at DB or service level.
+
+        # only one main photo per item at DB or service level
+        Index(
+            "uq_photos_one_main_per_item",
+            "item_id",
+            unique=True,
+            postgresql_where=text("is_main IS TRUE"),
+        ),
 
         # Чтобы не было отрицательных значений порядка
         CheckConstraint("sort_order >= 0", name="ck_photos_order_non_neg"),

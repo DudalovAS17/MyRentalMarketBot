@@ -5,7 +5,7 @@ from typing import Optional, TYPE_CHECKING
 from sqlalchemy import Integer, String, Enum as SAEnum, Index, DateTime, Text, ForeignKey, BigInteger
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from db.models.base import Base, TimestampMixin
+from db.models.base import Base, TimestampMixin, enum_values
 from status.user_status import AccountStatus
 
 if TYPE_CHECKING:
@@ -40,7 +40,7 @@ class User(Base, TimestampMixin):
     language_code: Mapped[Optional[str]] = mapped_column(String(10), nullable=True)
 
     account_status: Mapped[AccountStatus] = mapped_column(
-        SAEnum(AccountStatus, name="account_status"),
+        SAEnum(AccountStatus, name="account_status", values_callable=enum_values),
         nullable=False,
         default=AccountStatus.ACTIVE
     )

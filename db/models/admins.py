@@ -4,7 +4,7 @@ from typing import Optional, TYPE_CHECKING
 from sqlalchemy import Integer, String, Boolean, Enum as SAEnum, Index, BigInteger
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from db.models.base import Base, TimestampMixin
+from db.models.base import Base, TimestampMixin, enum_values
 from status.user_status import AccountStatus
 from status.admin_status import AdminRole
 
@@ -32,7 +32,7 @@ class Admin(Base, TimestampMixin):
 
     # какие права у админа
     role: Mapped[AdminRole] = mapped_column(
-        SAEnum(AdminRole, name="admin_role"),
+        SAEnum(AdminRole, name="admin_role", values_callable=enum_values),
         nullable=False,
         default=AdminRole.MANAGER,
     )
@@ -41,7 +41,7 @@ class Admin(Base, TimestampMixin):
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
     account_status: Mapped[AccountStatus] = mapped_column(
-        SAEnum(AccountStatus, name="account_status"),
+        SAEnum(AccountStatus, name="account_status", values_callable=enum_values),
         nullable=False,
         default=AccountStatus.ACTIVE
     )

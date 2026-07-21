@@ -27,7 +27,7 @@ def upgrade() -> None:
     sa.Column('username', sa.String(length=100), nullable=True),
     sa.Column('full_name', sa.String(length=200), nullable=True),
     sa.Column('phone', sa.String(length=20), nullable=True),
-    sa.Column('role', sa.Enum('OWNER', 'ADMIN', 'MANAGER', name='admin_role'), nullable=False),
+    sa.Column('role', sa.Enum('owner', 'admin', 'manager', name='admin_role'), nullable=False),
     sa.Column('is_active', sa.Boolean(), nullable=False),
     sa.Column('account_status', sa.Enum('ACTIVE', 'BANNED', name='account_status'), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
@@ -51,7 +51,7 @@ def upgrade() -> None:
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.CheckConstraint('parent_id IS NULL OR parent_id <> id', name=op.f('ck_categories_ck_categories_no_self_parent')),
     sa.CheckConstraint('sort_order >= 0', name=op.f('ck_categories_ck_categories_sort_order_non_neg')),
-    sa.ForeignKeyConstraint(['parent_id'], ['categories.id'], name=op.f('fk_categories_parent_id_categories'), ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['parent_id'], ['categories.id'], name=op.f('fk_categories_parent_id_categories'), ondelete='RESTRICT'),
     sa.PrimaryKeyConstraint('id', name=op.f('pk_categories')),
     sa.UniqueConstraint('parent_id', 'name', name='uq_categories_parent_id_name'),
     sa.UniqueConstraint('parent_id', 'slug', name='uq_categories_parent_id_slug')
@@ -177,6 +177,7 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id', name=op.f('pk_photos'))
     )
     op.create_index('ix_photos_item_main', 'photos', ['item_id', 'is_main'], unique=False)
+    op.create_index('uq_photos_one_main_per_item', 'photos', ['item_id'], unique=True, postgresql_where=sa.text('is_main IS TRUE'))
     op.create_index('ix_photos_item_order', 'photos', ['item_id', 'sort_order'], unique=False)
     op.create_table('rentals',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
@@ -186,7 +187,7 @@ def upgrade() -> None:
     sa.Column('rental_period_text', sa.String(length=100), nullable=True),
     sa.Column('total_price', sa.Numeric(precision=12, scale=2), nullable=True),
     sa.Column('final_price', sa.Numeric(precision=12, scale=2), nullable=True),
-    sa.Column('status', sa.Enum('REQUESTED', 'IN_PROGRESS', 'CONFIRMED', 'REJECTED', 'COMPLETED', 'CANCELLED_BY_CLIENT', 'CANCELLED_BY_ADMIN', name='rental_status'), nullable=False),
+    sa.Column('status', sa.Enum('requested', 'in_progress', 'confirmed', 'rejected', 'completed', 'cancelled_by_client', 'cancelled_by_admin', name='rental_status'), nullable=False),
     sa.Column('quantity', sa.Integer(), nullable=False),
     sa.Column('delivery_needed', sa.Boolean(), nullable=True),
     sa.Column('delivery_address', sa.Text(), nullable=True),
@@ -227,7 +228,7 @@ def upgrade() -> None:
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('rating', sa.Integer(), nullable=False),
     sa.Column('comment', sa.Text(), nullable=True),
-    sa.Column('status', sa.Enum('PENDING', 'PUBLISHED', 'HIDDEN', 'REJECTED', name='review_status'), nullable=False),
+    sa.Column('status', sa.Enum('pending', 'published', 'hidden', 'rejected', name='review_status'), nullable=False),
     sa.Column('admin_note', sa.Text(), nullable=True),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
@@ -252,7 +253,7 @@ def upgrade() -> None:
     sa.Column('subject', sa.String(length=150), nullable=True),
     sa.Column('item_id', sa.Integer(), nullable=True),
     sa.Column('rental_id', sa.Integer(), nullable=True),
-    sa.Column('status', sa.Enum('OPEN', 'CLOSED', name='support_ticket_status'), nullable=False),
+    sa.Column('status', sa.Enum('open', 'closed', name='support_ticket_status'), nullable=False),
     sa.Column('closed_at', sa.DateTime(timezone=True), nullable=True),
     sa.Column('closed_by_admin_id', sa.Integer(), nullable=True),
     sa.Column('admin_last_reply_at', sa.DateTime(timezone=True), nullable=True),
@@ -304,6 +305,7 @@ def downgrade() -> None:
     op.drop_index('ix_rentals_assigned_admin_status', table_name='rentals')
     op.drop_table('rentals')
     op.drop_index('ix_photos_item_order', table_name='photos')
+    op.drop_index('uq_photos_one_main_per_item', table_name='photos', postgresql_where=sa.text('is_main IS TRUE'))
     op.drop_index('ix_photos_item_main', table_name='photos')
     op.drop_table('photos')
     op.drop_index('ix_item_characteristics_item_sort_order', table_name='item_characteristics')

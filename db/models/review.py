@@ -5,7 +5,7 @@ from sqlalchemy import Index, Integer, ForeignKey, Text, CheckConstraint, Unique
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from status.review_status import ReviewStatus
-from db.models.base import Base, TimestampMixin
+from db.models.base import Base, TimestampMixin, enum_values
 
 if TYPE_CHECKING:
     from db.models.user import User
@@ -36,7 +36,7 @@ class Review(Base, TimestampMixin):
 
     # Отзывы лучше модерировать перед публикацией
     status: Mapped[ReviewStatus] = mapped_column( # NEW
-        SAEnum(ReviewStatus, name="review_status"),
+        SAEnum(ReviewStatus, name="review_status", values_callable=enum_values),
         nullable=False,
         default=ReviewStatus.PENDING,
     )

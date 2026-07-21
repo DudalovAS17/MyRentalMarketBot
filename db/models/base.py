@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from enum import Enum
 from datetime import datetime
 from typing import Final
 from sqlalchemy import MetaData, DateTime, func
@@ -36,3 +37,8 @@ class TimestampMixin:
         onupdate=func.now(),
         nullable=False
     )
+
+
+def enum_values(enum_cls: type[Enum]) -> list[str]:
+    """Вернуть значения Enum для хранения в PostGreSQL."""
+    return [str(member.value) for member in enum_cls.__members__.values()]

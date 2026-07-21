@@ -7,7 +7,7 @@ from sqlalchemy import DateTime
 from sqlalchemy import Integer, String, Text, ForeignKey, Numeric, Enum as SAEnum, Boolean, CheckConstraint, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from db.models.base import Base, TimestampMixin
+from db.models.base import Base, TimestampMixin, enum_values
 from status.item_status import ItemStatus
 
 if TYPE_CHECKING:
@@ -56,7 +56,7 @@ class Item(Base, TimestampMixin):
 
     # Enum ItemStatus — модерация/публикация
     status: Mapped[ItemStatus] = mapped_column(
-        SAEnum(ItemStatus, name="item_status"),
+        SAEnum(ItemStatus, name="item_status", values_callable=enum_values),
         nullable=False,
         default=ItemStatus.DRAFT
     )
@@ -87,7 +87,8 @@ class Item(Base, TimestampMixin):
     category: Mapped["Category"] = relationship("Category", foreign_keys=[category_id])
     subcategory: Mapped[Optional["Category"]] = relationship("Category", foreign_keys=[subcategory_id])
     rentals: Mapped[list["Rental"]] = relationship("Rental", back_populates="item")
-    item_photos: Mapped[list["Photo"]] = relationship(
+
+    photos: Mapped[list["Photo"]] = relationship(
         "Photo",
         back_populates="item",
         cascade="all, delete-orphan",

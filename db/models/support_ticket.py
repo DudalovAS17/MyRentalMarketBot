@@ -5,7 +5,7 @@ from typing import Optional, TYPE_CHECKING
 from sqlalchemy import Integer, String, CheckConstraint, Text, DateTime, ForeignKey, Enum as SAEnum, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from db.models.base import Base, TimestampMixin
+from db.models.base import Base, TimestampMixin, enum_values
 from status.support_ticket_status import SupportTicketStatus, SupportMessageSenderType
 
 if TYPE_CHECKING:
@@ -42,7 +42,7 @@ class SupportTicket(Base, TimestampMixin):
 
     # OPEN/CLOSED
     status: Mapped[SupportTicketStatus] = mapped_column(
-        SAEnum(SupportTicketStatus, name="support_ticket_status"),
+        SAEnum(SupportTicketStatus, name="support_ticket_status", values_callable=enum_values),
         nullable=False,
         default=SupportTicketStatus.OPEN,
     )
@@ -110,7 +110,7 @@ class SupportMessage(Base, TimestampMixin):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     ticket_id: Mapped[int] = mapped_column(ForeignKey("support_tickets.id", ondelete="CASCADE"), nullable=False)
     sender_type: Mapped[SupportMessageSenderType] = mapped_column(
-        SAEnum(SupportMessageSenderType, name="support_message_sender_type"),
+        SAEnum(SupportMessageSenderType, name="support_message_sender_type", values_callable=enum_values),
         nullable=False,
     )
     sender_user_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
@@ -121,9 +121,9 @@ class SupportMessage(Base, TimestampMixin):
 
     __table_args__ = (
         CheckConstraint(
-            "(sender_type = 'USER' AND sender_user_id IS NOT NULL AND sender_admin_id IS NULL) "
-            "OR (sender_type = 'ADMIN' AND sender_admin_id IS NOT NULL AND sender_user_id IS NULL) "
-            "OR (sender_type = 'SYSTEM')",
+            "(sender_type = 'user' AND sender_user_id IS NOT NULL AND sender_admin_id IS NULL) "
+            "OR (sender_type = 'admin' AND sender_admin_id IS NOT NULL AND sender_user_id IS NULL) "
+            "OR (sender_type = 'system')",
             name="ck_support_messages_sender_consistent",
         ),
         Index("ix_support_messages_ticket_created", "ticket_id", "created_at"),

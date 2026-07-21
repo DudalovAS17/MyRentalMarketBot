@@ -16,7 +16,7 @@ class Category(Base, TimestampMixin):
     emoji: Mapped[Optional[str]] = mapped_column(String(32), nullable=True)
 
     parent_id: Mapped[Optional[int]] = mapped_column(
-        ForeignKey("categories.id", ondelete="CASCADE"),
+        ForeignKey("categories.id", ondelete="RESTRICT"),
         nullable=True,
     )
 

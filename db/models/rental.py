@@ -6,7 +6,7 @@ from typing import Optional, TYPE_CHECKING
 from sqlalchemy import Integer, String, Text, DateTime, Boolean, ForeignKey, Numeric, Enum as SAEnum, CheckConstraint, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from db.models.base import Base, TimestampMixin
+from db.models.base import Base, TimestampMixin, enum_values
 from status.rental_status import RentalStatus
 
 if TYPE_CHECKING:
@@ -32,14 +32,22 @@ class Rental(Base, TimestampMixin):
     rental_period_text: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
 
     # деньги
-    total_price: Mapped[Optional[Decimal]] = mapped_column(Numeric(12, 2), nullable=True)
-    final_price: Mapped[Optional[Decimal]] = mapped_column(Numeric(12, 2), nullable=True)
+    total_price: Mapped[Optional[Decimal]] = mapped_column(
+        Numeric(12, 2),
+        nullable=True,
+        comment="Estimated/calculated total price before final manager adjustment.",
+    )
+    final_price: Mapped[Optional[Decimal]] = mapped_column(
+        Numeric(12, 2),
+        nullable=True,
+        comment="Final agreed price after manager adjustment.",
+    )
 
     # статус
     status: Mapped[RentalStatus] = mapped_column(
-        SAEnum(RentalStatus, name="rental_status"),
+        SAEnum(RentalStatus, name="rental_status", values_callable=enum_values),
         nullable=False,
-        default=RentalStatus.REQUESTED # ?
+        default=RentalStatus.REQUESTED
     )
 
     # сколько единиц хочет арендовать клиент
