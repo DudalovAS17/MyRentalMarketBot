@@ -40,9 +40,9 @@ class Category(Base, TimestampMixin):
     subcategories: Mapped[list["Category"]] = relationship(
         "Category",
         back_populates="parent",
-        cascade="all, delete-orphan",
-        single_parent=True,
-        passive_deletes=True,
+        #cascade="all, delete-orphan",
+        #single_parent=True,
+        #passive_deletes=True,
     )
 
     __table_args__ = (

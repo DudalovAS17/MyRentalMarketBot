@@ -16,6 +16,7 @@ if TYPE_CHECKING:
     from db.models.rental import Rental
     from db.models.photo import Photo
     from db.models.item_characteristics import ItemCharacteristic
+    from db.models.item_prices import ItemPriceTier
     from db.models.review import Review
     from db.models.support_ticket import SupportTicket
 
@@ -100,6 +101,13 @@ class Item(Base, TimestampMixin):
         back_populates="item",
         cascade="all, delete-orphan",
         single_parent=True,
+    )
+
+    price_tiers: Mapped[list["ItemPriceTier"]] = relationship(
+        "ItemPriceTier",
+        back_populates="item",
+        cascade="all, delete-orphan",
+        order_by="ItemPriceTier.sort_order",
     )
 
     created_by_admin: Mapped[Optional["Admin"]] = relationship(

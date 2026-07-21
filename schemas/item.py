@@ -26,7 +26,7 @@ class ItemCreate(BaseModel):
     description: Optional[str] = None
     short_description: Optional[str] = Field(None, max_length=300)
 
-    price: Decimal = Field(..., ge=0)
+    price: Decimal = Field(..., gt=0)
     price_text: Optional[str] = Field(None, max_length=100)
 
     available_quantity: int = Field(1, ge=0)
@@ -47,7 +47,7 @@ class ItemUpdate(BaseModel):
     description: Optional[str] = None
     short_description: Optional[str] = Field(default=None, max_length=300)
 
-    price: Optional[Decimal] = Field(default=None, ge=0)
+    price: Optional[Decimal] = Field(default=None, gt=0)
     price_text: Optional[str] = Field(default=None, max_length=100)
 
     available_quantity: Optional[int] = Field(default=None, ge=0)
@@ -69,7 +69,7 @@ class ItemOut(BaseModel):
     description: Optional[str] = None
     short_description: Optional[str] = None
 
-    price: Decimal = Field(..., ge=0)
+    price: Decimal = Field(..., gt=0)
     price_text: Optional[str] = None
 
     available_quantity: int
@@ -157,14 +157,13 @@ class ItemCreateDraft(BaseModel):
     description: Optional[str] = None
     short_description: Optional[str] = Field(default=None, max_length=300)
 
-    price: Optional[Decimal] = Field(default=None, ge=0)
+    price: Optional[Decimal] = Field(default=None, gt=0)
     price_text: Optional[str] = Field(default=None, max_length=100)
 
-    available_quantity: int = Field(default=1, ge=0)
+    available_quantity: Optional[int] = Field(default=None, ge=0)
 
-    min_rental_period: int = Field(default=1, ge=1)
-    #min_rental_period: Optional[int] = Field(None, ge=1)
+    min_rental_period: Optional[int] = Field(default=None, ge=1)
     max_rental_period: Optional[int] = Field(default=None, ge=1)
 
-    is_featured: bool = False
-    sort_order: int = Field(default=0, ge=0)
+    is_featured: Optional[bool] = None # False
+    sort_order: Optional[int] = Field(default=None, ge=0) # 0

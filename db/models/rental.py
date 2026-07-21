@@ -30,6 +30,17 @@ class Rental(Base, TimestampMixin):
     #end_date: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
 
     rental_period_text: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    rental_days: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        comment="Точное число дней, которое выставляет менеджер, чтобы подсчитать Final price.",
+    )
+
+    price_per_day_snapshot: Mapped[Decimal] = mapped_column(
+        Numeric(12, 2),
+        nullable=False,
+        comment="Цена товара за день, для конкретного промежутка дней, выбранного пользователем",
+    ) # пример: если 2–7 дней → 1300 ₽ / день, то тут будет записано 1300₽
 
     # деньги
     total_price: Mapped[Optional[Decimal]] = mapped_column(
@@ -56,6 +67,11 @@ class Rental(Base, TimestampMixin):
     # Доставка
     delivery_needed: Mapped[Optional[bool]] = mapped_column(Boolean, nullable=True)
     delivery_address: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    delivery_price: Mapped[Optional[Decimal]] = mapped_column(
+        Numeric(12, 2),
+        nullable=True,
+        comment="Точная сумма доставки, которую выставляет менеджер, чтобы подсчитать Final price.",
+    )
 
     # клиент
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"), nullable=False)

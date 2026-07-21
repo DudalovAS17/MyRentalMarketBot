@@ -14,6 +14,9 @@ from status.rental_status import RentalStatus
     RentalDetailsOut    → заявка + товар + клиент
     RentalAdminDetailsOut → админский подробный вывод   
     RentalCreateDraft   → FSM-черновик пошагового создания
+    
+    RentalCreateInternal → внутренний service payload с рассчитанной стоимостью
+    RentalStatusUpdate  → внутреннее обновление статуса и timestamp-полей
 """
 
 class RentalCreate(BaseModel):
@@ -152,11 +155,30 @@ class RentalCreateDraft(BaseModel):
     rental_period_text: Optional[str] = Field(default=None, max_length=100)
     quantity: Optional[int] = Field(default=None, ge=1)
 
+
     delivery_needed: Optional[bool] = None
-    delivery_address: Optional[str] = None
+    delivery_address: Optional[str] = Field(default=None, max_length=300)
 
     client_name: Optional[str] = Field(default=None, max_length=150)
     client_phone: Optional[str] = Field(default=None, max_length=30)
-    client_comment: Optional[str] = None
+    client_comment: Optional[str] = Field(default=None, max_length=1000)
+
+    # Убрал это, т.к. ниже создан отдельный класс для работы с ценой
+    #total_price: Optional[Decimal] = Field(default=None, ge=0)
+
+
+# ──────────────────────────────────────────  ──────────────────────────────────────────────────────────────
+class RentalCreateInternal(RentalCreate):
+    """Внутренний payload создания заявки после service-level расчёта стоимости."""
 
     total_price: Optional[Decimal] = Field(default=None, ge=0)
+
+
+class RentalStatusUpdate(BaseModel):
+    """Внутреннее обновление статуса заявки через service-level transition method."""
+
+    status: RentalStatus
+    manager_comment: Optional[str] = Field(default=None, max_length=1000)
+    reject_reason: Optional[str] = Field(default=None, max_length=1000)
+    cancel_reason: Optional[str] = Field(default=None, max_length=1000)
+
