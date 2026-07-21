@@ -5,6 +5,10 @@ from decimal import Decimal
 from status.item_status import ItemStatus
 
 """
+    ItemPriceTierCreate        → 
+    ItemPriceTierUpdate        → 
+    ItemPriceTierOut           → 
+    
     ItemCreate                 → создание товара каталога
     ItemUpdate                 → обновление товара каталога
     ItemOut                    → базовый вывод товара каталога наружу
@@ -15,6 +19,40 @@ from status.item_status import ItemStatus
     ItemAdminOut               → админский вывод товара с audit-полями
     ItemCreateDraft            → FSM-черновик пошагового создания товара
 """
+
+# ────────────────────────────────────────── Item Price Tier ───────────────────────────────────────────────────────────
+class ItemPriceTierCreate(BaseModel):
+    """Схема создания тарифа товара по длительности аренды."""
+
+    item_id: int
+    min_days: int = Field(..., ge=1)
+    max_days: Optional[int] = Field(default=None, ge=1)
+    price_per_day: Decimal = Field(..., gt=0)
+    sort_order: int = Field(default=0, ge=0)
+    label: Optional[str] = Field(default=None, max_length=50)
+
+class ItemPriceTierUpdate(BaseModel):
+    """Схема обновления тарифа товара."""
+
+    min_days: Optional[int] = Field(default=None, ge=1)
+    max_days: Optional[int] = Field(default=None, ge=1)
+    price_per_day: Optional[Decimal] = Field(default=None, gt=0)
+    sort_order: Optional[int] = Field(default=None, ge=0)
+    label: Optional[str] = Field(default=None, max_length=50)
+
+class ItemPriceTierOut(BaseModel):
+    """Схема вывода тарифа товара."""
+
+    id: int
+    item_id: int
+    min_days: int
+    max_days: Optional[int] = None
+    price_per_day: Decimal
+    sort_order: int
+    label: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
 
 # ────────────────────────────────────────── Item  ─────────────────────────────────────────────────────────────────────
 class ItemCreate(BaseModel):
@@ -79,6 +117,7 @@ class ItemOut(BaseModel):
 
     min_rental_period: int
     max_rental_period: Optional[int] = None
+    price_tiers: list[ItemPriceTierOut] = Field(default_factory=list)
 
     status: ItemStatus
 

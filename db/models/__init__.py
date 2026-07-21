@@ -8,12 +8,14 @@ from .photo import Photo
 from .review import Review
 from .admins import Admin
 from .item_characteristics import ItemCharacteristic
+from .item_prices import ItemPriceTier
 
 __all__ = [
     "User",
     "Rental",
     "Item",
     "ItemCharacteristic",
+    "ItemPriceTier",
     "Category",
     "Photo",
     "Admin",

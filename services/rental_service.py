@@ -4,7 +4,7 @@ from typing import Optional
 
 from db.repositories.rental import RentalRepository
 
-from schemas.rental import RentalCreate, RentalUpdate, RentalOut, RentalDetailsOut
+from schemas.rental import RentalCreate, RentalUpdate, RentalOut, RentalDetailsOut, RentalCreateInternal
 from schemas.item import ItemOut
 from schemas.user import UserOut
 from status.item_status import ItemStatus
@@ -43,11 +43,44 @@ class RentalService:
 
     # ─────────────────────────────────────── Business validation ─────────────────────────────────────────────────────
     @staticmethod
-    def calculate_total_rent_price(price_per_day: Decimal | int | float, days: int) -> tuple[Decimal, Decimal]:
-        """Рассчитать цену за день и итоговую стоимость аренды"""
+    def select_price_tier(price_tiers, rental_days: int):
+        """Выбрать единственный тариф для точного количества дней аренды."""
+        if rental_days < 1:
+            raise ValidationError("Количество дней аренды должно быть не меньше 1")
+
+        matched = [
+            tier
+            for tier in price_tiers
+            if tier.min_days <= rental_days and (tier.max_days is None or rental_days <= tier.max_days)
+        ]
+        if not matched:
+            raise ConflictError("Для выбранного срока аренды нет подходящего тарифа")
+        if len(matched) > 1:
+            raise ConflictError("Тарифная сетка товара содержит пересекающиеся тарифы")
+        return matched[0]
+
+    @staticmethod
+    def build_price_tier_label(tier) -> str:
+        """Сформировать человекочитаемую подпись тарифа."""
+        if tier.label:
+            return tier.label
+        if tier.min_days == tier.max_days == 1:
+            return "1 день"
+        if tier.max_days is None:
+            return f"{tier.min_days}+ дней"
+        return f"{tier.min_days}–{tier.max_days} дней"
+
+    @staticmethod
+    def calculate_total_price(rental_days: int, quantity: int, price_per_day: Decimal | int | float) -> Decimal:
+        """Рассчитать предварительную стоимость: дни × количество × цена за день."""
+        if rental_days < 1:
+            raise ValidationError("Количество дней аренды должно быть не меньше 1")
+        if quantity < 1:
+            raise ValidationError("Количество должно быть не меньше 1")
+
         normalized_price = price_per_day if isinstance(price_per_day, Decimal) else Decimal(str(price_per_day))
-        total_rent_price = (normalized_price * Decimal(days)).quantize(Decimal("0.01"))
-        return normalized_price, total_rent_price
+        return (Decimal(rental_days) * Decimal(quantity) * normalized_price).quantize(Decimal("0.01"))
+        # Было: return normalized_price, total_rent_price -> tuple[Decimal, Decimal]
 
     @staticmethod
     def calculate_price_for_fixed_period_total(
@@ -76,12 +109,12 @@ class RentalService:
             raise ConflictError(f"Нельзя изменить статус заявки: {old_status.value} -> {new_status.value}")
         return False
 
-    @staticmethod
-    def _build_create_payload(data: RentalCreate, *, item: ItemOut) -> RentalCreate:
-        """Собрать согласованный payload создания заявки.
-        Для MVP стоимость считается как цена товара × количество."""
-        total_price = item.price * data.quantity
-        return data.model_copy(update={"total_price": total_price})
+    # Удаляю: логика теперь в calculate_total_price()
+    # @staticmethod
+    # def _build_create_payload(data: RentalCreate, *, item: ItemOut) -> RentalCreate:
+    #     """Собрать согласованный payload создания заявки: цена товара × количество."""
+    #     total_price = item.price * data.quantity
+    #     return data.model_copy(update={"total_price": total_price})
 
     # @staticmethod
     # def _validate_date_create(data: RentalCreate) -> None:
@@ -161,12 +194,19 @@ class RentalService:
 
     # ─────────────────────────────────────────── write methods ────────────────────────────────────────────────────────
     async def create(self, data: RentalCreate, *, item: ItemOut) -> RentalOut:
-        """Создать новую заявку клиента."""
+        """Создать заявку клиента без финального расчёта цены до уточнения менеджером."""
         #self._validate_date_create(data)
         await self._validate_create(data, item=item)
 
-        # create_data = self._build_create_payload(data, item=item)
-        rental = await self.repo.create(data, status=RentalStatus.REQUESTED) # create_data
+        create_data = RentalCreateInternal(
+            **data.model_dump(),
+            rental_days=None,
+            price_per_day_snapshot=None,
+            total_price=None,
+            delivery_price=None,
+        )
+
+        rental = await self.repo.create(create_data, status=RentalStatus.REQUESTED) # create_data
 
         dto = self._to_out(rental)
         logger.info("Создана заявка: id=%s user_id=%s item_id=%s", dto.id, dto.user_id, dto.item_id)

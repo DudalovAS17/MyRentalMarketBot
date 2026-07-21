@@ -5,6 +5,7 @@ class RentalCreateStates(StatesGroup):
 
     period = State()  # Пользователь выбирает фиксированный диапазон аренды
     quantity = State()  # Пользователь выбирает количество товара
+    rental_days = State()  # Пользователь вводит точное количество дней для выбранного диапазона
 
     delivery_needed = State()
     delivery_address = State()

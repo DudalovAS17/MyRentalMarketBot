@@ -30,24 +30,25 @@ class Rental(Base, TimestampMixin):
     #end_date: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
 
     rental_period_text: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
-    rental_days: Mapped[int] = mapped_column(
+    rental_days: Mapped[Optional[int]] = mapped_column(
         Integer,
-        nullable=False,
+        nullable=True,
         comment="Точное число дней, которое выставляет менеджер, чтобы подсчитать Final price.",
     )
 
-    price_per_day_snapshot: Mapped[Decimal] = mapped_column(
+    price_per_day_snapshot: Mapped[Optional[Decimal]] = mapped_column(
         Numeric(12, 2),
-        nullable=False,
+        nullable=True,
         comment="Цена товара за день, для конкретного промежутка дней, выбранного пользователем",
     ) # пример: если 2–7 дней → 1300 ₽ / день, то тут будет записано 1300₽
 
-    # деньги
+    # стоимость аренды без доставки (до менеджера)
     total_price: Mapped[Optional[Decimal]] = mapped_column(
         Numeric(12, 2),
         nullable=True,
         comment="Estimated/calculated total price before final manager adjustment.",
     )
+    # финальная сумма к оплате (рассчитанная менеджером)
     final_price: Mapped[Optional[Decimal]] = mapped_column(
         Numeric(12, 2),
         nullable=True,
@@ -138,6 +139,9 @@ class Rental(Base, TimestampMixin):
         CheckConstraint("(total_price IS NULL) OR (total_price >= 0)", name="ck_rentals_total_price_non_neg"),
         CheckConstraint("(final_price IS NULL) OR (final_price >= 0)", name="ck_rentals_final_price_non_neg"),
         CheckConstraint("quantity >= 1", name="ck_rentals_quantity_positive"),
+        CheckConstraint("rental_days >= 1", name="ck_rentals_rental_days_positive"),
+        CheckConstraint("price_per_day_snapshot > 0", name="ck_rentals_price_per_day_snapshot_positive"),
+        CheckConstraint("(delivery_price IS NULL) OR (delivery_price >= 0)", name="ck_rentals_delivery_price_non_neg"),
 
         Index("ix_rentals_item_id", "item_id"),
         Index("ix_rentals_status", "status"),

@@ -20,7 +20,7 @@ from handlers.rentals.rental_helpers.keyboard import (build_rent_cancel_keyboard
                                                       build_rent_contact_keyboard, build_rent_confirmation_keyboard,
                                                       build_rent_step_keyboard, PERIOD_LABELS)
 
-from handlers.rentals.rental_helpers.store import (get_rent_draft_context_or_abort, store_fixed_period_choice_and_price,
+from handlers.rentals.rental_helpers.store import (get_rent_draft_context_or_abort, store_fixed_period_choice,
                                                    get_rent_draft_context_or_abort, store_rent_details_message, save_rent_draft)
 
 #from handlers.rentals.rental_helpers.notif import notify_item_about_rent_request

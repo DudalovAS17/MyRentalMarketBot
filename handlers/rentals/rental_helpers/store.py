@@ -55,15 +55,15 @@ async def get_rent_confirm_context_or_abort(
 
     return draft, rent_ui_message_id
 
-async def store_fixed_period_choice_and_price(
+async def store_fixed_period_choice(
     state: FSMContext,
     draft: RentalCreateDraft,
     period_text: str,
-    total_price: Decimal | None,
+    #total_price: Decimal | None,
 ) -> None:
-    """Запись в draft: фиксированный диапазон аренды и цену."""
+    """Запись в draft: выбранный пользователем ориентировочный срок."""
     draft.rental_period_text = period_text
-    draft.total_price = total_price
+    #draft.total_price = total_price
     await save_rent_draft(state, draft)
 
 async def store_rent_details_message(

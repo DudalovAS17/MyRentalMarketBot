@@ -1,8 +1,10 @@
 import logging
 from typing import Optional
+from decimal import Decimal
 
 from db.repositories.rental import RentalRepository
 from services.admin_service import AdminActionService
+from services.rental_service import RentalService
 
 from schemas.rental import RentalOut, RentalAdminDetailsOut, RentalUpdate
 from schemas.item import ItemOut
@@ -273,6 +275,52 @@ class AdminRentalService:
     # На будущее:
         # Переход (начало аренды [менеджер выдал товар клиенту]): CONFIRMED → ACTIVE / ISSUED - start_rental()
         # Переход (Открыть спор: может owner или renter): ACTIVE → DISPUTED - open_dispute()
+
+
+    # Проверь
+    async def update_manager_pricing(
+            self,
+            *,
+            rental_id: int,
+            rental_days: int,
+            delivery_price: Optional[Decimal] = None,
+            final_price: Optional[Decimal] = None,
+            strict: bool = False,
+    ) -> Optional[RentalOut]:
+        """Сохранить менеджерский расчёт после звонка клиенту.
+
+        Пользователь при создании заявки сообщает только ориентировочный период.
+        Менеджер уточняет точное количество дней, сервис выбирает тариф,
+        пересчитывает предварительную стоимость и сохраняет доставку/final price, если они уже известны.
+        """
+        rental = await self.repo.get_details_by_id(rental_id)
+        if not rental:
+            if strict:
+                raise NotFoundError(f"Заявка не найдена: id={rental_id}")
+            return None
+
+        tier = RentalService.select_price_tier(rental.item.price_tiers, rental_days)
+        price_per_day_snapshot = Decimal(tier.price_per_day).quantize(Decimal("0.01"))
+        total_price = RentalService.calculate_total_price(rental_days, rental.quantity, price_per_day_snapshot)
+        rental_period_text = rental.rental_period_text or RentalService.build_price_tier_label(tier)
+
+        updated = await self.repo.update(
+            rental_id,
+            RentalUpdate(
+                rental_days=rental_days,
+                rental_period_text=rental_period_text,
+                price_per_day_snapshot=price_per_day_snapshot,
+                total_price=total_price,
+                delivery_price=delivery_price,
+                final_price=final_price,
+            ),
+        )
+        if not updated:
+            if strict:
+                raise NotFoundError(f"Заявка не найдена: id={rental_id}")
+            return None
+
+        return self._to_rental_out(updated)
 
 
     # ?

@@ -107,7 +107,8 @@ class Item(Base, TimestampMixin):
         "ItemPriceTier",
         back_populates="item",
         cascade="all, delete-orphan",
-        order_by="ItemPriceTier.sort_order",
+        order_by="(ItemPriceTier.sort_order, ItemPriceTier.min_days)",
+        lazy="selectin",
     )
 
     created_by_admin: Mapped[Optional["Admin"]] = relationship(

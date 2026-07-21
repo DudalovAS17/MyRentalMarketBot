@@ -57,7 +57,7 @@ class RentalRepository(BaseRepository):
     def _with_details(stmt):
         """Подгрузить связи заявки, пока сессия живая."""
         return stmt.options(
-            selectinload(Rental.item), # товар
+            selectinload(Rental.item), # товар - #.selectinload(Item.price_tiers), # товар и тарифы,
             selectinload(Rental.user), # клиент
             selectinload(Rental.assigned_admin), # назначенный менеджер
         )

@@ -194,7 +194,7 @@ async def process_fixed_period(callback: CallbackQuery, state: FSMContext, item_
     # if await ch.abort_if_item_unavailable(callback, rental_service, item):
     #     return
     try:
-        rental_service.ensure_item_quantity_requestable(item, quantity=1)
+        rental_service.ensure_item_quantity_requestable(item, quantity=draft.quantity or 1)
     except ItemNotAvailable:
         await callback.answer("Товар сейчас недоступен для аренды", show_alert=True)
         return
@@ -209,7 +209,7 @@ async def process_fixed_period(callback: CallbackQuery, state: FSMContext, item_
 
     # сохраняем period_text, total_price в draft (Считаем итоговую стоимость)
     draft.rental_period_text = ch.PERIOD_LABELS[period_code]
-    draft.total_price = rental_service.calculate_price_for_fixed_period_total(item.price, period_code, item.price_text)
+    #draft.total_price = rental_service.calculate_price_for_fixed_period_total(item.price, period_code, item.price_text)
     await ch.save_rent_draft(state, draft)
 
     await _render_delivery(callback, state, item, draft, rent_ui_message_id)
@@ -395,7 +395,7 @@ async def confirm_rent(
     # if await ch.abort_if_item_unavailable(callback, rental_service, item):
     #     return
     try:
-        rental_service.ensure_item_quantity_requestable(item, quantity=1)
+        rental_service.ensure_item_quantity_requestable(item, quantity=draft.quantity or 1)
     except ItemNotAvailable:
         await callback.answer("Товар сейчас недоступен для аренды", show_alert=True)
         return
@@ -413,7 +413,7 @@ async def confirm_rent(
             user_id=user.id, # берём из контекста (middleware), не доверяем state на 100%
             rental_period_text=draft.rental_period_text,
             quantity=draft.quantity or 1,
-            total_price=draft.total_price,
+            #total_price=draft.total_price,
             delivery_needed=bool(draft.delivery_needed),
             delivery_address=draft.delivery_address if draft.delivery_needed else None,
             client_name=draft.client_name,

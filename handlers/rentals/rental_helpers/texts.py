@@ -52,7 +52,7 @@ def format_rent_period_text(item: ItemOut) -> str:
         f"🤝 <b>Заявка на аренду</b>\n\n"
         f"Вы собираетесь арендовать: <b>{_safe(item.title)}</b>\n"
         f"💰 Базовая цена: <b>{item.price} ₽/день</b>\n\n"
-        "Выберите срок аренды:"
+        "Выберите ориентировочный срок аренды. Точные дни менеджер уточнит по звонку."
     )
 
 def format_rent_delivery_text(item: ItemOut, draft: RentalCreateDraft) -> str:
@@ -61,7 +61,7 @@ def format_rent_delivery_text(item: ItemOut, draft: RentalCreateDraft) -> str:
         "🚚 <b>Доставка</b>\n\n"
         f"Товар: <b>{_safe(item.title)}</b>\n"
         f"Количество: <b>{draft.quantity or 1}</b>\n"
-        f"Срок: <b>{_safe(draft.rental_period_text)}</b>\n\n"
+        f"Ориентировочный срок: <b>{_safe(draft.rental_period_text)}</b>\n\n"
         "Нужна ли доставка?"
     )
 
@@ -85,19 +85,21 @@ def format_rent_comment_text() -> str:
 
 def format_rent_confirmation_text(item: ItemOut, draft: RentalCreateDraft) -> str:
     """Текст подтверждения заявки."""
-    price_line = f"💵 Расчётная стоимость: <b>{draft.total_price} ₽</b>\n" if draft.total_price is not None else "💵 Расчётная стоимость: менеджер уточнит после обработки\n"
+    #price_line = f"💵 Расчётная стоимость: <b>{draft.total_price} ₽</b>\n" if draft.total_price is not None else "💵 Расчётная стоимость: менеджер уточнит после обработки\n"
     address_line = f"Адрес: <b>{_safe(draft.delivery_address)}</b>\n" if draft.delivery_needed else ""
     return (
         "✅ <b>Проверьте заявку</b>\n\n"
         f"📦 Товар: <b>{_safe(item.title)}</b>\n"
         f"Количество: <b>{draft.quantity or 1}</b>\n"
-        f"Срок аренды: <b>{_safe(draft.rental_period_text)}</b>\n"
-        f"Доставка: <b>{_delivery_line(draft)}</b>\n"
+        f"Ориентировочный срок: <b>{_safe(draft.rental_period_text)}</b>\n"
+        "💵 Предварительно: <b>менеджер рассчитает после уточнения дней</b>\n"
+        "🚚 Доставка: <b>менеджер рассчитает по адресу</b>\n"
+        f"Доставка нужна: <b>{_delivery_line(draft)}</b>\n"
         f"{address_line}"
         f"Имя: <b>{_safe(draft.client_name)}</b>\n"
         f"Телефон: <b>{_safe(draft.client_phone)}</b>\n"
         f"Комментарий: <b>{_safe(draft.client_comment)}</b>\n\n"
-        f"{price_line}\n"
+        #f"{price_line}\n"
         "Если всё верно — отправьте заявку менеджеру."
 
         # f"<b>Выбранный период:</b>\n"
@@ -107,13 +109,13 @@ def format_rent_confirmation_text(item: ItemOut, draft: RentalCreateDraft) -> st
 
 def build_success_text(item: ItemOut, draft: RentalCreateDraft) -> str:
     """Текст успеха после отправки заявки."""
-    price_line = f"💰 Стоимость: <b>{draft.total_price} ₽</b>\n" if draft.total_price is not None else ""
+    #price_line = f"💰 Стоимость: <b>{draft.total_price} ₽</b>\n" if draft.total_price is not None else ""
     return (
         "✅ <b>Заявка на аренду отправлена!</b>\n\n"
         f"📦 <b>{_safe(item.title)}</b>\n"
         f"Количество: <b>{draft.quantity or 1}</b>\n"
-        f"⏱️ Срок аренды: <b>{_safe(draft.rental_period_text)}</b>\n"
-        f"{price_line}"
+        f"⏱️ Ориентировочный срок аренды: <b>{_safe(draft.rental_period_text)}</b>\n"
+        #f"{price_line}"
         "ℹ️ Статус: <b>Ожидает обработки менеджером</b>\n\n"
         "Вы получите уведомление, когда менеджер обработает вашу заявку."
     )

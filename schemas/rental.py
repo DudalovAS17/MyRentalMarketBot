@@ -19,17 +19,20 @@ from status.rental_status import RentalStatus
     RentalStatusUpdate  → внутреннее обновление статуса и timestamp-полей
 """
 
+
+
 class RentalCreate(BaseModel):
     """Клиентская схема для создания заявки на аренду товара."""
 
     item_id: int
     user_id: int
 
-    total_price: Optional[Decimal] = Field(None, ge=0)
+    # total_price: Optional[Decimal] = Field(None, ge=0)
+
+    rental_period_text: Optional[str] = Field(None, max_length=100)
 
     #start_date: Optional[AwareDatetime] = None
     #end_date: Optional[AwareDatetime] = None
-    rental_period_text: Optional[str] = Field(None, max_length=100)
 
     quantity: int = Field(1, ge=1)
 
@@ -46,7 +49,13 @@ class RentalUpdate(BaseModel):
 
     #start_date: Optional[AwareDatetime] = None
     #end_date: Optional[AwareDatetime] = None
+
     rental_period_text: Optional[str] = Field(default=None, max_length=100)
+    price_per_day_snapshot: Optional[Decimal] = Field(default=None, gt=0)
+
+    # эти два поля пользователь не может заполнять, только менеджер
+    rental_days: Optional[int] = Field(default=None, ge=1)
+    delivery_price: Optional[Decimal] = Field(default=None, ge=0)
 
     total_price: Optional[Decimal] = Field(default=None, ge=0)
     final_price: Optional[Decimal] = Field(default=None, ge=0)
@@ -85,6 +94,11 @@ class RentalOut(BaseModel):
     end_date: Optional[AwareDatetime] = None
 
     rental_period_text: Optional[str] = None
+    price_per_day_snapshot: Decimal
+
+    rental_days: Optional[int] = None
+    delivery_price: Optional[Decimal] = None
+
     total_price: Optional[Decimal] = None
     final_price: Optional[Decimal] = None
 
@@ -171,7 +185,10 @@ class RentalCreateDraft(BaseModel):
 class RentalCreateInternal(RentalCreate):
     """Внутренний payload создания заявки после service-level расчёта стоимости."""
 
+    rental_days: Optional[int] = Field(default=None, ge=1)
+    price_per_day_snapshot: Optional[Decimal] = Field(default=None, gt=0)
     total_price: Optional[Decimal] = Field(default=None, ge=0)
+    delivery_price: Optional[Decimal] = Field(default=None, ge=0)
 
 
 class RentalStatusUpdate(BaseModel):
