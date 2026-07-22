@@ -133,8 +133,7 @@ class CategoryRepository(BaseRepository):
             return await self._add_commit_refresh(s, obj)
 
     async def delete(self, category_id: int) -> bool:
-        """Удалить категорию или подкатегорию (Если удаляешь категорию — её подкатегории тоже уйдут, каскад)
-        Возвращает True если удалили, False если не нашли/ошибка"""
+        """Удалить категорию или подкатегорию. Возвращает True - удалили."""
         async with self._session() as s:
             obj = await s.get(Category, category_id)
             if not obj:

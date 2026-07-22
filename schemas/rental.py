@@ -60,7 +60,7 @@ class RentalUpdate(BaseModel):
     total_price: Optional[Decimal] = Field(default=None, ge=0)
     final_price: Optional[Decimal] = Field(default=None, ge=0)
 
-    status: Optional[RentalStatus] = None
+    #status: Optional[RentalStatus] = None
     quantity: Optional[int] = Field(default=None, ge=1)
 
     delivery_needed: Optional[bool] = None
@@ -91,10 +91,10 @@ class RentalOut(BaseModel):
     user_id: int
 
     #start_date: Optional[AwareDatetime] = None
-    end_date: Optional[AwareDatetime] = None
+    #end_date: Optional[AwareDatetime] = None
 
     rental_period_text: Optional[str] = None
-    price_per_day_snapshot: Decimal
+    price_per_day_snapshot: Optional[Decimal] = None
 
     rental_days: Optional[int] = None
     delivery_price: Optional[Decimal] = None
@@ -198,4 +198,3 @@ class RentalStatusUpdate(BaseModel):
     manager_comment: Optional[str] = Field(default=None, max_length=1000)
     reject_reason: Optional[str] = Field(default=None, max_length=1000)
     cancel_reason: Optional[str] = Field(default=None, max_length=1000)
-

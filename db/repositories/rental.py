@@ -1,19 +1,17 @@
 from typing import Optional, Sequence
-from datetime import datetime, timezone
-from sqlalchemy import select, update, exists, and_
+from sqlalchemy import select, update
 from sqlalchemy.orm import selectinload
 
 from db.models.rental import Rental
 from db.repositories.base import BaseRepository
 
-from schemas.rental import RentalCreate, RentalUpdate
-from status.rental_status import RentalStatus, open_statuses, status_timestamp_fields
+from schemas.rental import RentalCreate, RentalUpdate, RentalStatusUpdate
+from status.rental_status import RentalStatus # , open_statuses
 
 
 class RentalRepository(BaseRepository):
     """Репозиторий заявок клиентов на аренду товаров компании."""
 
-    _OPEN_RENTAL_LOOKUP_LIMIT = 10
     # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 
     @staticmethod
@@ -31,12 +29,6 @@ class RentalRepository(BaseRepository):
     def _apply_status_filter(stmt, status: RentalStatus):
         """Оставить только заявки с указанным статусом."""
         return stmt.where(Rental.status == status)
-
-
-    @staticmethod
-    def _apply_open_status_filter(stmt):
-        """Оставить только открытые заявки."""
-        return stmt.where(Rental.status.in_(open_statuses()))
 
     @staticmethod
     def _apply_item_filter(stmt, item_id: int):
@@ -61,32 +53,6 @@ class RentalRepository(BaseRepository):
             selectinload(Rental.user), # клиент
             selectinload(Rental.assigned_admin), # назначенный менеджер
         )
-
-    @staticmethod
-    def _build_status_update(
-            *,
-            status: RentalStatus,
-            changed_at: Optional[datetime] = None,
-            manager_comment: Optional[str] = None,
-            reject_reason: Optional[str] = None,
-            cancel_reason: Optional[str] = None,
-    ) -> RentalUpdate:
-        """Собрать схему обновления статуса, включая статусные timestamp-поля."""
-        actual_changed_at = changed_at or datetime.now(timezone.utc)
-        update_data = RentalUpdate(status=status)
-
-        if manager_comment is not None:
-            update_data.manager_comment = manager_comment
-
-        if reject_reason is not None:
-            update_data.reject_reason = reject_reason
-        if cancel_reason is not None:
-            update_data.cancel_reason = cancel_reason
-
-        for field_name in status_timestamp_fields(status):
-            setattr(update_data, field_name, actual_changed_at)
-
-        return update_data
 
     # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
     async def list_all(self, *, limit: Optional[int] = None, offset: int = 0) -> list[Rental]:
@@ -150,16 +116,6 @@ class RentalRepository(BaseRepository):
             stmt = self._with_details(stmt)
 
             return await self._one_or_none(s, stmt)
-
-    async def list_recent_open_by_item_id(self, item_id: int) -> list[Rental]:
-        """Вернуть последние открытые заявки по товару."""
-        async with self._session() as s:
-            stmt = select(Rental)
-            stmt = self._apply_item_filter(stmt, item_id)
-            stmt = self._apply_open_status_filter(stmt)
-            stmt = self._apply_recent_order(stmt)
-            stmt = stmt.limit(self._OPEN_RENTAL_LOOKUP_LIMIT)
-            return await self._list(s, stmt)
 
     # ──────────────────────────────────────────── Для admin-панели ────────────────────────────────────────────────────
     async def list_recent(self, *, limit: int, offset: int = 0) -> list[Rental]:
@@ -243,47 +199,42 @@ class RentalRepository(BaseRepository):
             return await self._delete_commit(s, obj)
 
     # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-    async def try_update_status(
+    # полностью перенесена в сервис: _build_status_update() - Собрать схему обновления статуса
+
+    # старые названия: try_update_status / try_update_status_if_user
+    async def apply_update_if_current_status(
             self,
-            rental_id: int, # какую заявку мы хотим изменить
-            new_status: RentalStatus, # переводим в этот статус
-            expected_status: RentalStatus, # из какого статуса разрешён переход
-            *,
-            manager_comment: Optional[str] = None,
-            reject_reason: Optional[str] = None,
-            cancel_reason: Optional[str] = None,
-            # Параметры для уведомлений (на будущее)
-            #notify_recipient_role: Optional[str] = None,  # 'renter', 'owner', 'other'
-            #notify_message_template: Optional[str] = None,
-            #notify_button_text: Optional[str] = None,
-            #notify_button_callback_action: Optional[str] = None
+            rental_id: int,
+            expected_status: RentalStatus,
+            update_data: RentalStatusUpdate,
     ) -> bool:
+        """Атомарно применить подготовленный patch, если текущий статус не изменился."""
         """Атомарно обновить статус заявки, если текущий статус совпадает с ожидаемым."""
-        update_data = self._build_status_update(
-            status=new_status,
-            manager_comment=manager_comment,
-            reject_reason=reject_reason,
-            cancel_reason=cancel_reason,
-        )
+        data = update_data.model_dump(exclude_unset=True)
+        if not data:
+            return False
 
         async with self._session() as s:
             stmt = (
                 update(Rental)
                 .where(Rental.id == rental_id)
                 .where(Rental.status == expected_status)
-                .values(**update_data.model_dump(exclude_unset=True))
+                .values(**data)
             )
             return await self._execute_update_commit(s, stmt)
 
-    async def try_update_status_if_user(
+    async def apply_update_if_user_and_current_status(
             self,
             rental_id: int,
             user_id: int,
-            new_status: RentalStatus,
             expected_status: RentalStatus,
+            update_data: RentalStatusUpdate,
     ) -> bool:
+        """Атомарно применить подготовленный patch заявки клиента, если статус не изменился."""
         """Атомарно обновить статус заявки, если она принадлежит клиенту и статус совпадает с ожидаемым."""
-        update_data = self._build_status_update(status=new_status)
+        data = update_data.model_dump(exclude_unset=True)
+        if not data:
+            return False
 
         async with self._session() as s:
             stmt = (
@@ -291,18 +242,47 @@ class RentalRepository(BaseRepository):
                 .where(Rental.id == rental_id)
                 .where(Rental.user_id == user_id)
                 .where(Rental.status == expected_status)
-                .values(**update_data.model_dump(exclude_unset=True))
+                .values(**data)
             )
             return await self._execute_update_commit(s, stmt)
 
-    """ 1. создаёт RentalUpdate через _build_status_update()
-        2. схема понимает: для CANCELLED_BY_CLIENT нужны cancelled_at и closed_at
-        3. превращает RentalUpdate в patch через model_dump(exclude_unset=True)
-        4. делает один SQL UPDATE"""
+    """
+    1. создаёт RentalStatusUpdate через _build_status_update()
+    2. схема понимает: для CANCELLED_BY_CLIENT нужны cancelled_at и closed_at
+    3. превращает RentalStatusUpdate в patch через model_dump(exclude_unset=True)
+    4. делает один SQL UPDATE
+    """
 
-    # ─────────────────────────────── For item-service: moderate_set_status() ──────────────────────────────────────────
+    """
+    Возможно на будущее: параметры для уведомлений (на будущее)
+     - notify_recipient_role: Optional[str] = None,  # 'renter', 'owner', 'other'
+     - notify_message_template: Optional[str] = None,
+     - notify_button_text: Optional[str] = None,
+     - notify_button_callback_action: Optional[str] = None
+    """
+
+    # ─────────────────────────────────────────── Удаляем? ─────────────────────────────────────────────────────────────
+    """
+    _OPEN_RENTAL_LOOKUP_LIMIT = 10
+
+    @staticmethod
+    def _apply_open_status_filter(stmt):
+        ""Оставить только открытые заявки.""
+        return stmt.where(Rental.status.in_(open_statuses()))
+
+    async def list_recent_open_by_item_id(self, item_id: int) -> list[Rental]:
+        ""Вернуть последние открытые заявки по товару.""
+        async with self._session() as s:
+            stmt = select(Rental)
+            stmt = self._apply_item_filter(stmt, item_id)
+            stmt = self._apply_open_status_filter(stmt)
+            stmt = self._apply_recent_order(stmt)
+            stmt = stmt.limit(self._OPEN_RENTAL_LOOKUP_LIMIT)
+            return await self._list(s, stmt)
+
+    # ─── For item-service: moderate_set_status() ───
     async def has_open_rentals_for_item(self, item_id: int) -> bool:
-        """Проверить, есть ли у товара открытые заявки."""
+        ""Проверить, есть ли у товара открытые заявки.""
 
         async with self._session() as s:
             stmt = select(
@@ -312,11 +292,7 @@ class RentalRepository(BaseRepository):
             )
 
             return await self._exists(s, stmt)
-
-
-
-
-
+    """
 
     # ─────────────────────────────── Пока не используемые ─────────────────────────────────────────────────────────────
     @staticmethod

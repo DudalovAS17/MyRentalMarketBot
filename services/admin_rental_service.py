@@ -1,16 +1,18 @@
 import logging
 from typing import Optional
 from decimal import Decimal
+from datetime import datetime, timezone
+
 
 from db.repositories.rental import RentalRepository
 from services.admin_service import AdminActionService
 from services.rental_service import RentalService
 
-from schemas.rental import RentalOut, RentalAdminDetailsOut, RentalUpdate
+from schemas.rental import RentalOut, RentalAdminDetailsOut, RentalUpdate, RentalStatusUpdate
 from schemas.item import ItemOut
 from schemas.user import UserOut
 from status.admin_status import AdminEntityType, admin_action_for_rental_status
-from status.rental_status import RentalStatus, can_transition
+from status.rental_status import RentalStatus, can_transition, status_timestamp_fields
 from utils.errors import NotFoundError, ConflictError, ValidationError
 
 logger = logging.getLogger(__name__)
@@ -61,6 +63,31 @@ class AdminRentalService:
         if strict:
             raise ConflictError(f"Нельзя изменить статус заявки: {old_status.value} -> {new_status.value}")
         return False
+
+    @staticmethod
+    def _build_status_update(
+            *,
+            status: RentalStatus,
+            changed_at: datetime | None = None,
+            manager_comment: str | None = None,
+            reject_reason: str | None = None,
+            cancel_reason: str | None = None,
+    ) -> RentalStatusUpdate:
+        """Собрать доменный patch статуса заявки, включая статусные timestamp-поля."""
+        actual_changed_at = changed_at or datetime.now(timezone.utc)
+        update_data = RentalStatusUpdate(status=status)
+
+        if manager_comment is not None:
+            update_data.manager_comment = manager_comment
+        if reject_reason is not None:
+            update_data.reject_reason = reject_reason
+        if cancel_reason is not None:
+            update_data.cancel_reason = cancel_reason
+
+        for field_name in status_timestamp_fields(status):
+            setattr(update_data, field_name, actual_changed_at)
+
+        return update_data
 
     # ?
     @staticmethod
@@ -143,14 +170,19 @@ class AdminRentalService:
         }.get(new_status)
         self._validate_required_reason(new_status, reason_for_status) # нужно доосмыслить!
 
-        updated = await self.repo.try_update_status(    #.update(rental_id, update_data)
-            rental_id=rental_id,
-            new_status=new_status,
-            expected_status=old_status,
+        update_data = self._build_status_update(
+            status=new_status,
             manager_comment=normalized_comment,
             reject_reason=normalized_reject_reason,
             cancel_reason=normalized_cancel_reason,
         )
+
+        updated = await self.repo.apply_update_if_current_status(
+            rental_id=rental_id,
+            expected_status=old_status,
+            update_data=update_data,
+        )
+
         if not updated:
             if strict:
                 raise ConflictError("Не удалось обновить статус заявки")

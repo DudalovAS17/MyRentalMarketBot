@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Optional
 from sqlalchemy import func, select, update
 
@@ -165,11 +165,11 @@ class SupportTicketRepository(BaseRepository):
             return int(res.scalar() or 0)
 
     # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-    async def close(self, *, ticket_id: int, closed_by_admin_id: int) -> bool:
-        """Атомарно закрыть открытое обращение администратором/менеджером."""
+    async def close(self, *, ticket_id: int, closed_by_admin_id: int, closed_at: datetime) -> bool:
+        """Закрыть открытое обращение администратором/менеджером."""
         update_data = SupportTicketAdminUpdate(
             status=SupportTicketStatus.CLOSED,
-            closed_at=datetime.now(timezone.utc),
+            closed_at=closed_at, #datetime.now(timezone.utc),
             closed_by_admin_id=closed_by_admin_id
         )
         async with self._session() as s:
@@ -179,7 +179,7 @@ class SupportTicketRepository(BaseRepository):
             stmt = stmt.values(**update_data.model_dump(exclude_unset=True))
             return await self._execute_update_commit(s, stmt)
 
-    async def touch_admin_reply(self, *, ticket_id: int) -> bool:
+    async def touch_admin_reply(self, *, ticket_id: int, replied_at: datetime) -> bool:
         """Отметить время последнего ответа администратора/менеджера открытому по обращению.
 
         Зачем:
@@ -187,28 +187,28 @@ class SupportTicketRepository(BaseRepository):
             чтобы видеть “последняя активность админа”
             чтобы не плодить лишние таблицы сообщений в MVP
         """
-        update_data = SupportTicketAdminUpdate(admin_last_reply_at=datetime.now(timezone.utc))
+        update_data = SupportTicketAdminUpdate(admin_last_reply_at=replied_at)
         async with self._session() as s:
             stmt = update(SupportTicket)
             stmt = self._apply_id_filter(stmt, ticket_id)
-            stmt = self._apply_status_filter(stmt, SupportTicketStatus.OPEN)
+            #stmt = self._apply_status_filter(stmt, SupportTicketStatus.OPEN)
             stmt = stmt.values(**update_data.model_dump(exclude_unset=True))
             return await self._execute_update_commit(s, stmt)
 
     # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-    async def append_user_reply(self, *, ticket_id: int, reply_text: str) -> Optional[SupportTicket]:
+    async def add_user_message(self, *, ticket_id: int, sender_user_id: int, text: str) -> Optional[SupportTicket]:
         """Добавить сообщение клиента в открытый тикет и обновить время активности."""
+        """Сохранить подготовленное сообщение клиента в истории тикета."""
         async with self._session() as s:
             obj: Optional[SupportTicket] = await s.get(SupportTicket, ticket_id)
-            if not obj or obj.status != SupportTicketStatus.OPEN:
+            if not obj: # or obj.status != SupportTicketStatus.OPEN:
                 return None
 
-            normalized = reply_text.strip()
             s.add(SupportMessage(
                 ticket_id=obj.id,
                 sender_type=SupportMessageSenderType.USER,
-                sender_user_id=obj.user_id,
-                text=normalized,
+                sender_user_id=sender_user_id,
+                text=text,
             ))
 
             return await self._commit_refresh(s, obj)
@@ -262,20 +262,20 @@ class SupportTicketRepository(BaseRepository):
 
 
     # ─────────────────────────────────── Логика Support Message ───────────────────────────────────────────────────────
-    async def add_admin_message(self, *, ticket_id: int, sender_admin_id: int, text: str) -> Optional[SupportTicket]:
-        """Сохранить ответ администратора в истории открытого тикета."""
+    async def add_admin_message(self, *, ticket_id: int, sender_admin_id: int, text: str, replied_at: datetime) -> Optional[SupportTicket]:
+        """Сохранить подготовленное сообщение администратора в истории тикета."""
         async with self._session() as s:
             obj: Optional[SupportTicket] = await s.get(SupportTicket, ticket_id)
-            if not obj or obj.status != SupportTicketStatus.OPEN:
+            if not obj: # or obj.status != SupportTicketStatus.OPEN:
                 return None
 
             s.add(SupportMessage(
                 ticket_id=obj.id,
                 sender_type=SupportMessageSenderType.ADMIN,
                 sender_admin_id=sender_admin_id,
-                text=text.strip(),
+                text=text,
             ))
-            obj.admin_last_reply_at = datetime.now(timezone.utc)
+            obj.admin_last_reply_at = replied_at #datetime.now(timezone.utc)
             return await self._commit_refresh(s, obj)
 
     async def list_messages(self, ticket_id: int) -> list[SupportMessage]:

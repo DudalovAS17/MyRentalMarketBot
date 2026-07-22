@@ -17,7 +17,7 @@ class ItemRepository(BaseRepository):
     @staticmethod
     def _apply_active_filter(stmt):
         """Оставить только опубликованные/активные товары каталога."""
-        return stmt.where(Item.status == ItemStatus.ACTIVE, Item.available_quantity > 0)
+        return stmt.where(Item.status == ItemStatus.ACTIVE) # , Item.available_quantity > 0
 
     @staticmethod
     def _apply_catalog_order(stmt):

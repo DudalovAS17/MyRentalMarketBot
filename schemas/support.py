@@ -9,6 +9,8 @@ from status.support_ticket_status import SupportTicketStatus, SupportMessageSend
     SupportTicketCreateInternal  → внутренняя схема создания обращения с user_id
     SupportTicketAdminUpdate     → админское обновление обращения
     SupportMessageOut            → вывод сообщения внутри обращения наружу
+
+    SupportMessageCreate         → создание сообщения внутри обращения
 """
 
 class SupportTicketCreate(BaseModel):
@@ -63,6 +65,16 @@ class SupportTicketAdminUpdate(BaseModel):
 
 
 # ─────────────────────────────────── Логика Support Message ───────────────────────────────────────────────────────
+class SupportMessageCreate(BaseModel):
+    """Схема создания сообщения внутри тикета поддержки."""
+
+    ticket_id: int
+    sender_type: SupportMessageSenderType
+    sender_user_id: Optional[int] = None
+    sender_admin_id: Optional[int] = None
+    text: str = Field(..., min_length=1)
+
+
 class SupportMessageOut(BaseModel):
     """Сообщение внутри тикета поддержки."""
 

@@ -1,14 +1,15 @@
 import logging
 from decimal import Decimal
 from typing import Optional
+from datetime import datetime, timezone
 
 from db.repositories.rental import RentalRepository
 
-from schemas.rental import RentalCreate, RentalUpdate, RentalOut, RentalDetailsOut, RentalCreateInternal
+from schemas.rental import RentalCreate, RentalUpdate, RentalOut, RentalDetailsOut, RentalCreateInternal, RentalStatusUpdate
 from schemas.item import ItemOut
 from schemas.user import UserOut
 from status.item_status import ItemStatus
-from status.rental_status import RentalStatus, is_open_status, can_transition, STATUS_LABELS
+from status.rental_status import RentalStatus, status_timestamp_fields, can_transition, STATUS_LABELS # is_open_status
 from utils.parsers import parse_period_prices
 from utils.errors import NotFoundError, ForbiddenError, ConflictError, ValidationError
 from utils.domain_exceptions import ItemNotAvailable
@@ -160,6 +161,32 @@ class RentalService:
 
         self.ensure_item_quantity_requestable(item, quantity=data.quantity)
 
+    # точно такая же есть в admin_rental_status!
+    @staticmethod
+    def _build_status_update(
+            *,
+            status: RentalStatus,
+            changed_at: datetime | None = None,
+            manager_comment: str | None = None,
+            reject_reason: str | None = None,
+            cancel_reason: str | None = None,
+    ) -> RentalStatusUpdate:
+        """Собрать доменный patch статуса заявки, включая timestamp-поля."""
+        actual_changed_at = changed_at or datetime.now(timezone.utc)
+        update_data = RentalStatusUpdate(status=status)
+
+        if manager_comment is not None:
+            update_data.manager_comment = manager_comment
+        if reject_reason is not None:
+            update_data.reject_reason = reject_reason
+        if cancel_reason is not None:
+            update_data.cancel_reason = cancel_reason
+
+        for field_name in status_timestamp_fields(status):
+            setattr(update_data, field_name, actual_changed_at)
+
+        return update_data
+
     # ────────────────────────────────────────── Read methods ──────────────────────────────────────────────────────────
     async def get_by_id(self, rental_id: int, *, strict: bool = False) -> Optional[RentalOut]:
         """Вернуть заявку по ID"""
@@ -250,7 +277,11 @@ class RentalService:
         if not self._validate_transition(old_status, new_status, strict=strict):
             return False
 
-        updated = await self.repo.try_update_status_if_user(rental_id, user_id, new_status, expected_status=old_status)
+        update_data = self._build_status_update(status=new_status)
+
+        updated = await self.repo.apply_update_if_user_and_current_status( # try_update_status_if_user
+            rental_id, user_id, expected_status=old_status, update_data=update_data
+        ) # а тут new_status и old_status не перепутаны местами?
         if not updated:
             if strict:
                 raise ConflictError("Не удалось отменить заявку")
@@ -260,11 +291,12 @@ class RentalService:
         return True
 
     # ─────────────────────────────────────────────── Availability ─────────────────────────────────────────────────────
+    """    
     # Внутренний метод — ORM для доменной логики
     async def _get_open_rental_for_item(self, item_id: int):
-        """Вернуть первую открытую заявку по товару или None.
+        ""Вернуть первую открытую заявку по товару или None.
 
-        Внутренний метод: возвращает ORM-модель"""
+        Внутренний метод: возвращает ORM-модель""
         rentals = await self.repo.list_recent_open_by_item_id(item_id)
 
         for rental in rentals:
@@ -275,21 +307,21 @@ class RentalService:
 
     # Публичный метод — только DTO
     async def get_open_rental_for_item(self, item_id: int) -> Optional[RentalOut]:
-        """Вернуть первую открытую заявку по товару в виде DTO или None."""
+        ""Вернуть первую открытую заявку по товару в виде DTO или None.""
         rental = await self._get_open_rental_for_item(item_id)
         if rental is None:
             return None
 
         return self._to_out(rental)
 
-    # Убирал логику:
+
+    # Также убирал логику:
     # ensure_item_available - Гарантия: товар нельзя арендовать, если по нему есть открытая заявка.
     # has_open_rentals_for_item - Проверить, есть ли у товара открытые заявки.
 
     # А тут переписали логику через ensure_item_quantity_requestable()
     # async def abort_if_item_unavailable - Вернуть True, если rent-flow нужно остановить из-за недоступности товара.
-
-
+    """
 
 
     # ─────────────────────────────── Пока не используемые ─────────────────────────────────────────────────────────────

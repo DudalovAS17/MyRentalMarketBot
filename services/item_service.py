@@ -124,12 +124,7 @@ class ItemService:
         return dto
 
     async def delete(self, item_id: int, *, strict: bool = False) -> bool:
-        """Удалить товар каталога, если по нему нет открытых заявок."""
-        has_open = await self.rental_service.has_open_rentals_for_item(item_id)
-        if has_open:
-            if strict:
-                raise ConflictError(f"Нельзя удалить товар id={item_id}: есть открытые заявки аренды")
-            return False
+        """Удалить товар каталога."""
 
         deleted = await self.item_repo.delete(item_id)
         if not deleted:
@@ -178,10 +173,6 @@ class ItemService:
                 raise ConflictError(f"Нельзя сменить статус товара id={item_id}: {old_status.value} -> {new_status.value}")
             return None
 
-        # не опасно ли скрывать/архивировать товар при открытых заявках (???)
-        if not await self._ensure_no_open_rentals_for_status(item_id=item_id, new_status=new_status, strict=strict):
-            return None
-
         # Обновляем статус
         updated = await self.item_repo.set_status(item_id=item_id, new_status=new_status, updated_by_admin_id=updated_by_admin_id)
         if not updated:
@@ -210,22 +201,9 @@ class ItemService:
 
 
     # ─────────────────────────────────────── Business validation ─────────────────────────────────────────────────────
-    async def _ensure_no_open_rentals_for_status(self, *, item_id: int, new_status: ItemStatus, strict: bool) -> bool:
-        """Не разрешать скрывать/архивировать товар, если по нему есть открытые заявки аренды."""
-        if new_status not in {ItemStatus.HIDDEN, ItemStatus.ARCHIVED}:
-            return True
-
-        has_open = await self.rental_service.has_open_rentals_for_item(item_id)
-        if not has_open:
-            return True
-
-        if strict:
-            raise ConflictError(f"Нельзя изменить статус товара id={item_id}: есть открытые заявки аренды")
-        return False
-
     # ItemRentalAvailability here
     @staticmethod
-    def item_rental_availability(item: ItemOut) -> ItemRentalAvailability: # , *, has_open_rental: bool = False
+    def item_rental_availability(item: ItemOut) -> ItemRentalAvailability:
         """Вернуть доступность товара для аренды и нормализованный код причины."""
         if item.status != ItemStatus.ACTIVE:
             return ItemRentalAvailability(
@@ -239,12 +217,6 @@ class ItemService:
                 reason="out_of_stock",
                 available_quantity=item.available_quantity,
             )
-        # if has_open_rental: # пока убираем эту логику - у нас просто кол-во товаров.
-        #     return ItemRentalAvailability(
-        #         can_request=False,
-        #         reason="busy",
-        #         available_quantity=item.available_quantity,
-        #     )
 
         return ItemRentalAvailability(
             can_request=True,
@@ -261,3 +233,41 @@ class ItemService:
         """Вернуть характеристики товара в порядке sort_order ASC, id ASC."""
         characteristics = await self.item_repo.list_characteristics_by_item_id(item_id, limit=limit)
         return [ItemCharacteristicOut.model_validate(characteristic) for characteristic in characteristics]
+
+    """ 
+    Была убрана логика:
+        Из delete():
+            ""Удалить товар каталога, ЕСЛИ по нему нет открытых заявок.""
+            has_open = await self.rental_service.has_open_rentals_for_item(item_id)
+            if has_open:
+                if strict:
+                    raise ConflictError(f"Нельзя удалить товар id={item_id}: есть открытые заявки аренды")
+                return False
+                
+        Из admin_set_status():    
+            # не опасно ли скрывать/архивировать товар при открытых заявках (???)
+            if not await self._ensure_no_open_rentals_for_status(item_id=item_id, new_status=new_status, strict=strict):
+                return None
+        
+        Из item_rental_availability():
+            if has_open_rental: # пока убираем эту логику - у нас просто кол-во товаров.
+                return ItemRentalAvailability(
+                    can_request=False,
+                    reason="busy",
+                    available_quantity=item.available_quantity,
+                )
+        
+    Удалена:
+        async def _ensure_no_open_rentals_for_status(self, *, item_id: int, new_status: ItemStatus, strict: bool) -> bool:
+        ""Не разрешать скрывать/архивировать товар, если по нему есть открытые заявки аренды.""
+        if new_status not in {ItemStatus.HIDDEN, ItemStatus.ARCHIVED}:
+            return True
+
+        has_open = await self.rental_service.has_open_rentals_for_item(item_id)
+        if not has_open:
+            return True
+
+        if strict:
+            raise ConflictError(f"Нельзя изменить статус товара id={item_id}: есть открытые заявки аренды")
+        return False
+    """

@@ -1,5 +1,6 @@
 import logging
 from typing import Optional
+from datetime import datetime, timezone
 
 from db.repositories.support_ticket import SupportTicketRepository
 
@@ -159,9 +160,23 @@ class SupportService:
         if closed_by_admin_id is None:
             raise ValidationError("Некорректный ID сотрудника")
 
-        ok = await self.repo.close(ticket_id=ticket_id, closed_by_admin_id=closed_by_admin_id)
-        if not ok and strict: # тогда: тикета нет / тикет есть, но он уже CLOSED
-            raise ConflictError("Обращение в поддержку не найдено или уже закрыто")
+        ticket = await self.get_ticket_by_id(ticket_id)
+        if not ticket:
+            if strict:
+                raise NotFoundError(f"Обращение в поддержку не найдено: id={ticket_id}")
+            return False
+        if not self.is_open_ticket(ticket):
+            if strict:
+                raise ConflictError("Обращение в поддержку уже закрыто")
+            return False
+
+        ok = await self.repo.close(
+            ticket_id=ticket_id,
+            closed_by_admin_id=closed_by_admin_id,
+            closed_at=datetime.now(timezone.utc),
+        )
+        if not ok and strict:
+            raise ConflictError("Не удалось закрыть обращение в поддержку")
 
         if ok:
             logger.info("Обращение в поддержку закрыто: id=%s admin_id=%s", ticket_id, closed_by_admin_id)
@@ -178,11 +193,15 @@ class SupportService:
             if strict:
                 raise NotFoundError(f"Открытое обращение в поддержку не найдено: id={ticket_id}")
             return None
+        if not self.is_open_ticket(ticket):
+            if strict:
+                raise ConflictError("Обращение в поддержку уже закрыто")
+            return None
 
-        obj = await self.repo.append_user_reply(ticket_id=ticket_id, reply_text=normalized)
+        obj = await self.repo.add_user_message(ticket_id=ticket_id, sender_user_id=user_id, text=normalized)
         if not obj:
             if strict:
-                raise ConflictError("Обращение в поддержку не найдено или уже закрыто")
+                raise ConflictError("Не удалось сохранить сообщение в поддержку")
             return None
 
         #logger.info("Клиент добавил сообщение в тикет поддержки: id=%s user_id=%s", ticket_id, user_id)
@@ -190,14 +209,23 @@ class SupportService:
 
     async def mark_admin_replied(self, *, ticket_id: int, strict: bool = False) -> bool:
         """Отметить, что администратор/менеджер ответил по обращению."""
-        ok = await self.repo.touch_admin_reply(ticket_id=ticket_id)
+        ticket = await self.get_ticket_by_id(ticket_id)
+        if not ticket:
+            if strict:
+                raise NotFoundError(f"Обращение в поддержку не найдено: id={ticket_id}")
+            return False
+        if not self.is_open_ticket(ticket):
+            if strict:
+                raise ConflictError("Обращение в поддержку уже закрыто")
+            return False
+
+        ok = await self.repo.touch_admin_reply(ticket_id=ticket_id, replied_at=datetime.now(timezone.utc))
         if not ok and strict:
-            raise NotFoundError(f"Обращение в поддержку не найдено: id={ticket_id}")
+            raise ConflictError("Не удалось отметить ответ сотрудника")
 
         if ok:
             logger.info("По обращению в поддержку отмечен ответ сотрудника: id=%s", ticket_id)
         return ok
-
 
 
     # ─────────────────────────────────── Логика Support Message ───────────────────────────────────────────────────────
@@ -209,10 +237,26 @@ class SupportService:
     async def save_admin_reply(self, *, ticket_id: int, sender_admin_id: int, reply_text: str, strict: bool = False) -> Optional[SupportTicketOut]:
         """Сохранить ответ админа в истории сообщений и отметить активность."""
         normalized = self.normalize_required_text(reply_text, "Ответ")
-        obj = await self.repo.add_admin_message(ticket_id=ticket_id, sender_admin_id=sender_admin_id, text=normalized)
+        ticket = await self.get_ticket_by_id(ticket_id)
+        if not ticket:
+            if strict:
+                raise NotFoundError(f"Обращение в поддержку не найдено: id={ticket_id}")
+            return None
+        if not self.is_open_ticket(ticket):
+            if strict:
+                raise ConflictError("Обращение в поддержку уже закрыто")
+            return None
+
+        obj = await self.repo.add_admin_message(
+            ticket_id=ticket_id,
+            sender_admin_id=sender_admin_id,
+            text=normalized,
+            replied_at=datetime.now(timezone.utc),
+        )
         if not obj:
             if strict:
-                raise ConflictError("Обращение в поддержку не найдено или уже закрыто")
+                raise ConflictError("Не удалось сохранить ответ сотрудника")
             return None
+
         logger.info("Ответ сотрудника сохранён в истории поддержки: id=%s admin_id=%s", ticket_id, sender_admin_id)
         return self._to_out(obj)
