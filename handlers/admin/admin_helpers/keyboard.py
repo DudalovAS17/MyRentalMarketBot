@@ -15,6 +15,7 @@ from utils.callbacks import (ADMIN_ADD_ITEM_CB, BACK_TO_ADMIN_MENU_CB, ADMIN_SUP
                              DEALS_NEW_PREFIX, DEALS_ALL_PREFIX, DEALS_CONTACT_PREFIX,  # DEALS_PREFIX,
                              ADMIN_ITEMS_MOD_FIND, ADMIN_ITEMS_MOD_EDIT_QUANTITY, ADMIN_ITEMS_MOD_EDIT_PRICE)
 
+
 def _button_rows_by_two(buttons: list[InlineKeyboardButton]) -> list[list[InlineKeyboardButton]]:
     """Разложить кнопки по две в строке."""
     return [buttons[index:index + 2] for index in range(0, len(buttons), 2)]

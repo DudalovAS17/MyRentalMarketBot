@@ -368,22 +368,22 @@ class AdminRentalService:
         return self._to_rental_out(updated)
 
 
-    # ? (кодекс удалял её)
-    @staticmethod
-    def admin_rental_actions_for_status(status: RentalStatus) -> tuple[str, ...]:
-        """Вернуть допустимые admin UI-actions для текущего статуса заявки."""
-        actions: list[str] = []
-        if can_transition(status, RentalStatus.IN_PROGRESS):
-            actions.append("progress")
-        if can_transition(status, RentalStatus.CONFIRMED):
-            actions.append("confirm")
-        if can_transition(status, RentalStatus.REJECTED):
-            actions.append("reject")
-        if can_transition(status, RentalStatus.CANCELLED_BY_ADMIN):
-            actions.append("cancel")
-        if can_transition(status, RentalStatus.COMPLETED):
-            actions.append("complete")
-        return tuple(actions)
+    # для клавы get_admin_deal_details_keyboard()
+    # @staticmethod
+    # def admin_rental_actions_for_status(status: RentalStatus) -> tuple[str, ...]:
+    #     """Вернуть допустимые admin UI-actions для текущего статуса заявки."""
+    #     actions: list[str] = []
+    #     if can_transition(status, RentalStatus.IN_PROGRESS):
+    #         actions.append("progress")
+    #     if can_transition(status, RentalStatus.CONFIRMED):
+    #         actions.append("confirm")
+    #     if can_transition(status, RentalStatus.REJECTED):
+    #         actions.append("reject")
+    #     if can_transition(status, RentalStatus.CANCELLED_BY_ADMIN):
+    #         actions.append("cancel")
+    #     if can_transition(status, RentalStatus.COMPLETED):
+    #         actions.append("complete")
+    #     return tuple(actions)
 
 
     # ─────────────────────────────── Пока не используемые ─────────────────────────────────────────────────────────────

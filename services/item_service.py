@@ -33,6 +33,7 @@ class ItemService:
     def _to_out_list(cls, items) -> list[ItemOut]:
         return [cls._to_out(item) for item in items]
 
+
     # ────────────────────────────────────────── Read methods ──────────────────────────────────────────────────────────
     async def list_all_items(self, *, available_only: bool = True, limit: Optional[int] = None, offset: int = 0) -> list[ItemOut]:
         """Вернуть товары каталога; по умолчанию только опубликованные."""
@@ -89,6 +90,7 @@ class ItemService:
         items = await self.item_repo.search(query, active_only=available_only, limit=limit, offset=offset)
         return self._to_out_list(items)
 
+
     # ─────────────────────────────────────────── Write methods ────────────────────────────────────────────────────────
     async def create(
             self,
@@ -134,6 +136,7 @@ class ItemService:
 
         logger.info("Товар удален: id=%s", item_id)
         return True
+
 
     # ───────────────────────────────────── Admin-Item logic 🔧 ────────────────────────────────────────────────────────
     async def admin_list_drafts(self, page: int) -> tuple[list[ItemOut], bool]:
@@ -185,19 +188,43 @@ class ItemService:
 
         return self._to_out(updated)
 
-    # ? (кодекс её удалил)
-    @staticmethod
-    def admin_item_actions_for_status(status: ItemStatus) -> tuple[str, ...]:
-        """Вернуть допустимые admin UI-actions для текущего статуса товара."""
-        actions: list[str] = []
-        if can_transition(status, ItemStatus.ACTIVE):
-            actions.append("approve" if status == ItemStatus.DRAFT else "unhide")
-        if can_transition(status, ItemStatus.HIDDEN):
-            actions.append("hide")
-        if can_transition(status, ItemStatus.ARCHIVED):
-            actions.append("archive")
-        actions.extend(("edit_quantity", "edit_price"))
-        return tuple(actions)
+    # для клавы get_admin_item_details_keyboard()
+    # @staticmethod
+    # def admin_item_actions_for_status(status: ItemStatus) -> tuple[str, ...]:
+    #     """Вернуть допустимые admin UI-actions для текущего статуса товара."""
+    #     actions: list[str] = []
+    #     if can_transition(status, ItemStatus.ACTIVE):
+    #         actions.append("approve" if status == ItemStatus.DRAFT else "unhide")
+    #     if can_transition(status, ItemStatus.HIDDEN):
+    #         actions.append("hide")
+    #     if can_transition(status, ItemStatus.ARCHIVED):
+    #         actions.append("archive")
+    #     actions.extend(("edit_quantity", "edit_price"))
+    #     return tuple(actions)
+
+    async def admin_publish_item(self, item_id: int, *, updated_by_admin_id: Optional[int] = None, strict: bool = False) -> Optional[ItemOut]:
+        """Опубликовать товар из доступного для публикации статуса."""
+        return await self.admin_set_status(
+            item_id, ItemStatus.ACTIVE, updated_by_admin_id, strict=strict,
+        )
+
+    async def admin_hide_item(self, item_id: int, *, updated_by_admin_id: Optional[int] = None, strict: bool = False) -> Optional[ItemOut]:
+        """Скрыть товар из публичного каталога."""
+        return await self.admin_set_status(
+            item_id, ItemStatus.HIDDEN, updated_by_admin_id, strict=strict,
+        )
+
+    async def admin_unhide_item(self, item_id: int, *, updated_by_admin_id: Optional[int] = None, strict: bool = False) -> Optional[ItemOut]:
+        """Вернуть скрытый товар в публичный каталог."""
+        return await self.admin_set_status(
+            item_id, ItemStatus.ACTIVE, updated_by_admin_id, strict=strict,
+        )
+
+    async def admin_archive_item(self, item_id: int, *, updated_by_admin_id: Optional[int] = None, strict: bool = False) -> Optional[ItemOut]:
+        """Архивировать товар каталога."""
+        return await self.admin_set_status(
+            item_id, ItemStatus.ARCHIVED, updated_by_admin_id, strict=strict,
+        )
 
 
     # ─────────────────────────────────────── Business validation ─────────────────────────────────────────────────────
@@ -223,6 +250,7 @@ class ItemService:
             reason="available",
             available_quantity=item.available_quantity,
         )
+
 
     # ─────────────────────────────────────────────Item Characteristic──────────────────────────────────────────────────
     async def list_item_characteristics_by_item_id(

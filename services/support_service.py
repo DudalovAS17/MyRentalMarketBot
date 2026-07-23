@@ -1,6 +1,7 @@
 import logging
 from typing import Optional
 from datetime import datetime, timezone
+from dataclasses import dataclass
 
 from db.repositories.support_ticket import SupportTicketRepository
 from services.admin_directory_service import AdminDirectoryService
@@ -13,6 +14,15 @@ from utils.domain_exceptions import TicketAlreadyOpen
 logger = logging.getLogger(__name__)
 
 PAGE_SIZE = 8
+
+# пока не используется
+@dataclass(frozen=True)
+class SupportStartContext:
+    """Business context for starting a support flow."""
+    kind: str
+    subject: str | None
+    open_ticket: SupportTicketOut | None
+
 
 class SupportService:
     """Сервис для работы с обращениями клиентов в поддержку."""
@@ -138,6 +148,7 @@ class SupportService:
             return None
 
         return self._to_out(obj)
+
 
     # ─────────────────────────────────────────── write methods ────────────────────────────────────────────────────────
     async def create(self, *, ticket_data: SupportTicketCreateInternal) -> SupportTicketOut:

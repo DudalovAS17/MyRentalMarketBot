@@ -4,7 +4,7 @@ from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 
 from handlers.search.helpers_search import (build_search_prompt_keyboard, validate_search_query, build_search_results_text,
-                            normalize_search_query, parse_search_page, fetch_search_page, build_search_prompt_text,
+                                            normalize_search_query, parse_search_page, fetch_search_page, build_search_prompt_text,
                                             build_empty_search_results_text, build_search_keyboard)
 from services.item_service import ItemService
 

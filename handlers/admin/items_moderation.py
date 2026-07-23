@@ -1,7 +1,9 @@
+from typing import Any
+from decimal import Decimal, InvalidOperation
+from collections.abc import Awaitable, Callable
 from aiogram import Router, F
 from aiogram.types import CallbackQuery, Message
 from aiogram.fsm.context import FSMContext
-from decimal import Decimal, InvalidOperation
 
 from services.item_service import ItemService
 from services.admin_service import AdminActionService
@@ -21,6 +23,8 @@ from utils.callbacks import (ADMIN_ITEMS_MOD, ADMIN_ITEMS_MOD_FILTER, ADMIN_ITEM
 admin_items_router = Router()
 
 # ***** кнопка админки "Модерация товаров" *****
+
+AdminItemAction = Callable[..., Awaitable[Any]]
 
 @admin_items_router.callback_query(F.data == ADMIN_ITEMS_MOD)
 async def admin_items_list(callback: CallbackQuery) -> None:
@@ -91,7 +95,8 @@ async def admin_items_approve(callback: CallbackQuery, item_service: ItemService
     if item_id is None:
         return
 
-    await apply_item_status_action(callback, item_service, admin_service, admin, item_id, new_status=ItemStatus.ACTIVE)
+    await apply_item_status_action(callback, item_service, admin_service, admin, item_id, action_name="Опубликовать",
+                                   service_call=item_service.admin_publish_item) # new_status=ItemStatus.ACTIVE
 
 # ───────────── Скрыть товар ─────────────
 @admin_items_router.callback_query(F.data.startswith(ADMIN_ITEMS_MOD_HIDE))
@@ -103,7 +108,8 @@ async def admin_items_hide(callback: CallbackQuery, item_service: ItemService, a
     if item_id is None:
         return
 
-    await apply_item_status_action(callback, item_service, admin_service, admin, item_id, new_status=ItemStatus.HIDDEN)
+    await apply_item_status_action(callback, item_service, admin_service, admin, item_id, action_name="Скрыть",
+                                   service_call=item_service.admin_hide_item) # new_status=ItemStatus.HIDDEN
 
 # ───────────── Вернуть товар ─────────────
 @admin_items_router.callback_query(F.data.startswith(ADMIN_ITEMS_MOD_UNHIDE))
@@ -115,7 +121,8 @@ async def admin_items_unhide(callback: CallbackQuery, item_service: ItemService,
     if item_id is None:
         return
 
-    await apply_item_status_action(callback, item_service, admin_service, admin, item_id, new_status=ItemStatus.ACTIVE)
+    await apply_item_status_action(callback, item_service, admin_service, admin, item_id, action_name="Вернуть в каталог",
+                                   service_call=item_service.admin_unhide_item) # new_status=ItemStatus.ACTIVE
 
 # ───────────── Архивируем товар ─────────────
 @admin_items_router.callback_query(F.data.startswith(ADMIN_ITEMS_MOD_ARCHIVE))
@@ -127,7 +134,8 @@ async def admin_items_archive(callback: CallbackQuery, item_service: ItemService
     if item_id is None:
         return
 
-    await apply_item_status_action(callback, item_service, admin_service, admin, item_id, new_status=ItemStatus.ARCHIVED)
+    await apply_item_status_action(callback, item_service, admin_service, admin, item_id, action_name="Архивировать",
+                                   service_call=item_service.admin_archive_item) # new_status=ItemStatus.ARCHIVED
 
 # helper
 async def apply_item_status_action(
@@ -136,31 +144,38 @@ async def apply_item_status_action(
     admin_service: AdminActionService,
     admin,
     item_id: int,
-    new_status: ItemStatus
+    #new_status: ItemStatus
+    action_name: str,
+    service_call: AdminItemAction,
 ) -> None:
     """Применить admin status-action к товару и перерисовать карточку"""
-    updated = await item_service.admin_set_status(
-        item_id=item_id,
-        new_status=new_status,
+
+    updated = await service_call(
+        item_id,
         updated_by_admin_id=None, #event.from_user.id
     )
+    # updated = await item_service.admin_set_status(
+    #     item_id=item_id,
+    #     new_status=new_status,
+    #     updated_by_admin_id=None, #event.from_user.id
+    # )
     if not updated:
         if isinstance(event, CallbackQuery):
-            await event.answer("Нельзя изменить статус товара", show_alert=True)
+            await event.answer(f"Нельзя выполнить действие: {action_name}.", show_alert=True) # "Нельзя изменить статус товара"
         else:
-            await event.answer("❌ Нельзя изменить статус товара.")
+            await event.answer(f"❌ Нельзя выполнить действие: {action_name}.") # "❌ Нельзя изменить статус товара."
         return
 
     await admin_service.log_item_status_change(
         admin_tg_id=event.from_user.id,
         admin_id=getattr(admin, "id", None),
         entity_id=item_id,
-        new_status=new_status,
+        new_status=updated.status #new_status,
     )
 
     await send_or_edit(
         event,
-        format_item_details(updated),
+        format_item_details(updated.id),
         get_admin_item_details_keyboard(item_id=updated.id, status_value=updated.status) # updated.status.value
     )
 
@@ -224,11 +239,18 @@ async def admin_items_save_quantity(message: Message, state: FSMContext, item_se
 
     data = await state.get_data()
     item_id = data.get("admin_edit_item_id")
+    if item_id is None:
+        await message.answer("❌ Не удалось определить товар. Повторите попытку.")
+        return
+
     await state.clear()
+
+    # Обновить доступное количество товар
     updated = await item_service.update(item_id, ItemUpdate(available_quantity=quantity), updated_by_admin_id=getattr(user, "id", None))
     if not updated:
         await message.answer(f"❌ Товар #{item_id} не найден.")
         return
+
     await send_or_edit(message, format_item_details(updated), get_admin_item_details_keyboard(item_id=updated.id, status_value=updated.status))
 
 # ────── FSM-изменения цены товара в админке ───────
@@ -239,8 +261,10 @@ async def admin_items_edit_price(callback: CallbackQuery, state: FSMContext) -> 
     item_id = await get_admin_item_id_or_alert(callback)
     if item_id is None:
         return
+
     await state.update_data(admin_edit_item_id=item_id)
     await state.set_state(AdminStates.waiting_item_price)
+
     await send_or_edit(callback, f"💰 Введите новую цену за день для товара #{item_id}:", None)
 
 @admin_items_router.message(AdminStates.waiting_item_price)
@@ -257,11 +281,18 @@ async def admin_items_save_price(message: Message, state: FSMContext, item_servi
 
     data = await state.get_data()
     item_id = data.get("admin_edit_item_id")
+    if item_id is None:
+        await message.answer("❌ Не удалось определить товар. Повторите попытку.")
+        return
+
     await state.clear()
+
+    # Обновить цену товара
     updated = await item_service.update(item_id, ItemUpdate(price=price), updated_by_admin_id=getattr(user, "id", None))
     if not updated:
         await message.answer(f"❌ Товар #{item_id} не найден.")
         return
+
     await send_or_edit(message, format_item_details(updated), get_admin_item_details_keyboard(item_id=updated.id, status_value=updated.status))
 
 
