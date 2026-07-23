@@ -69,8 +69,8 @@ def build_services(
     review_service = ReviewService(review_repo, rental_repo)
     admin_service = AdminActionService(admin_action_repo)
     admin_directory_service = AdminDirectoryService(admin_repo)
-    admin_rental_service = AdminRentalService(rental_repo, admin_service) # item_service, user_service,
-    support_service = SupportService(support_repo)
+    admin_rental_service = AdminRentalService(rental_repo, admin_service, admin_directory_service) # item_service, user_service,
+    support_service = SupportService(support_repo, admin_directory_service)
 
     return AppServices(
         user_service=user_service,

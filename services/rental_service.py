@@ -9,7 +9,7 @@ from schemas.rental import RentalCreate, RentalUpdate, RentalOut, RentalDetailsO
 from schemas.item import ItemOut
 from schemas.user import UserOut
 from status.item_status import ItemStatus
-from status.rental_status import RentalStatus, status_timestamp_fields, can_transition, STATUS_LABELS # is_open_status
+from status.rental_status import RentalStatus, status_timestamp_fields, can_transition
 from utils.parsers import parse_period_prices
 from utils.errors import NotFoundError, ForbiddenError, ConflictError, ValidationError
 from utils.domain_exceptions import ItemNotAvailable
@@ -290,52 +290,10 @@ class RentalService:
         logger.info("Заявка отменена клиентом: id=%s user_id=%s", rental_id, user_id)
         return True
 
-    # ─────────────────────────────────────────────── Availability ─────────────────────────────────────────────────────
-    """    
-    # Внутренний метод — ORM для доменной логики
-    async def _get_open_rental_for_item(self, item_id: int):
-        ""Вернуть первую открытую заявку по товару или None.
 
-        Внутренний метод: возвращает ORM-модель""
-        rentals = await self.repo.list_recent_open_by_item_id(item_id)
-
-        for rental in rentals:
-            if is_open_status(rental.status):
-                return rental
-
-        return None
-
-    # Публичный метод — только DTO
-    async def get_open_rental_for_item(self, item_id: int) -> Optional[RentalOut]:
-        ""Вернуть первую открытую заявку по товару в виде DTO или None.""
-        rental = await self._get_open_rental_for_item(item_id)
-        if rental is None:
-            return None
-
-        return self._to_out(rental)
-
-
-    # Также убирал логику:
-    # ensure_item_available - Гарантия: товар нельзя арендовать, если по нему есть открытая заявка.
-    # has_open_rentals_for_item - Проверить, есть ли у товара открытые заявки.
-
-    # А тут переписали логику через ensure_item_quantity_requestable()
-    # async def abort_if_item_unavailable - Вернуть True, если rent-flow нужно остановить из-за недоступности товара.
-    """
 
 
     # ─────────────────────────────── Пока не используемые ─────────────────────────────────────────────────────────────
-    @staticmethod
-    def get_status_text(status: RentalStatus | str) -> str:
-        """Вернуть человекочитаемое название статуса заявки."""
-        if isinstance(status, str):
-            try:
-                status = RentalStatus(status)
-            except ValueError:
-                return "Неизвестный статус"
-
-        return STATUS_LABELS.get(status, status.value)
-
     # async def list_rentals_by_user(
     #         self,
     #         user_id: int,

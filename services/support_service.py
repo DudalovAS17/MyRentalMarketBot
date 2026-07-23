@@ -3,6 +3,7 @@ from typing import Optional
 from datetime import datetime, timezone
 
 from db.repositories.support_ticket import SupportTicketRepository
+from services.admin_directory_service import AdminDirectoryService
 
 from schemas.support import SupportTicketOut, SupportTicketCreateInternal, SupportMessageOut
 from status.support_ticket_status import SupportTicketStatus
@@ -16,8 +17,9 @@ PAGE_SIZE = 8
 class SupportService:
     """Сервис для работы с обращениями клиентов в поддержку."""
 
-    def __init__(self, support_repo: SupportTicketRepository):
+    def __init__(self, support_repo: SupportTicketRepository, admin_directory_service: AdminDirectoryService):
         self.repo = support_repo
+        self.admin_directory_service = admin_directory_service
 
     # ────────────────────────────────────────── DTO helpers ──────────────────────────────────────────────────────────
     @staticmethod
@@ -160,6 +162,8 @@ class SupportService:
         if closed_by_admin_id is None:
             raise ValidationError("Некорректный ID сотрудника")
 
+        await self.admin_directory_service.ensure_active_admin_by_id(closed_by_admin_id)
+
         ticket = await self.get_ticket_by_id(ticket_id)
         if not ticket:
             if strict:
@@ -236,6 +240,9 @@ class SupportService:
 
     async def save_admin_reply(self, *, ticket_id: int, sender_admin_id: int, reply_text: str, strict: bool = False) -> Optional[SupportTicketOut]:
         """Сохранить ответ админа в истории сообщений и отметить активность."""
+
+        await self.admin_directory_service.ensure_active_admin_by_id(sender_admin_id)
+
         normalized = self.normalize_required_text(reply_text, "Ответ")
         ticket = await self.get_ticket_by_id(ticket_id)
         if not ticket:

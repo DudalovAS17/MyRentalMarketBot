@@ -6,7 +6,7 @@ from db.models.rental import Rental
 from db.repositories.base import BaseRepository
 
 from schemas.rental import RentalCreate, RentalUpdate, RentalStatusUpdate
-from status.rental_status import RentalStatus # , open_statuses
+from status.rental_status import RentalStatus
 
 
 class RentalRepository(BaseRepository):
@@ -116,6 +116,7 @@ class RentalRepository(BaseRepository):
             stmt = self._with_details(stmt)
 
             return await self._one_or_none(s, stmt)
+
 
     # ──────────────────────────────────────────── Для admin-панели ────────────────────────────────────────────────────
     async def list_recent(self, *, limit: int, offset: int = 0) -> list[Rental]:
@@ -262,37 +263,19 @@ class RentalRepository(BaseRepository):
     """
 
     # ─────────────────────────────────────────── Удаляем? ─────────────────────────────────────────────────────────────
-    """
-    _OPEN_RENTAL_LOOKUP_LIMIT = 10
+    # async def release_item_quantity(self, *, item_id: int, quantity: int) -> bool:
+    #     """Вернуть зарезервированное количество товара в доступный остаток."""
+    #     if quantity < 1:
+    #         return False
+    #     async with self._session() as s:
+    #         stmt = (
+    #             update(Item)
+    #             .where(Item.id == item_id)
+    #             .values(available_quantity=Item.available_quantity + quantity)
+    #         )
+    #         return await self._execute_update_commit(s, stmt)
 
-    @staticmethod
-    def _apply_open_status_filter(stmt):
-        ""Оставить только открытые заявки.""
-        return stmt.where(Rental.status.in_(open_statuses()))
 
-    async def list_recent_open_by_item_id(self, item_id: int) -> list[Rental]:
-        ""Вернуть последние открытые заявки по товару.""
-        async with self._session() as s:
-            stmt = select(Rental)
-            stmt = self._apply_item_filter(stmt, item_id)
-            stmt = self._apply_open_status_filter(stmt)
-            stmt = self._apply_recent_order(stmt)
-            stmt = stmt.limit(self._OPEN_RENTAL_LOOKUP_LIMIT)
-            return await self._list(s, stmt)
-
-    # ─── For item-service: moderate_set_status() ───
-    async def has_open_rentals_for_item(self, item_id: int) -> bool:
-        ""Проверить, есть ли у товара открытые заявки.""
-
-        async with self._session() as s:
-            stmt = select(
-                exists().where(
-                    and_(Rental.item_id == item_id, Rental.status.in_(open_statuses()))
-                )
-            )
-
-            return await self._exists(s, stmt)
-    """
 
     # ─────────────────────────────── Пока не используемые ─────────────────────────────────────────────────────────────
     @staticmethod

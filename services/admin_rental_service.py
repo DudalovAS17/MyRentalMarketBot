@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from db.repositories.rental import RentalRepository
 from services.admin_service import AdminActionService
 from services.rental_service import RentalService
+from services.admin_directory_service import AdminDirectoryService
 
 from schemas.rental import RentalOut, RentalAdminDetailsOut, RentalUpdate, RentalStatusUpdate
 from schemas.item import ItemOut
@@ -22,9 +23,14 @@ _PAGE_SIZE = 8
 class AdminRentalService:
     """Админский сервис для просмотра и обработки заявок клиентов на аренду."""
 
-    def __init__(self, repo: RentalRepository, admin_service: AdminActionService) -> None:
+    def __init__(self,
+                 repo: RentalRepository,
+                 admin_service: AdminActionService,
+                 admin_directory_service: AdminDirectoryService
+                 ) -> None:
         self.repo = repo
         self.admin_service = admin_service
+        self.admin_directory_service = admin_directory_service
 
     # ────────────────────────────────────────── DTO helpers ──────────────────────────────────────────────────────────
     @staticmethod
@@ -147,6 +153,8 @@ class AdminRentalService:
     ) -> Optional[RentalOut]:
         """Изменить статус заявки сотрудником с проверкой разрешённого перехода."""
 
+        admin = await self.admin_directory_service.ensure_active_admin_by_telegram_id(admin_tg_id)
+
         rental = await self.repo.get_by_id(rental_id)
         if not rental:
             if strict:
@@ -197,6 +205,7 @@ class AdminRentalService:
         # Пишем audit-log
         await self.admin_service.log_action(
             admin_tg_id=admin_tg_id,
+            admin_id=admin.id,
             action_type=admin_action_for_rental_status(new_status),
             entity_type=AdminEntityType.RENTAL,
             entity_id=rental_id,
@@ -287,6 +296,9 @@ class AdminRentalService:
     async def update_manager_comment( self, *, rental_id: int, admin_tg_id: int, manager_comment: str, strict: bool = False,
     ) -> Optional[RentalOut]:
         """Обновить внутренний комментарий менеджера без смены статуса."""
+
+        admin = await self.admin_directory_service.ensure_active_admin_by_telegram_id(admin_tg_id)
+
         normalized_comment = self._validate_non_empty_text(manager_comment, "Комментарий менеджера")
         updated = await self.repo.update(rental_id, RentalUpdate(manager_comment=normalized_comment))
         if not updated:
@@ -296,6 +308,7 @@ class AdminRentalService:
 
         await self.admin_service.log_action(
             admin_tg_id=admin_tg_id,
+            admin_id=admin.id,
             action_type=admin_action_for_rental_status(updated.status),
             entity_type=AdminEntityType.RENTAL,
             entity_id=rental_id,
@@ -355,7 +368,7 @@ class AdminRentalService:
         return self._to_rental_out(updated)
 
 
-    # ?
+    # ? (кодекс удалял её)
     @staticmethod
     def admin_rental_actions_for_status(status: RentalStatus) -> tuple[str, ...]:
         """Вернуть допустимые admin UI-actions для текущего статуса заявки."""

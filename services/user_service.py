@@ -204,8 +204,12 @@ class UserService:
         logger.info("Клиент заблокирован: id=%s admin_tg_id=%s", user_id, admin_telegram_id)
         return self._to_out(updated)
 
-    async def unban_user(self, user_id: int, strict: bool = False) -> Optional[UserOut]:
-        """Разблокировать клиента."""
+    async def unban_user(self, user_id: int, *, admin_telegram_id: int, strict: bool = False) -> Optional[UserOut]:
+        """Разблокировать клиента с проверкой прав сотрудника."""
+        self._validate_telegram_id(admin_telegram_id)
+        if not self._is_admin_telegram_id(admin_telegram_id):
+            raise ForbiddenError("Недостаточно прав для разблокировки клиента")
+
         user = await self.repo.get_by_id(user_id)
         if not user:
             if strict:
@@ -233,7 +237,7 @@ class UserService:
                 raise ConflictError("Не удалось обновить статус клиента")
             return None
 
-        logger.info("Клиент разблокирован: id=%s", user_id)
+        logger.info("Клиент разблокирован: id=%s admin_tg_id=%s", user_id, admin_telegram_id)
         return self._to_out(updated)
 
     # ──────────────────────────────────────── Client access ───────────────────────────────────────────────────────────

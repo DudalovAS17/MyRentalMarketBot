@@ -3,7 +3,8 @@ from typing import Optional
 
 from db.repositories.admin import AdminRepository
 from schemas.admin import AdminCreate, AdminOut
-from utils.errors import NotFoundError
+from status.user_status import AccountStatus
+from utils.errors import ForbiddenError, NotFoundError
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +20,16 @@ class AdminDirectoryService:
         return AdminOut.model_validate(admin)
 
     # ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+    async def get_by_id(self, admin_id: int, *, strict: bool = False) -> Optional[AdminOut]:
+        """Вернуть администратора/менеджера по ID."""
+        admin = await self.repo.get_by_id(admin_id)
+        if not admin:
+            if strict:
+                raise NotFoundError(f"Сотрудник не найден: id={admin_id}")
+            return None
+
+        return self._to_out(admin)
+
     async def get_by_telegram_id(self, telegram_id: int, *, strict: bool = False) -> Optional[AdminOut]:
         """Вернуть администратора/менеджера по Telegram ID."""
         admin = await self.repo.get_by_telegram_id(telegram_id)
@@ -28,6 +39,20 @@ class AdminDirectoryService:
             return None
 
         return self._to_out(admin)
+
+    async def ensure_active_admin_by_id(self, admin_id: int) -> AdminOut:
+        """Вернуть активного сотрудника ID или запретить действие."""
+        admin = await self.get_by_id(admin_id, strict=True)
+        if not admin.is_active or admin.account_status != AccountStatus.ACTIVE:
+            raise ForbiddenError("Доступ сотрудника отключён")
+        return admin
+
+    async def ensure_active_admin_by_telegram_id(self, telegram_id: int) -> AdminOut:
+        """Вернуть активного сотрудника или запретить админское действие."""
+        admin = await self.get_by_telegram_id(telegram_id, strict=True)
+        if not admin.is_active or admin.account_status != AccountStatus.ACTIVE:
+            raise ForbiddenError("Доступ сотрудника отключён")
+        return admin
 
     async def sync_admins_from_settings(self, admin_ids: set[int]) -> None:
         """Idempotently create admin profiles for Telegram IDs from settings.

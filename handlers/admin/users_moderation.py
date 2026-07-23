@@ -120,7 +120,7 @@ async def admin_users_unban(callback: CallbackQuery, user_service: UserService, 
         event=callback,
         user_service=user_service,
         user_id=user_id,
-        action_call=lambda: user_service.unban_user(user_id),
+        action_call=lambda: user_service.unban_user(user_id, admin_telegram_id=callback.from_user.id),
         audit_call=lambda: admin_service.log_action(
             admin_tg_id=callback.from_user.id, admin_id=admin.id,
             action_type=AdminActionType.UNBAN_USER,
