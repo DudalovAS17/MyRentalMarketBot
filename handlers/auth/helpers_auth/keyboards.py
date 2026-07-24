@@ -1,8 +1,8 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton
 
 from utils.callbacks import (PROFILE_EDIT_NAME, PROFILE_EDIT_PHONE, PROFILE_BACK, PROFILE_BACK_TO_SETTINGS,
-                             PROFILE_SET_NOTIF, PROFILE_TOGGLE_NOTIF_OFF, PROFILE_TOGGLE_NOTIF_ON)
-# PROFILE_BACK, PROFILE_BACK_TO_SETTINGS,
+                             PROFILE_NOTIFICATIONS, PROFILE_TOGGLE_NOTIF_OFF, PROFILE_TOGGLE_NOTIF_ON, PROFILE_EDIT,
+                             PROFILE_SETTINGS_PRIVACY, PROFILE_PRIVACY_POLICY)
 
 
 # ────────────────────────────────────────────────── profile ───────────────────────────────────────────────────────────
@@ -47,7 +47,7 @@ def build_privacy_settings_keyboard() -> InlineKeyboardMarkup:
             [
                 InlineKeyboardButton(
                     text="📄 Политика конфиденциальности",
-                    callback_data="show_privacy_policy",
+                    callback_data=PROFILE_PRIVACY_POLICY,
                 )
             ],
             # [InlineKeyboardButton(
@@ -57,7 +57,7 @@ def build_privacy_settings_keyboard() -> InlineKeyboardMarkup:
             [
                 InlineKeyboardButton(
                     text="🔙 Назад в настройки",
-                    callback_data="back_to_settings",
+                    callback_data=PROFILE_BACK_TO_SETTINGS,
                 )
             ],
         ],
@@ -69,7 +69,7 @@ def build_privacy_policy_keyboard() -> InlineKeyboardMarkup:
         inline_keyboard=[[
             InlineKeyboardButton(
                 text="🔙 Назад в настройки",
-                callback_data="back_to_settings",
+                callback_data=PROFILE_BACK_TO_SETTINGS,
                 )
             ]],
     )
@@ -81,15 +81,15 @@ def build_settings_keyboard() -> InlineKeyboardMarkup:
         inline_keyboard=[
             [InlineKeyboardButton(
                 text="🔔 Уведомления",
-                callback_data=PROFILE_SET_NOTIF,
+                callback_data=PROFILE_NOTIFICATIONS,
             )],
             [InlineKeyboardButton(
                 text="✏️ Редактировать профиль",
-                callback_data="settings_edit_profile",
+                callback_data=PROFILE_EDIT,
             )],
             [InlineKeyboardButton(
                 text="🔒 Конфиденциальность",
-                callback_data="settings_privacy",
+                callback_data=PROFILE_SETTINGS_PRIVACY,
             )],
             # Меняем кнопку на возврат в профиль, так как это основной экран настроек
             [InlineKeyboardButton(

@@ -1,6 +1,8 @@
 from datetime import datetime
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
+from utils.callbacks import SUPPORT_CANCEL
+
 # ──────────────────────────────────────── Format ──────────────────────────────────────────────────────────────────────
 def format_datetime(dt: datetime | None) -> str:
     """Сформатировать дату для UI поддержки."""
@@ -47,6 +49,6 @@ def build_support_cancel_keyboard() -> InlineKeyboardMarkup:
     """Собрать клавиатуру отмены обращения в поддержку."""
     return InlineKeyboardMarkup(
         inline_keyboard=[
-            [InlineKeyboardButton(text="❌ Отмена", callback_data="support:cancel")] # "cancel_support"
+            [InlineKeyboardButton(text="❌ Отмена", callback_data=SUPPORT_CANCEL)]
         ]
     )

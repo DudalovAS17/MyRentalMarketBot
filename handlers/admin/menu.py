@@ -5,7 +5,7 @@ from aiogram.types import Message, CallbackQuery
 
 from .admin_helpers.keyboard  import get_admin_menu_keyboard, get_back_to_admin_menu_keyboard
 from utils.functions import send_or_edit
-from utils.callbacks import BACK_TO_ADMIN_MENU_CB, ADMIN_EXIT_PREFIX
+from utils.callbacks import BACK_TO_ADMIN_MENU_CB, ADMIN_EXIT_PREFIX, ADMIN_CONTENT
 #from .entries import show_main_menu
 
 logger = logging.getLogger(__name__)
@@ -29,3 +29,9 @@ async def admin_exit(callback: CallbackQuery): # , user
 
     await send_or_edit(callback, "✅ Вы вышли из админки.", get_back_to_admin_menu_keyboard(), parse_mode="HTML")
     #await show_main_menu(callback, user)
+
+
+@admin_menu_router.callback_query(F.data == ADMIN_CONTENT)
+async def admin_content_stub(callback: CallbackQuery) -> None:
+    """Закрыть callback раздела контента до реализации MVP-функций."""
+    await callback.answer("Раздел Контент/FAQ пока недоступен.", show_alert=True)

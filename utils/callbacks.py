@@ -25,6 +25,8 @@ async def parse_int_id_from_callback(
 
 # ──────────────────────────────────────────── BASE HANDLER ────────────────────────────────────────────────────────────
 BACK_TO_MENU_CB = "back_to_main_menu" # "back_to_menu"
+NOOP_CB = "noop"
+IGNORE_CB = NOOP_CB # "ignore"
 
 # ──────────────────────────────────────────── CATEGORY HANDLER ────────────────────────────────────────────────────────
 CAT_CB_PREFIX = "cat:"
@@ -64,6 +66,7 @@ DEALS_COMPLETE_PREFIX = "admin:deals:complete:"
 DEALS_CANCEL_PREFIX = "admin:deals:cancel:"
 DEALS_COMMENT_PREFIX = "admin:deals:comment:"
 DEALS_CONTACT_PREFIX = "admin:deals:contact:"
+DEALS_RESOLVE_TARGET_PREFIX = "admin:deals:resolve_target:"
 
 # items moderation
 ADMIN_ITEMS_MOD = "admin:items"
@@ -87,7 +90,7 @@ ADMIN_SUPPORT_PAGE = "admin:support:page:"
 ADMIN_SUPPORT_VIEW = "admin:support:view:"
 ADMIN_SUPPORT_REPLY = "admin:support:reply:"
 ADMIN_SUPPORT_CLOSE = "admin:support:close:"
-ADMIN_SUPPORT_OPEN = "admin:support:open:"
+ADMIN_SUPPORT_OPEN = "admin:support:open" # admin:support:open:"
 
 # update item
 ADMIN_EDIT_ITEM_CB = "edit_item:"
@@ -103,6 +106,11 @@ ADMIN_CONTENT = "admin:content" # - "Контент/FAQ"
 
 ADMIN_EXIT_PREFIX = "admin:exit"
 
+
+ADMIN_ITEMS_FILTER_DRAFT = "admin:items:filter:DRAFT"
+ADMIN_ITEMS_FILTER_ACTIVE = "admin:items:filter:ACTIVE"
+ADMIN_ITEMS_FILTER_HIDDEN = "admin:items:filter:HIDDEN"
+
 # ────────────────────────────────────────────── AUTH HANDLER ──────────────────────────────────────────────────────────
 # profile
 PROFILE_STATS = "profile_stats"
@@ -111,9 +119,9 @@ PROFILE_BACK = "back_to_profile"
 
 # settings
 PROFILE_SETTINGS = "profile_settings"
-PROFILE_BACK_TO_SETTINGS = "back_to_profile_settings"
-PROFILE_NOTIFICATIONS = "profile_notifications"
-PROFILE_SET_NOTIF = "settings_notifications" # Возможно это тот же, что и выше.
+PROFILE_BACK_TO_SETTINGS = "back_to_profile_settings" # "back_to_settings"
+PROFILE_NOTIFICATIONS = "profile_notifications" # # "settings_notifications"
+#PROFILE_SET_NOTIF
 PROFILE_TOGGLE_NOTIF_OFF = "toggle_notifications:off"
 PROFILE_TOGGLE_NOTIF_ON = "toggle_notifications:on"
 #PROFILE_SUPPORT_HISTORY = "profile_support_history"
@@ -126,7 +134,7 @@ PROFILE_PRIVACY_POLICY = "show_privacy_policy"
 PROFILE_EDIT_NAME = "edit_profile_field:name"
 PROFILE_EDIT_EMAIL = "edit_profile_field:email"
 PROFILE_EDIT_PHONE = "profile_change_phone" #"edit_profile_field:phone"
-PROFILE_EDIT = "settings_edit_profile"
+PROFILE_EDIT = "settings_edit_profile" # "profile_settings", "edit_profile"
 
 
 # ───────────────────────────────────────────── RENTALS HANDLER ────────────────────────────────────────────────────────
@@ -195,7 +203,6 @@ MAX_PHOTOS = 5
 
 MESSAGE_OWNER_CB = "message_owner:" #?
 
-
 REVIEWS_CB = "reviews:"
 
 
@@ -210,16 +217,9 @@ BACK_CB = "back"
 ITEM_DETAILS = "item_details:"
 
 
-
-IGNORE_CB = "ignore"
-
 START_DATE_DAYS_AHEAD = 5
 
-RENT_PERIOD_CB = "rent_period:"
 CUSTOM_RENT_DATES_CB = "rent_dates:custom"
-CLIENT_CANCEL_RENTAL_CB = "rental_action:canceled_by_client:" # "rental_action:cancel:"
-CLIENT_SUPPORT_RENTAL_CB = "rental_action:support_by_client:" # "rental_action:support:"
-
 
 
 """

@@ -7,7 +7,7 @@ from schemas.category import CategoryOut
 from schemas.item import ItemOut
 from keyboards.common import build_category_keyboard
 from utils.callbacks import (SUBCAT_CB_PREFIX, BACK_TO_CAT, ITEM_DETAILS_CB, RENT_ITEM_CB, # SHOW_ALL_PHOTOS_CB,
-                             MESSAGE_OWNER_CB, CAROUSEL_NAV_CB, REVIEWS_CB) # , PHOTO_NAV_CB, ALL_CATEGORY_CB
+                             MESSAGE_OWNER_CB, CAROUSEL_NAV_CB, REVIEWS_CB, NOOP_CB) # , PHOTO_NAV_CB, ALL_CATEGORY_CB
 
 """
 build_category_keyboard - показ категорий
@@ -55,7 +55,7 @@ def build_items_carousel_keyboard(
         next_index = (current_index + 1) % total_items
         buttons.append([
             InlineKeyboardButton(text="⬅️", callback_data=f"{nav_cb_prefix}{subcategory_id}:{prev_index}"),
-            InlineKeyboardButton(text=f"{current_index + 1} / {total_items}", callback_data="noop"),
+            InlineKeyboardButton(text=f"{current_index + 1} / {total_items}", callback_data=NOOP_CB),
             InlineKeyboardButton(text="➡️", callback_data=f"{nav_cb_prefix}{subcategory_id}:{next_index}"),
         ])
 
@@ -63,7 +63,7 @@ def build_items_carousel_keyboard(
         InlineKeyboardButton(text="🔍 Подробнее", callback_data=f"{item_details_cb_prefix}{current_item_id}"),
         InlineKeyboardButton(
             text="✅ Арендовать" if availability.can_request else item_availability_text(availability),
-            callback_data=f"{RENT_ITEM_CB}{current_item_id}" if availability.can_request else "noop",
+            callback_data=f"{RENT_ITEM_CB}{current_item_id}" if availability.can_request else NOOP_CB,
         ),
     ])
 
@@ -91,7 +91,7 @@ def build_item_details_kb(
     if availability.can_request:
         buttons.append([InlineKeyboardButton(text="✅ Арендовать", callback_data=f"{RENT_ITEM_CB}{item.id}")])
     else:
-        buttons.append([InlineKeyboardButton(text=item_availability_text(availability), callback_data="noop")])
+        buttons.append([InlineKeyboardButton(text=item_availability_text(availability), callback_data=NOOP_CB)])
 
     # Убрал эту логику
     # if can_request_item(item, has_open_rental=has_open_rental):
@@ -99,7 +99,7 @@ def build_item_details_kb(
     # else: # if is_busy
     #     buttons.append([InlineKeyboardButton(
     #         text=item_unavailable_text(item, has_open_rental=has_open_rental, busy_until=end_date),
-    #         callback_data="noop",
+    #         callback_data=NOOP_CB,
     #     )])
 
     # Заменил на rich-логику!

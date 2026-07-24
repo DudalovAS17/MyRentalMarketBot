@@ -7,7 +7,7 @@ from services.item_service import ItemService
 from schemas.item import ItemOut
 from utils.validators import format_price
 from utils.callbacks import (BACK_TO_MENU_CB, PAGE_SIZE, QUERY_MIN_LEN, QUERY_MAX_LEN, SEARCH_PAGE_CB_PREFIX,
-                             SEARCH_NEW_QUERY_CB, BACK_TO_CAT) # SEARCH_BACK_CB,
+                             SEARCH_NEW_QUERY_CB, BACK_TO_CAT, NOOP_CB, ITEM_DETAILS_CB) # SEARCH_BACK_CB,
 
 def truncate_text(text: str, max_len: int) -> str:
     """Обрезать текст без разрыва слов и добавить многоточие."""
@@ -103,7 +103,7 @@ def build_search_keyboard(items: Sequence[ItemOut], page: int, has_next: bool) -
     for item in items:
         keyboard.append([InlineKeyboardButton(
             text=f"🔎 Открыть товар #{item.id}",
-            callback_data=f"show_item_details:{item.id}")]
+            callback_data=f"{ITEM_DETAILS_CB}{item.id}")]
         )
 
     has_prev = page > 1
@@ -111,7 +111,7 @@ def build_search_keyboard(items: Sequence[ItemOut], page: int, has_next: bool) -
     if has_prev:
         nav_row.append(InlineKeyboardButton(text="⬅️", callback_data=f"{SEARCH_PAGE_CB_PREFIX}{page - 1}"))
     if items:
-        nav_row.append(InlineKeyboardButton(text=f"Стр. {page}", callback_data="noop"))
+        nav_row.append(InlineKeyboardButton(text=f"Стр. {page}", callback_data=NOOP_CB))
     if has_next:
         nav_row.append(InlineKeyboardButton(text="➡️", callback_data=f"{SEARCH_PAGE_CB_PREFIX}{page + 1}"))
     if nav_row:

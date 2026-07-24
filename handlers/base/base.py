@@ -14,7 +14,7 @@ from services.user_service import UserService, StartAction
 
 from keyboards.common import get_main_menu_keyboard
 from texts_otP.base import LEGAL_TEXT, HELP_TEXT, build_unknown_command_text
-from utils.callbacks import BACK_TO_MENU_CB
+from utils.callbacks import BACK_TO_MENU_CB, NOOP_CB
 
 base_router = Router()
 
@@ -100,7 +100,7 @@ async def unknown_command(message: Message) -> None:
     command = message.text
     await message.answer(build_unknown_command_text(command), reply_markup=get_main_menu_keyboard())
 
-@base_router.callback_query(F.data == "noop")
+@base_router.callback_query(F.data == NOOP_CB)
 async def noop(callback) -> None:
     """Закрыть callback-заглушку."""
     await callback.answer("Недоступно", show_alert=False)

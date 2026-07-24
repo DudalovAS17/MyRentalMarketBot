@@ -9,9 +9,10 @@ from .admin_helpers.show import show_deal_card
 from .admin_helpers.parse import parse_admin_rental_id
 
 from states.admin import AdminStates
+from status.rental_status import RentalStatus
 from utils.functions import send_or_edit
 from utils.callbacks import (DEALS_PROGRESS_PREFIX, DEALS_CONFIRM_PREFIX, DEALS_REJECT_PREFIX, DEALS_COMPLETE_PREFIX,
-                             DEALS_CANCEL_PREFIX, DEALS_COMMENT_PREFIX)
+                             DEALS_CANCEL_PREFIX, DEALS_COMMENT_PREFIX, DEALS_RESOLVE_TARGET_PREFIX)
 
 admin_status_actions_router = Router()
 
@@ -188,6 +189,43 @@ async def admin_deals_comment_apply(
 
     await show_deal_card(message, admin_rental_service, rental_id, "✅ Комментарий менеджера сохранён.\n\n")
 
+
+# NEW
+@admin_status_actions_router.callback_query(F.data.startswith(DEALS_RESOLVE_TARGET_PREFIX))
+async def admin_deals_resolve_target(
+        callback: CallbackQuery,
+        admin_rental_service: AdminRentalService,
+        notification_service: NotificationService,
+) -> None:
+    """Безопасно обработать legacy-кнопки выбора целевого статуса спорной заявки."""
+    payload = (callback.data or "").removeprefix(DEALS_RESOLVE_TARGET_PREFIX)
+    try:
+        rental_id_raw, target_raw = payload.split(":", maxsplit=1)
+        rental_id = int(rental_id_raw)
+    except (ValueError, AttributeError):
+        await callback.answer("Некорректная кнопка.", show_alert=True)
+        return
+
+    target_status = {
+        "completed": RentalStatus.COMPLETED,
+        "confirmed": RentalStatus.CONFIRMED,
+    }.get(target_raw)
+
+    if target_status is None:
+        await callback.answer("Этот целевой статус пока не поддерживается.", show_alert=True)
+        return
+
+    await apply_admin_deal_action(
+        callback,
+        admin_rental_service,
+        notification_service,
+        action_name=f"Статус заявки изменён на {target_status.value}",
+        service_call=lambda _parsed_rental_id: admin_rental_service.admin_set_status(
+            rental_id=rental_id,
+            admin_tg_id=callback.from_user.id,
+            new_status=target_status,
+        ),
+    )
 
 # ─────────────────────────────────────────────────── helpers ──────────────────────────────────────────────────────────
 async def apply_admin_deal_action(

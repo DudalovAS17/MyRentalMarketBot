@@ -5,7 +5,7 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, KeyboardBu
 from schemas.category import CategoryOut
 from status.rental_status import OPEN_STATUSES, STATUS_LABELS
 from utils.callbacks import (CAT_CB_PREFIX, BACK_TO_MENU_CB, RENTAL_DETAILS_CB, PROFILE_BACK_TO_SETTINGS, MY_RENTALS_CB,
-                             BACK_TO_CAT, SUPPORT_START, SUPPORT_CONTINUE)
+                             BACK_TO_CAT, SUPPORT_START, SUPPORT_CONTINUE, PROFILE_EDIT, PROFILE_NOTIFICATIONS)
 # SEARCH_CITY_CB, SEARCH_FILTERS_CB, CANCEL_RENT_FLOW_CB, CONFIRM_RENT_CB, RENT_BACK_CB, RENT_CHANGE_CB,
 
 # ──────────────────────────────────────────── base ────────────────────────────────────────────────────────────────────
@@ -123,7 +123,7 @@ def build_my_rentals_keyboard(rentals, *, current_user_id: int, limit: int = 30)
 def get_open_rental_keyboard(rental_id: int) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
-            [InlineKeyboardButton(text="Открыть заявку", callback_data=f"rental_details:{rental_id}")],
+            [InlineKeyboardButton(text="Открыть заявку", callback_data=f"{RENTAL_DETAILS_CB}{rental_id}")],
         ] # "🔍 Посмотреть запрос"
     )
 
@@ -145,13 +145,13 @@ def get_profile_keyboard() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
 
     builder.button(text="📋 Мои аренды", callback_data=MY_RENTALS_CB)
-    builder.button(text="✏️ Контактные данные", callback_data="settings_edit_profile") # "profile_settings", "edit_profile"
+    builder.button(text="✏️ Контактные данные", callback_data=PROFILE_EDIT)
 
     #builder.button(text="🏆 Достижения", callback_data="achievements")
     #builder.button(text ="📊 Статистика", callback_data="profile_stats")
 
     #builder.button(text="🕘 История заявок", callback_data=PROFILE_SUPPORT_HISTORY)
-    builder.button(text="🔔 Уведомления", callback_data="profile_notifications")  # "settings_notifications"
+    builder.button(text="🔔 Уведомления", callback_data=PROFILE_NOTIFICATIONS)
 
     builder.button(text = "⬅️ В главное меню", callback_data=BACK_TO_MENU_CB)
 
