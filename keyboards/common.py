@@ -119,7 +119,7 @@ def build_my_rentals_keyboard(rentals, *, current_user_id: int, limit: int = 30)
 
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
-
+# get_rental_notification_keyboard мб так лучше назвать?
 def get_open_rental_keyboard(rental_id: int) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
@@ -215,7 +215,7 @@ def build_fallback_inline_keyboard(*, include_catalog: bool = True, include_back
     """Единая fallback-клавиатура для ошибок и пустых состояний."""
     rows = []
     if include_catalog:
-        rows.append([InlineKeyboardButton(text="🏗 Каталог", callback_data=BACK_TO_CAT)])
+        rows.append([InlineKeyboardButton(text="🏗 Каталог товаров", callback_data=BACK_TO_CAT)])
     if include_back:
         rows.append([InlineKeyboardButton(text="🔙 Назад", callback_data=BACK_TO_CAT)])
     rows.append([InlineKeyboardButton(text="🏠 Главное меню", callback_data=BACK_TO_MENU_CB)])

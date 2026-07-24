@@ -11,6 +11,7 @@ from .admin_helpers.parse import parse_admin_rental_id
 from states.admin import AdminStates
 from status.rental_status import RentalStatus
 from utils.functions import send_or_edit
+from utils.errors import ServiceError
 from utils.callbacks import (DEALS_PROGRESS_PREFIX, DEALS_CONFIRM_PREFIX, DEALS_REJECT_PREFIX, DEALS_COMPLETE_PREFIX,
                              DEALS_CANCEL_PREFIX, DEALS_COMMENT_PREFIX, DEALS_RESOLVE_TARGET_PREFIX)
 
@@ -79,11 +80,21 @@ async def admin_deals_complete(
 
 # ─────────── FSM: 🚫 Отклонение заявки ──────────────
 @admin_status_actions_router.callback_query(F.data.startswith(DEALS_REJECT_PREFIX))
-async def admin_deals_reject_ask(callback: CallbackQuery, state: FSMContext) -> None:
+async def admin_deals_reject_ask(callback: CallbackQuery, state: FSMContext, admin_rental_service: AdminRentalService) -> None:
     """FSM: Запросить причину отклонения заявки."""
     rental_id = parse_admin_rental_id(callback.data)
     if rental_id is None:
         await callback.answer("Некорректный ID заявки", show_alert=True)
+        return
+
+    # NEW
+    if not await ensure_admin_rental_status_for_fsm(
+        callback,
+        admin_rental_service=admin_rental_service,
+        rental_id=rental_id,
+        allowed_statuses={RentalStatus.REQUESTED, RentalStatus.IN_PROGRESS},
+        stale_text="Заявку уже нельзя отклонить: статус изменился.",
+    ):
         return
 
     await callback.answer()
@@ -116,11 +127,21 @@ async def admin_deals_reject_apply(
 
 # ─────────── FSM: 🚫 Отменить аренду ──────────────
 @admin_status_actions_router.callback_query(F.data.startswith(DEALS_CANCEL_PREFIX))
-async def admin_deals_cancel_ask(callback: CallbackQuery, state: FSMContext) -> None:
+async def admin_deals_cancel_ask(callback: CallbackQuery, state: FSMContext, admin_rental_service: AdminRentalService) -> None:
     """FSM: Запросить причину отмены подтверждённой компанией заявки."""
     rental_id = parse_admin_rental_id(callback.data)
     if rental_id is None:
         await callback.answer("Некорректный ID заявки", show_alert=True)
+        return
+
+    # NEW
+    if not await ensure_admin_rental_status_for_fsm(
+        callback,
+        admin_rental_service=admin_rental_service,
+        rental_id=rental_id,
+        allowed_statuses={RentalStatus.CONFIRMED},
+        stale_text="Заявку уже нельзя отменить: статус изменился.",
+    ):
         return
 
     await callback.answer()
@@ -286,3 +307,29 @@ async def get_reasoned_action_payload(message: Message, state: FSMContext) -> tu
 
     await state.clear()
     return rental_id, reason
+
+# NEW
+async def ensure_admin_rental_status_for_fsm(
+    callback: CallbackQuery,
+    admin_rental_service: AdminRentalService,
+    *,
+    rental_id: int,
+    allowed_statuses: set[RentalStatus],
+    stale_text: str,
+) -> bool:
+    """Проверить актуальный статус перед входом в FSM-причину для stale-кнопок."""
+    try:
+        details = await admin_rental_service.get_details(rental_id)
+    except ServiceError:
+        await callback.answer("Не удалось загрузить заявку. Попробуйте позже.", show_alert=True)
+        return False
+    if details is None:
+        await callback.answer("Заявка не найдена.", show_alert=True)
+        return False
+
+    if details.rental.status not in allowed_statuses:
+        await callback.answer(stale_text, show_alert=True)
+        await show_deal_card(callback, admin_rental_service, rental_id)
+        return False
+
+    return True

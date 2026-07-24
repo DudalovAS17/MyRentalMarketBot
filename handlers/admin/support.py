@@ -16,8 +16,8 @@ from .admin_helpers.file_support import (load_open_support_ticket_or_notify, sen
 from .admin_helpers.keyboard import get_admin_support_ticket_keyboard, get_admin_support_sections_keyboard
 from states.admin_support import AdminSupportStates
 from utils.functions import send_or_edit
-from utils.callbacks import (ADMIN_SUPPORT, ADMIN_SUPPORT_PAGE, ADMIN_SUPPORT_VIEW, ADMIN_SUPPORT_REPLY,
-                             ADMIN_SUPPORT_CLOSE, ADMIN_SUPPORT_ITEMS, ADMIN_SUPPORT_RENTALS, ADMIN_SUPPORT_GENERAL) # , ADMIN_SUPPORT_OPEN
+from utils.callbacks import (ADMIN_SUPPORT, ADMIN_SUPPORT_PAGE, ADMIN_SUPPORT_VIEW, ADMIN_SUPPORT_REPLY, ADMIN_SUPPORT_CLOSE,
+                             ADMIN_SUPPORT_ITEMS, ADMIN_SUPPORT_RENTALS, ADMIN_SUPPORT_GENERAL, ADMIN_SUPPORT_OPEN)
 
 admin_support_router = Router()
 
@@ -46,13 +46,14 @@ async def admin_support_list(callback: CallbackQuery, support_service: SupportSe
 
     await show_support_ticket_list(callback, user_service, support_service, page=1, kind=kind)
 
-# @admin_support_router.callback_query(F.data == ADMIN_SUPPORT_OPEN)
-# async def admin_support_open_list(callback: CallbackQuery, state: FSMContext, support_service: SupportService, user):
-#     """Открытые тикеты (страница 1)"""
-#     await callback.answer()
-#
-#     await state.clear()
-#     await render_open_list(callback, support_service, page=1)
+# ???
+@admin_support_router.callback_query(F.data == ADMIN_SUPPORT_OPEN.rstrip(":"))
+async def admin_support_legacy_open_list(callback: CallbackQuery, support_service: SupportService, user_service: UserService) -> None:
+    """Открытые тикеты (страница 1): показываем общие обращения."""
+    await callback.answer()
+
+    # await state.clear()
+    await show_support_ticket_list(callback, user_service, support_service, page=1, kind="general")
 
 
 @admin_support_router.callback_query(F.data.startswith(ADMIN_SUPPORT_PAGE))

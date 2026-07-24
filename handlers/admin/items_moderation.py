@@ -175,7 +175,7 @@ async def apply_item_status_action(
 
     await send_or_edit(
         event,
-        format_item_details(updated.id),
+        format_item_details(updated), # updated.id
         get_admin_item_details_keyboard(item_id=updated.id, status_value=updated.status) # updated.status.value
     )
 

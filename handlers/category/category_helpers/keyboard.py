@@ -79,12 +79,8 @@ def build_item_details_kb(
     item: ItemOut,
     availability: ItemRentalAvailability,
     *,
-    #has_open_rental: bool, #is_busy: bool,
     selected_subcategory_id: int | None,
     selected_item_index: int | None = None,
-    #end_date: str | None,
-    #photo_count: int = 0, # Логика N1
-    #photo_index: int = 0 # Логика N1
 ) -> InlineKeyboardMarkup:
     buttons: list[list[InlineKeyboardButton]] = []
 
@@ -92,34 +88,6 @@ def build_item_details_kb(
         buttons.append([InlineKeyboardButton(text="✅ Арендовать", callback_data=f"{RENT_ITEM_CB}{item.id}")])
     else:
         buttons.append([InlineKeyboardButton(text=item_availability_text(availability), callback_data=NOOP_CB)])
-
-    # Убрал эту логику
-    # if can_request_item(item, has_open_rental=has_open_rental):
-    #     buttons.append([InlineKeyboardButton(text="✅ Арендовать", callback_data=f"{RENT_ITEM_CB}{item.id}")])
-    # else: # if is_busy
-    #     buttons.append([InlineKeyboardButton(
-    #         text=item_unavailable_text(item, has_open_rental=has_open_rental, busy_until=end_date),
-    #         callback_data=NOOP_CB,
-    #     )])
-
-    # Заменил на rich-логику!
-    """
-    # Логика N1
-    if photo_count > 1:
-        safe_photo_index = photo_index % photo_count
-        prev_photo_index = (safe_photo_index - 1) % photo_count
-        next_photo_index = (safe_photo_index + 1) % photo_count
-        buttons.append([
-            InlineKeyboardButton(text="⬅️ Фото", callback_data=f"{PHOTO_NAV_CB}{item.id}:{prev_photo_index}"),
-            InlineKeyboardButton(text=f"{safe_photo_index + 1} / {photo_count}", callback_data="noop"),
-            InlineKeyboardButton(text="➡️ Фото", callback_data=f"{PHOTO_NAV_CB}{item.id}:{next_photo_index}"),
-        ])
-    elif photo_count == 1:
-        buttons.append([InlineKeyboardButton(text="📸 Фото 1 / 1", callback_data="noop")])
-
-    # Логика N2
-    buttons.append([InlineKeyboardButton(text="📸 Показать все фото", callback_data=f"{SHOW_ALL_PHOTOS_CB}{item.id}")])
-    """
 
     buttons.append([
         InlineKeyboardButton(text="💬 Написать менеджеру", callback_data=f"{MESSAGE_OWNER_CB}{item.id}"),
@@ -132,7 +100,7 @@ def build_item_details_kb(
         else:
             back_callback = f"{SUBCAT_CB_PREFIX}{selected_subcategory_id}"
         buttons.append(
-            [InlineKeyboardButton(text="🔙 Назад (к товару)", callback_data=back_callback)]
+            [InlineKeyboardButton(text="🔙 Назад к товарам", callback_data=back_callback)]
         )
     else:
         buttons.append([InlineKeyboardButton(text="🔙 Назад в каталог", callback_data=BACK_TO_CAT)])
@@ -148,3 +116,46 @@ def build_back_to_item_details_keyboard(item_id: int) -> InlineKeyboardMarkup:
             callback_data=f"{ITEM_DETAILS_CB}{item_id}"
         )]]
     )
+
+
+
+""" build_item_details_kb()
+
+def build_item_details_kb(
+    item: ItemOut,
+    availability: ItemRentalAvailability,
+    *,
+    has_open_rental: bool, #is_busy: bool,
+    selected_subcategory_id: int | None,
+    selected_item_index: int | None = None,
+    end_date: str | None,
+    photo_count: int = 0, # Логика N1
+    photo_index: int = 0 # Логика N1
+) -> InlineKeyboardMarkup:
+
+- Убрал эту логику:
+    if can_request_item(item, has_open_rental=has_open_rental):
+        buttons.append([InlineKeyboardButton(text="✅ Арендовать", callback_data=f"{RENT_ITEM_CB}{item.id}")])
+    else: # if is_busy
+        buttons.append([InlineKeyboardButton(
+            text=item_unavailable_text(item, has_open_rental=has_open_rental, busy_until=end_date),
+            callback_data=NOOP_CB,
+        )])
+
+- Заменил на rich-логику:
+    # Логика N1
+    if photo_count > 1:
+        safe_photo_index = photo_index % photo_count
+        prev_photo_index = (safe_photo_index - 1) % photo_count
+        next_photo_index = (safe_photo_index + 1) % photo_count
+        buttons.append([
+            InlineKeyboardButton(text="⬅️ Фото", callback_data=f"{PHOTO_NAV_CB}{item.id}:{prev_photo_index}"),
+            InlineKeyboardButton(text=f"{safe_photo_index + 1} / {photo_count}", callback_data="noop"),
+            InlineKeyboardButton(text="➡️ Фото", callback_data=f"{PHOTO_NAV_CB}{item.id}:{next_photo_index}"),
+        ])
+    elif photo_count == 1:
+        buttons.append([InlineKeyboardButton(text="📸 Фото 1 / 1", callback_data="noop")])
+    
+    # Логика N2
+    buttons.append([InlineKeyboardButton(text="📸 Показать все фото", callback_data=f"{SHOW_ALL_PHOTOS_CB}{item.id}")])
+"""

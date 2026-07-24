@@ -128,11 +128,9 @@ def item_availability_text(availability: ItemRentalAvailability) -> str:
         return "✅ В наличии"
 
     if availability.reason == "out_of_stock":
-        return "🟡 Наличие уточняет менеджер"
-    if availability.reason == "busy":
-        return "⛔ Сейчас занято"
+        return "🟡 Пока нет в наличии"
     return "⛔ Сейчас недоступно"
-
+# логику busy выкинул
 
 # Карточки товаров без rich-логики
 """

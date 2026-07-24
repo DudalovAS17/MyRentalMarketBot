@@ -24,7 +24,7 @@ from keyboards.common import build_fallback_inline_keyboard
 #from schemas.photo import PhotoOut
 from utils.functions import send_or_edit #, send_reply
 #from utils.errors import ServiceError
-from utils.callbacks import CAT_CB_PREFIX, SUBCAT_CB_PREFIX, ITEM_DETAILS_CB,  BACK_TO_CAT, CAROUSEL_NAV_CB # SHOW_ALL_PHOTOS_CB, PHOTO_NAV_CB
+from utils.callbacks import CAT_CB_PREFIX, SUBCAT_CB_PREFIX, ITEM_DETAILS_CB,  BACK_TO_CAT, CAROUSEL_NAV_CB, REVIEWS_CB # SHOW_ALL_PHOTOS_CB, PHOTO_NAV_CB
 from utils.validators import parse_callback
 
 category_router = Router()
@@ -255,6 +255,24 @@ async def show_item_details_in_subcategory(
 async def back_to_categories(callback: CallbackQuery, category_service: CategoryService) -> None:
     """Кнопка '🔙 Назад' → возвращаемся к списку категорий"""
     await show_categories(callback, category_service)
+
+
+# Заглушка
+@category_router.callback_query(F.data.startswith(REVIEWS_CB))
+async def show_item_reviews_mvp_stub(callback: CallbackQuery, item_service: ItemService) -> None:
+    """Безопасная MVP-заглушка отзывов товара, чтобы кнопка не была stale/broken."""
+    item = await resolve_entity(
+        callback,
+        item_service.get_public_item_by_id,
+        parse_callback(callback.data, REVIEWS_CB),
+        invalid_id_text=not_item_id,
+        load_error_text=serv_err_item,
+        not_found_text=not_item,
+    )
+    if item is None:
+        return
+
+    await callback.answer("Отзывы по товарам скоро появятся.", show_alert=True)
 
 
 # Без rich-логики (т.е. Логика N1 и Логика N2):
